@@ -41,7 +41,19 @@
             </div>
 
             <div class="navbar-nav">
-                <button class="btn btn-primary" onclick="toggleAuthModal()">Ingresar</button>
+                @auth
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle">Hola, {{ Auth::user()->name }}</button>
+                        <div class="dropdown-menu">
+                            <form action="{{ route('logout') }}" method="POST">
+                                @csrf
+                                <button type="submit" class="dropdown-item">Cerrar Sesión</button>
+                            </form>
+                        </div>
+                    </div>
+                @else
+                    <a href="{{ route('login') }}" class="btn btn-primary">Ingresar</a>
+                @endauth
             </div>
         </div>
     </nav>
@@ -528,35 +540,7 @@
 
 
 
-    <!-- ===== AUTH MODAL ===== -->
-    <div id="authModal" class="auth-modal">
-        <div class="auth-modal-content">
-            <button class="close-modal" onclick="toggleAuthModal()">✕</button>
-
-            <div class="auth-tabs">
-                <button class="auth-tab active" onclick="switchAuthTab(event, 'login')">Ingresar</button>
-                <button class="auth-tab" onclick="switchAuthTab(event, 'register')">Registrarse</button>
-            </div>
-
-            <!-- Login -->
-            <div id="login-tab" class="auth-tab-content active">
-                <h2>Ingresar a tu Cuenta</h2>
-                <form onsubmit="submitLogin(event)">
-                    <input type="email" placeholder="Correo Electrónico" required>
-                    <input type="password" placeholder="Contraseña" required>
-                    <button type="submit" class="btn btn-primary">Ingresar</button>
-                </form>
-                <p class="auth-footer">¿Olvidaste tu contraseña? <a href="#">Recupérala aquí</a></p>
-            </div>
-
-            <!-- Register -->
-            <div id="register-tab" class="auth-tab-content">
-                <h2>Crear Nueva Cuenta</h2>
-                <button type="submit" class="btn btn-primary">Registrarse</button>
-                </form>
-            </div>
-        </div>
-    </div>
+    <!-- Auth Modal Removed: Using dedicated Login Page -->
 
     <!-- ===== FLOATING ACTION BUTTONS (FAB) ===== -->
     <div class="fab-container">
