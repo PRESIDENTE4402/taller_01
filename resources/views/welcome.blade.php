@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/landing.js'])
     @endif
 </head>
 
@@ -25,8 +25,11 @@
     <nav class="navbar">
         <div class="navbar-inner">
             <div class="navbar-logo">
-                <img src="{{ asset('logo-m.jpg') }}" alt="BMW M Logo" style="height: 40px; margin-right: 10px;">
-                <span>TECNIMECANICA</span>
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/BMW.svg/2048px-BMW.svg.png"
+                    alt="BMW Logo" style="height: 45px; margin-right: 12px;">
+                <span style="font-style: italic;">BMW <span style="color: var(--m-red);">/</span><span
+                        style="color: var(--m-blue-dark);">/</span><span style="color: var(--m-blue-light);">/</span>M
+                    SERVICE</span>
             </div>
 
             <div class="navbar-menu">
@@ -38,7 +41,6 @@
             </div>
 
             <div class="navbar-nav">
-                <a href="#citas" onclick="checkAuth(event, 'citas')" class="navbar-link secondary">Agendar</a>
                 <button class="btn btn-primary" onclick="toggleAuthModal()">Ingresar</button>
             </div>
         </div>
@@ -47,37 +49,65 @@
     <!-- ===== HERO ===== -->
     <section class="hero">
         <div class="hero-inner">
-            <h1 style="text-shadow: 0 4px 10px rgba(0,0,0,0.5);">TALLERES ESPECIALIZADOS PARA SU BMW</h1>
-            <p class="hero-subtitle" style="text-shadow: 0 2px 5px rgba(0,0,0,0.5);">Mantenimiento con técnicos
-                capacitados, equipos especializados y repuestos originales que cumplen todos los estándares de fábrica.
+            <h1 style="text-shadow: 0 4px 10px rgba(0,0,0,0.5);">THE ULTIMATE DRIVING MACHINE CARE</h1>
+            <p class="hero-subtitle" style="text-shadow: 0 2px 5px rgba(0,0,0,0.5);">Mantenimiento certificado para su
+                BMW con estándares de fábrica Munich.
+                <br>Especialistas en Serie M, X y modelos i.
             </p>
             <div class="hero-buttons">
-                <a href="#citas" onclick="checkAuth(event, 'citas')" class="btn btn-primary">Agendar Cita</a>
+                <a href="#soluciones" class="btn btn-primary">Explorar Servicios</a>
                 <a href="#contacto" class="btn btn-secondary">Cotizar Servicio</a>
             </div>
         </div>
     </section>
 
     <section class="trust">
-        <p>Trusted by <strong>500+ satisfied customers</strong> | ISO Certified | 98% satisfaction</p>
+        <p>Certificación BMW Service Partner | <strong>Uso exclusivo de recambios originales</strong> | Garantía Oficial
+        </p>
     </section>
 
 
     <section id="servicios" class="services">
         <div class="services-inner">
-            <h2>Nuestros Servicios Principales</h2>
-            <div class="services-grid">
-                <div class="service-box">
-                    <h3>Reparación & Mantenimiento</h3>
-                    <p>Servicios completos de reparación, diagnóstico y mantenimiento preventivo con técnicos
-                        certificados.</p>
-                    <a href="#soluciones" class="service-link">Explorar →</a>
+            <div class="section-title">
+                <h2>Experiencia de Servicio BMW</h2>
+                <p>Mantenimiento de clase mundial para su vehículo</p>
+            </div>
+
+            <div class="services-grid-premium">
+                <div class="service-card-premium">
+                    <div class="card-image"
+                        style="background-image: url('https://img.freepik.com/foto-gratis/mecanico-haciendo-servicio-mantenimiento-coche_1303-26804.jpg');">
+                    </div>
+                    <div class="card-content">
+                        <div class="card-icon">🛠️</div>
+                        <h3>Mecánica Integral</h3>
+                        <p>Desde cambios de aceite hasta reparaciones complejas de motor, utilizando solo partes
+                            originales BMW.</p>
+                        <a href="#contacto" class="link-arrow">Agendar Servicio <i class="fas fa-arrow-right"></i></a>
+                    </div>
                 </div>
-                <div class="service-box">
-                    <h3>Diagnóstico Electrónico</h3>
-                    <p>Diagnosis computarizada de sistemas eléctricos y electrónicos con equipos de última generación.
-                    </p>
-                    <a href="#soluciones" class="service-link">Explorar →</a>
+                <div class="service-card-premium">
+                    <div class="card-image"
+                        style="background-image: url('https://img.freepik.com/foto-gratis/hombre-herramienta-diagnostico-taller-coches_1303-26818.jpg');">
+                    </div>
+                    <div class="card-content">
+                        <div class="card-icon">💻</div>
+                        <h3>Diagnóstico Avanzado</h3>
+                        <p>Software oficial ISTA/D e ISTA/P para diagnósticos precisos y programación de módulos.</p>
+                        <a href="#contacto" class="link-arrow">Ver Detalles <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+                <div class="service-card-premium">
+                    <div class="card-image"
+                        style="background-image: url('https://img.freepik.com/foto-gratis/primer-plano-coche-electrico-cargando_23-2148972418.jpg');">
+                    </div>
+                    <div class="card-content">
+                        <div class="card-icon">🔋</div>
+                        <h3>E-Mobility Service</h3>
+                        <p>Especialistas certificados en BMW i3, i8, iX. Mantenimiento de baterías de alta tensión.</p>
+                        <a href="#contacto" class="link-arrow">Consultar <i class="fas fa-arrow-right"></i></a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -89,51 +119,41 @@
                 <p>Revisa las reparaciones que hemos completado con éxito</p>
             </div>
 
-            <div class="carousel">
-                <div class="carousel-inner">
-                    <div class="carousel-item active">
+            <div class="carousel-container-modern">
+                <!-- Using a more modern Grid/Flex approach instead of just a slider for "Success Stories" -->
+                <div class="success-grid">
+                    <div class="success-item big">
                         <img src="https://res.cloudinary.com/dcfodug6m/image/upload/v1768881736/WhatsApp_Image_2026-01-19_at_8.46.46_PM_je6mv6.jpg"
-                            alt="Reparación de motor">
-                        <div class="carousel-caption">
-                            <h4>Programación de llaves</h4>
-                            <p>BMW X5 G05 2020 programación de segunda llave ahora es posible</p>
+                            alt="Work 1">
+                        <div class="overlay-info">
+                            <h3>X5 M Competition</h3>
+                            <p>Restauración completa motor S63</p>
                         </div>
                     </div>
-                    <div class="carousel-item">
+                    <div class="success-item">
                         <img src="https://res.cloudinary.com/dcfodug6m/image/upload/v1768881857/WhatsApp_Image_2026-01-19_at_8.47.39_PM_wgqejr.jpg"
-                            alt="Cambio de neumáticos">
-                        <div class="carousel-caption">
-                            <h4>Reparación BDC2</h4>
-                            <p>Reparación BDC2 BMW G01 después de programación abortada se restauró y funcionado al 💯
-                            </p>
+                            alt="Work 2">
+                        <div class="overlay-info">
+                            <h3>Módulo BDC2</h3>
+                            <p>Recuperación exitosa</p>
                         </div>
                     </div>
-                    <div class="carousel-item">
-                        <img src="https://res.cloudinary.com/dcfodug6m/image/upload/v1768882416/WhatsApp_Image_2026-01-19_at_8.48.17_PM_e0p4f2.jpg"
-                            alt="Diagnóstico electrónico">
-                        <div class="carousel-caption">
-                            <h4>Diagnóstico Electrónico</h4>
-                            <p>Diagnosis completo de sistemas eléctricos</p>
-                        </div>
-                    </div>
-                    <div class="carousel-item">
+                    <div class="success-item">
                         <img src="https://res.cloudinary.com/dcfodug6m/image/upload/v1768882560/WhatsApp_Image_2026-01-19_at_8.49.29_PM_mr3mzj.jpg"
-                            alt="Mantenimiento">
-                        <div class="carousel-caption">
-                            <h4>Mantenimiento Correctivo </h4>
-                            <p>🔋Reparación de Tesla Model 3 con problemas de carga el vehículo no aceptaba carga.</p>
+                            alt="Work 3">
+                        <div class="overlay-info">
+                            <h3>Tesla Model 3</h3>
+                            <p>Reparación sistema de carga</p>
                         </div>
                     </div>
-                </div>
-
-                <button class="carousel-control prev" onclick="changeSlide(-1)">&#10094;</button>
-                <button class="carousel-control next" onclick="changeSlide(1)">&#10095;</button>
-
-                <div class="carousel-indicators">
-                    <span class="indicator active" onclick="currentSlideFunc(0)"></span>
-                    <span class="indicator" onclick="currentSlideFunc(1)"></span>
-                    <span class="indicator" onclick="currentSlideFunc(2)"></span>
-                    <span class="indicator" onclick="currentSlideFunc(3)"></span>
+                    <div class="success-item wide">
+                        <img src="https://res.cloudinary.com/dcfodug6m/image/upload/v1768882416/WhatsApp_Image_2026-01-19_at_8.48.17_PM_e0p4f2.jpg"
+                            alt="Work 4">
+                        <div class="overlay-info">
+                            <h3>Diagnóstico Lab</h3>
+                            <p>Nuestra área de electrónica avanzada</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -223,42 +243,38 @@
     <section id="soluciones" class="solutions-section">
         <div class="solutions-container">
             <div class="section-header">
-                <h2>Nuestras Soluciones</h2>
-                <p>Servicios especializados para cada tipo de vehículo</p>
+                <h2>Soluciones Integrales</h2>
+                <p>Tecnología y experiencia para cada necesidad</p>
             </div>
 
-            <div class="solutions-grid">
-                <div class="solution-card">
-                    <div class="solution-icon">🚗</div>
-                    <h3>Vehículos Particulares</h3>
-                    <p>Mantenimiento, reparación y diagnóstico para autos de pasajeros con garantía completa.</p>
-                    <ul class="solution-features">
-                        <li>✓ Cambio de aceite y filtros</li>
-                        <li>✓ Reparación de frenos</li>
-                        <li>✓ Diagnóstico electrónico</li>
-                    </ul>
+            <div class="feature-list">
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+                    <div class="feature-text">
+                        <h4>Garantía Extendida</h4>
+                        <p>Todos nuestros trabajos incluyen garantía por escrito.</p>
+                    </div>
                 </div>
-
-                <div class="solution-card">
-                    <div class="solution-icon">🚙</div>
-                    <h3>Flotillas Empresariales</h3>
-                    <p>Mantenimiento preventivo programado para empresas con múltiples vehículos.</p>
-                    <ul class="solution-features">
-                        <li>✓ Planes customizados</li>
-                        <li>✓ Facturación centralizada</li>
-                        <li>✓ Reportes de mantenimiento</li>
-                    </ul>
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-car-crash"></i></div>
+                    <div class="feature-text">
+                        <h4>Siniestros & Carrocería</h4>
+                        <p>Trabajamos con las principales aseguradoras.</p>
+                    </div>
                 </div>
-
-                <div class="solution-card">
-                    <div class="solution-icon">⚡</div>
-                    <h3>Sistemas Electrónicos</h3>
-                    <p>Diagnóstico y reparación especializada de sistemas eléctricos y computarizados.</p>
-                    <ul class="solution-features">
-                        <li>✓ Diagnóstico OBD</li>
-                        <li>✓ Reprogramación</li>
-                        <li>✓ Sistemas híbridos</li>
-                    </ul>
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-laptop-code"></i></div>
+                    <div class="feature-text">
+                        <h4>Coding & Retrofit</h4>
+                        <p>Activación de funciones ocultas y upgrades de equipamiento.</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-key"></i></div>
+                    <div class="feature-text">
+                        <h4>Cerrajería Electrónica</h4>
+                        <p>Programación de llaves perdidas y módulos FEM/BDC.</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -341,175 +357,115 @@
     </section>
 
     <!-- ===== ABOUT ===== -->
-    <section class="about">
-        <div class="services-container">
-            <div class="section-title">
-                <h2>Conócenos</h2>
-                <p>TECNIMECANICA CALIFORNIA es innovación y experiencia para el mantenimiento de tu vehículo</p>
+    <section class="about-modern">
+        <div class="about-grid">
+            <div class="about-image">
+                <img src="https://img.freepik.com/foto-gratis/reparacion-coches-mantenimiento-reparacion-neumaticos-coche-garaje-mecanico_23-2148154673.jpg"
+                    alt="Taller BMW">
             </div>
+            <div class="about-text">
+                <h2>Pasión por la Ingeniería Alemana</h2>
+                <p class="highlight-text">"No solo reparamos autos, restauramos la experiencia de conducción original."
+                </p>
+                <p>En TECNIMECANICA CALIFORNIA, fusionamos la artesanía tradicional con la última tecnología de
+                    diagnóstico. Con más de 15 años liderando el mantenimiento de alta gama, entendemos que un BMW no es
+                    solo un medio de transporte, es una declaración de principios.</p>
 
-            <div class="about-content">
-                <p>Ofrecemos reparaciones automotrices garantizadas, respaldado por más de 15 años de experiencia y un
-                    compromiso constante con la innovación. Mantenemos tu vehículo en las mejores condiciones con
-                    herramientas y equipos de alta tecnología.</p>
-
-                <p>Nuestro personal constantemente capacitado se especializa en el mantenimiento, diagnóstico y
-                    corrección de fallas en automóviles modernos. Contamos con un equipo multidisciplinario que puede
-                    atender desde vehículos particulares hasta flotillas empresariales.</p>
-
-                <p>En TECNIMECANICA CALIFORNIA, tu confianza es nuestra prioridad. Ofrecemos transparencia total,
-                    precios justos y garantía en todos nuestros servicios. ¡Somos el taller que necesitas!</p>
+                <div class="stats-mini">
+                    <div><span>15+</span> Años</div>
+                    <div><span>5k+</span> Autos</div>
+                    <div><span>100%</span> Certificado</div>
+                </div>
             </div>
         </div>
     </section>
 
     <!-- ===== CTA FINAL ===== -->
-    <section id="contacto" class="cta-final">
-        <div class="cta-container">
-            <h2>¿Listo para reparar tu vehículo?</h2>
-            <p>Agenda una cita hoy y recibe diagnóstico gratuito</p>
-            <div class="cta-buttons">
-                <a href="#citas" onclick="checkAuth(event, 'citas')" class="btn-primary-lg">Agendar Ahora</a>
-                <a href="tel:+56912345678" class="btn-secondary-lg">Llamar: +56 9 1234 5678</a>
-            </div>
-        </div>
-    </section>
 
-    <!-- ===== APPOINTMENT SECTION (NO AUTH) ===== -->
-    <section id="citas" class="booking-section" style="display: none;">
-        <div class="auth-required">
-            <div class="auth-message">
-                <h3>Acceso Restringido</h3>
-                <p>Para agendar una cita, debes registrarte o iniciar sesión</p>
-                <button class="btn btn-primary" onclick="toggleAuthModal()">Registrarse / Ingresar</button>
-            </div>
-        </div>
-    </section>
 
-    <!-- ===== APPOINTMENT SECTION (AUTH) ===== -->
-    <section id="citas-auth" class="booking-section">
-        <div class="booking-container">
-            <div class="section-title">
-                <h2>Agendar una Cita</h2>
-                <p>Reserva tu horario con nuestros técnicos especializados</p>
-            </div>
 
-            <form class="booking-form" onsubmit="submitBooking(event)">
-                <div class="form-row">
-                    <input type="text" placeholder="Nombre Completo" required>
-                    <input type="email" placeholder="Correo Electrónico" required>
-                </div>
-                <div class="form-row">
-                    <input type="tel" placeholder="Teléfono" required>
-                    <input type="text" placeholder="Modelo del Vehículo" required>
-                </div>
-                <div class="form-row">
-                    <input type="date" required>
-                    <select required>
-                        <option value="">Selecciona una hora</option>
-                        <option value="09:00">09:00 - 10:00</option>
-                        <option value="10:00">10:00 - 11:00</option>
-                        <option value="11:00">11:00 - 12:00</option>
-                        <option value="14:00">14:00 - 15:00</option>
-                        <option value="15:00">15:00 - 16:00</option>
-                        <option value="16:00">16:00 - 17:00</option>
-                    </select>
-                </div>
-                <textarea placeholder="Describe el problema o servicio requerido" rows="4" required></textarea>
-                <button type="submit" class="btn btn-primary">Agendar Cita</button>
-            </form>
-        </div>
-    </section>
-
-    <!-- ===== TRACKING SECTION (NO AUTH) ===== -->
-    <section id="seguimiento" class="tracking-section" style="display: none;">
-        <div class="auth-required">
-            <div class="auth-message">
-                <h3>Acceso Restringido</h3>
-                <p>Para ver el progreso de tu reparación, debes registrarte o iniciar sesión</p>
-                <button class="btn btn-primary" onclick="toggleAuthModal()">Registrarse / Ingresar</button>
-            </div>
-        </div>
-    </section>
 
     <!-- ===== TRACKING SECTION (AUTH) ===== -->
-    <section id="seguimiento-auth" class="tracking-section">
+    <section id="seguimiento-auth" class="tracking-section-premium">
         <div class="tracking-container">
             <div class="section-title">
-                <h2>Seguimiento de tu Reparación</h2>
-                <p>Ingresa el código de seguimiento para ver el progreso de tu vehículo</p>
+                <h2>BMW Service Geniuses</h2>
+                <p>Monitoreo en tiempo real de su unidad</p>
             </div>
 
             <div class="tracking-wrapper">
-                <div class="tracking-form">
-                    <input type="text" id="trackingCode" placeholder="Código de Seguimiento" required>
-                    <button type="button" class="btn btn-primary" onclick="searchTracking()">Buscar</button>
+                <!-- Search Box -->
+                <div class="tracking-search-box">
+                    <input type="text" id="trackingCode" placeholder="Ingrese VIN o Orden de Servicio" required>
+                    <button type="button" class="btn btn-primary" onclick="searchTracking()">
+                        <i class="fas fa-search"></i> Rastrear
+                    </button>
                 </div>
 
-                <div id="trackingResult" class="tracking-result" style="display: none;">
-                    <div class="tracking-header">
-                        <h3>Toyota Corolla 2020</h3>
-                        <p>Placa: ABC-123</p>
-                    </div>
+                <!-- Result Dashboard (Hidden by default) -->
+                <div id="trackingResult" class="tracking-dashboard" style="display: none;">
 
-                    <div class="tracking-timeline">
-                        <div class="timeline-item completed">
-                            <div class="timeline-marker">✓</div>
-                            <div class="timeline-content">
-                                <h4>Recepción del Vehículo</h4>
-                                <p>2026-01-19 08:30 - Vehículo recibido</p>
-                            </div>
+                    <!-- Vehicle Header -->
+                    <div class="dashboard-header">
+                        <div class="vehicle-info">
+                            <span class="status-badge pulse">En Proceso</span>
+                            <h3>BMW 330i M Sport</h3>
+                            <p class="vin">VIN: WBA5R...8291</p>
                         </div>
-
-                        <div class="timeline-item completed">
-                            <div class="timeline-marker">✓</div>
-                            <div class="timeline-content">
-                                <h4>Diagnóstico Inicial</h4>
-                                <p>2026-01-19 10:00 - Diagnóstico completado</p>
-                            </div>
-                        </div>
-
-                        <div class="timeline-item active">
-                            <div class="timeline-marker">⚙️</div>
-                            <div class="timeline-content">
-                                <h4>En Reparación</h4>
-                                <p>2026-01-19 14:00 - En proceso</p>
-                            </div>
-                        </div>
-
-                        <div class="timeline-item">
-                            <div class="timeline-marker">📋</div>
-                            <div class="timeline-content">
-                                <h4>Prueba de Funcionamiento</h4>
-                                <p>Pendiente - Verificación</p>
-                            </div>
-                        </div>
-
-                        <div class="timeline-item">
-                            <div class="timeline-marker">✨</div>
-                            <div class="timeline-content">
-                                <h4>Entrega Final</h4>
-                                <p>Pendiente - Entrega</p>
-                            </div>
+                        <div class="estimated-time">
+                            <small>Entrega Estimada</small>
+                            <strong>Mañana, 17:00 PM</strong>
                         </div>
                     </div>
 
-                    <div class="tracking-details">
-                        <div class="detail-box">
-                            <h4>Servicios Realizados</h4>
-                            <ul>
-                                <li>Cambio de aceite y filtro</li>
-                                <li>Revisión de frenos</li>
-                                <li>Diagnosis electrónica</li>
+                    <!-- Progress Stepper -->
+                    <div class="status-stepper">
+                        <div class="step completed">
+                            <div class="step-icon"><i class="fas fa-check"></i></div>
+                            <p>Recepción</p>
+                        </div>
+                        <div class="step completed">
+                            <div class="step-icon"><i class="fas fa-laptop-medical"></i></div>
+                            <p>Diagnóstico</p>
+                        </div>
+                        <div class="step active">
+                            <div class="step-icon"><i class="fas fa-tools"></i></div>
+                            <p>Servicio</p>
+                            <span class="step-time">En progreso</span>
+                        </div>
+                        <div class="step">
+                            <div class="step-icon"><i class="fas fa-clipboard-check"></i></div>
+                            <p>Control Calidad</p>
+                        </div>
+                        <div class="step">
+                            <div class="step-icon"><i class="fas fa-flag-checkered"></i></div>
+                            <p>Listo</p>
+                        </div>
+                    </div>
+
+                    <!-- Details Grid -->
+                    <div class="dashboard-details">
+                        <div class="detail-card">
+                            <h4><i class="fas fa-clipboard-list"></i> Actividades Completadas</h4>
+                            <ul class="activity-list">
+                                <li><span>✓</span> Cambio de Aceite 5W-30</li>
+                                <li><span>✓</span> Inspección Multi-puntos</li>
+                                <li><span>✓</span> Escaneo ISTA/D</li>
                             </ul>
                         </div>
-                        <div class="detail-box">
-                            <h4>Información de Contacto</h4>
-                            <p><strong>Técnico:</strong> Carlos Mendoza</p>
-                            <p>📞 +56 9 1234 5678</p>
-                            <p>📧 contacto@tecnimecanica-california.com</p>
+                        <div class="detail-card">
+                            <h4><i class="fas fa-user-friends"></i> Asesor de Servicio</h4>
+                            <div class="advisor-info">
+                                <div class="advisor-avatar">CM</div>
+                                <div>
+                                    <strong>Carlos Mendoza</strong>
+                                    <p>Certificado BMW Nivel 3</p>
+                                    <a href="tel:+56912345678" class="link-text">Contactar</a>
+                                </div>
+                            </div>
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>
@@ -570,18 +526,7 @@
         </div>
     </footer>
 
-    <!-- ===== FLOATING SOCIAL LINKS ===== -->
-    <div class="floating-social">
-        <a href="FACEBOOK_URL" class="float-social-btn facebook" title="Facebook" target="_blank">
-            <i class="fab fa-facebook-f"></i>
-        </a>
-        <a href="INSTAGRAM_URL" class="float-social-btn instagram" title="Instagram" target="_blank">
-            <i class="fab fa-instagram"></i>
-        </a>
-        <a href="TIKTOK_URL" class="float-social-btn tiktok" title="TikTok" target="_blank">
-            <i class="fab fa-tiktok"></i>
-        </a>
-    </div>
+
 
     <!-- ===== AUTH MODAL ===== -->
     <div id="authModal" class="auth-modal">
@@ -607,131 +552,112 @@
             <!-- Register -->
             <div id="register-tab" class="auth-tab-content">
                 <h2>Crear Nueva Cuenta</h2>
-                <form onsubmit="submitRegister(event)">
-                    <input type="text" placeholder="Nombre Completo" required>
-                    <input type="email" placeholder="Correo Electrónico" required>
-                    <input type="tel" placeholder="Teléfono" required>
-                    <input type="password" placeholder="Contraseña" required>
-                    <input type="password" placeholder="Confirmar Contraseña" required>
-                    <div class="checkbox">
-                        <input type="checkbox" id="terms" required>
-                        <label for="terms">Acepto los términos y condiciones</label>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Registrarse</button>
+                <button type="submit" class="btn btn-primary">Registrarse</button>
                 </form>
             </div>
         </div>
     </div>
 
+    <!-- ===== FLOATING ACTION BUTTONS (FAB) ===== -->
+    <div class="fab-container">
+        <!-- WhatsApp Button -->
+        <a href="https://wa.me/56912345678" target="_blank" class="fab-btn whatsapp">
+            <i class="fab fa-whatsapp"></i>
+            <span>WhatsApp</span>
+        </a>
+
+        <!-- Booking Button -->
+        <button class="fab-btn booking" onclick="openBookingModal()">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Agendar Cita</span>
+        </button>
+    </div>
+
+    <!-- ===== BOOKING MODAL ===== -->
+    <!-- ===== BOOKING MODAL (PREMIUM WIDE) ===== -->
+    <div id="bookingModal" class="booking-modal-overlay">
+        <div class="booking-modal-container">
+            <button class="close-modal-btn" onclick="toggleBookingModal()">✕</button>
+
+            <div class="booking-split-layout">
+                <!-- Left: Contact & Details -->
+                <div class="booking-left-panel">
+                    <div class="panel-header">
+                        <h2>Agendar Servicio</h2>
+                        <p>BMW Service Inclusive</p>
+                    </div>
+
+                    <form class="booking-form-premium" onsubmit="submitBooking(event)">
+                        <div class="form-group-premium">
+                            <label>Información de Contacto</label>
+                            <input type="text" placeholder="Nombre Completo / Empresa" required>
+                            <input type="email" placeholder="Correo Electrónico" required>
+                            <input type="tel" placeholder="Teléfono Móvil" required>
+                        </div>
+
+                        <div class="form-group-premium">
+                            <label>Detalles del Vehículo</label>
+                            <input type="text" placeholder="Modelo / VIN (Últimos 7 dígitos)" required>
+                        </div>
+
+                        <div class="form-group-premium">
+                            <label>Tipo de Requerimiento</label>
+                            <textarea placeholder="Describa el servicio (ej. Mantención 40.000km, Testigo encendido...)"
+                                rows="3" required></textarea>
+                        </div>
+
+                        <div class="checkbox-premium">
+                            <input type="checkbox" id="valet_service">
+                            <label for="valet_service">Solicitar Valet Service (Retiro a domicilio)</label>
+                        </div>
+
+                        <!-- Hidden Inputs for Date/Time -->
+                        <input type="hidden" id="selectedDate" required>
+                        <input type="hidden" id="selectedTime" required>
+
+                        <button type="submit" class="btn btn-primary submit-btn">Confirmar Cita</button>
+                    </form>
+                </div>
+
+                <!-- Right: Calendar & Time -->
+                <div class="booking-right-panel">
+                    <div class="panel-header-right">
+                        <h3>Selecciona Fecha y Hora</h3>
+                        <p>Disponibilidad en tiempo real</p>
+                    </div>
+
+                    <div class="calendar-wrapper">
+                        <label>Fecha Preferida</label>
+                        <input type="date" class="premium-date-input" onchange="updateTimeSlots(this.value)">
+                    </div>
+
+                    <div class="time-selection-wrapper">
+                        <label>Horarios Disponibles</label>
+                        <div class="time-grid" id="timeSlotsGrid">
+                            <!-- Times generated by JS -->
+                            <button type="button" class="time-slot" onclick="selectTime(this, '07:00')">07:00</button>
+                            <button type="button" class="time-slot" onclick="selectTime(this, '08:00')">08:00</button>
+                            <button type="button" class="time-slot" onclick="selectTime(this, '09:00')">09:00</button>
+                            <button type="button" class="time-slot" onclick="selectTime(this, '10:00')">10:00</button>
+                            <button type="button" class="time-slot" onclick="selectTime(this, '11:00')">11:00</button>
+                            <button type="button" class="time-slot" onclick="selectTime(this, '12:00')">12:00</button>
+                            <button type="button" class="time-slot" onclick="selectTime(this, '13:00')">13:00</button>
+                            <button type="button" class="time-slot" onclick="selectTime(this, '14:00')">14:00</button>
+                            <button type="button" class="time-slot" onclick="selectTime(this, '15:00')">15:00</button>
+                            <button type="button" class="time-slot" onclick="selectTime(this, '16:00')">16:00</button>
+                        </div>
+                        <p class="helper-text">* Horarios sujetos a confirmación por el asesor.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    </div>
+    </div>
+
     <!-- ===== JAVASCRIPT ===== -->
-    <script>
-        let isAuthenticated = false;
-        let currentSlide = 0;
-        const slides = document.querySelectorAll('.carousel-item');
-        const indicators = document.querySelectorAll('.indicator');
 
-        // Auth Modal
-        function toggleAuthModal() {
-            const modal = document.getElementById('authModal');
-            modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
-        }
-
-        function switchAuthTab(event, tab) {
-            event.preventDefault();
-            document.querySelectorAll('.auth-tab').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.auth-tab-content').forEach(content => content.classList.remove('active'));
-            event.target.classList.add('active');
-            document.getElementById(tab + '-tab').classList.add('active');
-        }
-
-        function submitLogin(event) {
-            event.preventDefault();
-            isAuthenticated = true;
-            toggleAuthModal();
-            showAuthenticatedSections();
-            alert('¡Bienvenido! Sesión iniciada correctamente');
-        }
-
-        function submitRegister(event) {
-            event.preventDefault();
-            isAuthenticated = true;
-            toggleAuthModal();
-            showAuthenticatedSections();
-            alert('¡Bienvenido! Cuenta creada correctamente');
-        }
-
-        function showAuthenticatedSections() {
-            document.getElementById('citas').style.display = 'none';
-            document.getElementById('seguimiento').style.display = 'none';
-            document.getElementById('citas-auth').style.display = 'block';
-            document.getElementById('seguimiento-auth').style.display = 'block';
-        }
-
-        function checkAuth(event, section) {
-            if (!isAuthenticated) {
-                event.preventDefault();
-                toggleAuthModal();
-            }
-        }
-
-        function submitBooking(event) {
-            event.preventDefault();
-            alert('¡Cita agendada correctamente!');
-            event.target.reset();
-        }
-
-        // Carousel
-        function showSlide(n) {
-            if (n >= slides.length) currentSlide = 0;
-            if (n < 0) currentSlide = slides.length - 1;
-            slides.forEach(slide => slide.classList.remove('active'));
-            indicators.forEach(ind => ind.classList.remove('active'));
-            slides[currentSlide].classList.add('active');
-            indicators[currentSlide].classList.add('active');
-        }
-
-        function changeSlide(n) {
-            currentSlide += n;
-            showSlide(currentSlide);
-        }
-
-        function currentSlideFunc(n) {
-            currentSlide = n;
-            showSlide(currentSlide);
-        }
-
-        // Tracking
-        function searchTracking() {
-            const code = document.getElementById('trackingCode').value;
-            if (code.trim() !== '') {
-                document.getElementById('trackingResult').style.display = 'block';
-            }
-        }
-
-        // Close modal
-        window.onclick = function (event) {
-            const modal = document.getElementById('authModal');
-            if (event.target === modal) {
-                modal.style.display = 'none';
-            }
-        }
-
-        const videos = document.querySelectorAll('.video-player');
-
-        videos.forEach(video => {
-            video.addEventListener('play', () => {
-                // Cuando este video inicie, pausamos los demás
-                videos.forEach(otherVideo => {
-                    if (otherVideo !== video) {
-                        otherVideo.pause();
-                    }
-                });
-            });
-        });
-
-        // Auto carousel
-        setInterval(() => changeSlide(1), 5000);
-    </script>
 </body>
 
 </html>
