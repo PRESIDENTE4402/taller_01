@@ -45,4 +45,16 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    // En app/Models/User.php
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class);
+    }
+
+    // Método útil para verificar permisos
+    public function hasRole($roleSlug)
+    {
+        return $this->roles()->where('slug', $roleSlug)->exists();
+    }
 }
