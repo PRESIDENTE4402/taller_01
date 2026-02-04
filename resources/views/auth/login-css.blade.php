@@ -1,0 +1,262 @@
+/* Global Resets for this page */
+:root {
+--bmw-blue: #1C69D4;
+--bmw-dark: #0F1012;
+--bmw-gray: #1A1B1E;
+--text-main: #FFFFFF;
+--text-muted: #8C8C8C;
+--input-bg: #141518;
+--border-color: #2E2E2E;
+}
+
+body.login-page {
+margin: 0;
+padding: 0;
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+background-color: var(--bmw-dark);
+height: 100vh;
+display: flex;
+align-items: center;
+justify-content: center;
+overflow-x: hidden;
+}
+
+/* Background */
+.login-background {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+z-index: -1;
+background-image: url('https://images.unsplash.com/photo-1617788138017-80ad40651399?q=80&w=2070&auto=format&fit=crop');
+background-size: cover;
+background-position: center;
+filter: brightness(0.3);
+}
+
+/* Container */
+.login-container {
+width: 100%;
+max-width: 500px;
+padding: 20px;
+z-index: 10;
+box-sizing: border-box;
+}
+
+/* Card */
+.login-card {
+background-color: rgba(15, 16, 18, 0.95);
+border: 1px solid var(--border-color);
+border-radius: 12px;
+box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+padding: 40px 40px 30px; /* Reduced bottom padding */
+backdrop-filter: blur(10px);
+border-top: 4px solid var(--bmw-blue);
+margin-bottom: 20px;
+}
+
+/* Branding */
+.login-brand {
+text-align: center;
+margin-bottom: 30px;
+}
+
+.login-brand img {
+height: 60px;
+width: auto;
+margin-bottom: 15px;
+}
+
+.login-brand h1 {
+color: var(--text-main);
+font-size: 24px;
+font-weight: 700;
+margin: 0;
+letter-spacing: 2px;
+text-transform: uppercase;
+}
+
+/* Form Styles */
+.form-group {
+margin-bottom: 30px; /* INCREASED SPACING HERE */
+display: flex;
+flex-direction: column;
+}
+
+.form-label {
+color: var(--text-muted);
+font-size: 14px;
+font-weight: 600;
+text-transform: uppercase;
+letter-spacing: 1px;
+margin-bottom: 12px; /* INCREASED LABEL SPACING */
+display: block;
+}
+
+.form-input-wrapper {
+position: relative;
+}
+
+.form-input {
+width: 100%;
+height: 55px; /* Taller inputs */
+background-color: var(--input-bg);
+border: 1px solid var(--border-color);
+border-radius: 6px;
+padding: 0 15px 0 50px;
+color: var(--text-main);
+font-size: 16px;
+box-sizing: border-box;
+transition: all 0.3s ease;
+}
+
+.form-input:focus {
+outline: none;
+border-color: var(--bmw-blue);
+background-color: #1a1b1f;
+}
+
+.form-icon {
+position: absolute;
+left: 20px;
+top: 50%;
+transform: translateY(-50%);
+color: var(--text-muted);
+font-size: 18px;
+pointer-events: none;
+}
+
+/* Actions */
+.form-actions {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 35px;
+}
+
+.checkbox-wrapper {
+display: flex;
+align-items: center;
+cursor: pointer;
+user-select: none;
+}
+
+.checkbox-wrapper input {
+margin-right: 12px;
+width: 18px;
+height: 18px;
+accent-color: var(--bmw-blue);
+cursor: pointer;
+}
+
+.checkbox-label {
+color: var(--text-muted);
+font-size: 15px;
+}
+
+.forgot-password {
+color: var(--bmw-blue);
+text-decoration: none;
+font-size: 14px;
+font-weight: 500;
+}
+
+.forgot-password:hover {
+text-decoration: underline;
+color: white;
+}
+
+/* Button */
+.btn-submit {
+width: 100%;
+height: 55px;
+background-color: var(--bmw-blue);
+color: white;
+border: none;
+border-radius: 6px;
+font-size: 16px;
+font-weight: 700;
+text-transform: uppercase;
+letter-spacing: 1px;
+cursor: pointer;
+transition: background-color 0.3s ease, transform 0.1s ease;
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 12px;
+}
+
+.btn-submit:hover {
+background-color: #1458b8;
+transform: translateY(-2px);
+box-shadow: 0 5px 15px rgba(28, 105, 212, 0.4);
+}
+
+.btn-submit:active {
+transform: scale(0.98);
+}
+
+/* Error Messages */
+.error-msg {
+color: #ff4d4f;
+font-size: 13px;
+margin-top: 8px;
+display: flex;
+align-items: center;
+gap: 6px;
+font-weight: 500;
+}
+
+/* Footer */
+.login-footer {
+text-align: center;
+margin-top: 25px;
+padding-top: 20px;
+border-top: 1px solid var(--border-color);
+color: var(--text-muted);
+font-size: 14px;
+}
+
+.login-footer a {
+color: var(--text-main);
+font-weight: 600;
+text-decoration: none;
+margin-left: 5px;
+transition: color 0.3s;
+}
+
+.login-footer a:hover {
+color: var(--bmw-blue);
+}
+
+.back-link {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+gap: 10px;
+color: var(--text-muted);
+text-decoration: none;
+font-size: 14px;
+transition: color 0.3s ease;
+padding: 10px;
+}
+
+.back-link:hover {
+color: white;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+.login-container {
+padding: 15px;
+}
+.login-card {
+padding: 30px 20px;
+}
+.form-actions {
+flex-direction: column;
+align-items: flex-start;
+gap: 20px;
+}
+}
