@@ -19,7 +19,7 @@ return new class extends Migration {
             // Datos de la cita
             $table->dateTime('fecha_programada'); // Cuándo reservó en la web
             $table->text('motivo_cita'); // "Cambio de aceite", "Ruidos en motor"
-            $table->foreignId('sucursal_id')->after('id')->constrained('sucursales');
+            $table->foreignId('sucursal_id')->constrained('sucursales');
             // Canal de origen (Para saber si reservó por la web o por teléfono)
             $table->enum('origen', ['web', 'telefono', 'presencial', 'whatsapp'])->default('web');
 

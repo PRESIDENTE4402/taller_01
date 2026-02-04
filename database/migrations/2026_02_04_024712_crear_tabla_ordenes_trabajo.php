@@ -12,13 +12,15 @@ return new class extends Migration {
     {
         Schema::create('ordenes_trabajo', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('sucursal_id')->constrained('sucursales');
             $table->string('codigo_orden')->unique(); // Ej: OT-2026-001
+            $table->enum('tipo_orden', ['normal', 'garantia', 'cortesia'])->default('normal');
+
             $table->foreignId('vehiculo_id')->constrained('vehiculos');
             $table->foreignId('cliente_id')->constrained('users');
-            $table->string('color');
             $table->foreignId('receptor_id')->constrained('users'); // Secretario que recibe
-            $table->foreignId('sucursal_id')->after('id')->constrained('sucursales');
             // Datos variables de esta visita
+            $table->string('color');
             $table->integer('kilometraje_entrada');
             $table->string('nivel_combustible'); // E, 1/4, 1/2, 3/4, F
 
@@ -28,6 +30,8 @@ return new class extends Migration {
 
             $table->text('falla_cliente'); // Lo que reporta el cliente
             $table->text('diagnostico')->nullable();
+            $table->text('diagnostico_final')->nullable();
+            $table->integer('conteo_reprogramaciones')->default(0);
 
             $table->enum('estado', ['abierta', 'en_proceso', 'espera_repuesto', 'finalizada', 'entregada']);
             $table->decimal('total_estimado', 12, 2)->default(0);

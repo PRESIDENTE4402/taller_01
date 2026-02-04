@@ -13,7 +13,7 @@ return new class extends Migration {
         Schema::create('bitacoras_trabajo', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users'); // El mecánico o trabajador
-            $table->foreignId('sucursal_id')->after('id')->constrained('sucursales');
+            $table->foreignId('sucursal_id')->constrained('sucursales');
             // Relación opcional con vehículo/orden
             $table->foreignId('orden_trabajo_id')->nullable()->constrained('ordenes_trabajo');
 

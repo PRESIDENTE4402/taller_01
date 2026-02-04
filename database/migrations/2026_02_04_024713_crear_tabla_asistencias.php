@@ -13,7 +13,7 @@ return new class extends Migration {
         Schema::create('asistencias', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('sucursal_id')->after('id')->constrained('sucursales');
+            $table->foreignId('sucursal_id')->constrained('sucursales');
             $table->date('fecha'); // El día de la jornada
 
             // Horas reales

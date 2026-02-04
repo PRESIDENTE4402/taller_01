@@ -26,10 +26,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::create('sucursal_usuario', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('sucursal_id')->constrained('sucursales')->onDelete('cascade');
-        });
+        Schema::dropIfExists('sucursales');
     }
 };

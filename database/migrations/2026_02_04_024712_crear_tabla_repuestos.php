@@ -13,11 +13,23 @@ return new class extends Migration {
         // Repuestos
         Schema::create('repuestos', function (Blueprint $table) {
             $table->id();
-            $table->string('codigo')->unique();
+            $table->foreignId('sucursal_id')->constrained('sucursales'); // Cada taller tiene su propio stock
+            $table->string('codigo_interno')->unique(); // SKU o Código de barras
             $table->string('nombre');
-            $table->integer('stock');
-            $table->foreignId('sucursal_id')->after('id')->constrained('sucursales');
+            $table->string('marca_repuesto')->nullable(); // Ej: Bosch, Brembo, Genérico
+            $table->string('categoria'); // Ej: Frenos, Motor, Suspensión
+            $table->enum('unidad_medida', ['unidad', 'litro', 'galon', 'cuarto', 'onza'])->default('unidad');
+            $table->decimal('contenido_por_unidad', 8, 2)->default(1); // Ej: 1 galón = 3.785 litros
+
+            // Costos y Precios
+            $table->decimal('precio_costo', 12, 2);
             $table->decimal('precio_venta', 12, 2);
+
+            // Inventario
+            $table->integer('stock_actual');
+            $table->integer('stock_minimo'); // Para que la IA te avise qué comprar
+            $table->string('ubicacion_estante')->nullable(); // Ej: Pasillo A - Estante 3
+
             $table->timestamps();
         });
     }
