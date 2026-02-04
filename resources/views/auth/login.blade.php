@@ -1,79 +1,120 @@
 @extends('layouts.guest')
 
 @section('content')
+
+    <!-- Header & Navigation -->
     <div class="mb-12">
+        <!-- Back Link (Responsive positioning) -->
         <a href="{{ route('home') }}"
-            class="inline-flex items-center text-gray-500 hover:text-white transition-all group text-[10px] font-bold uppercase tracking-[0.3em]">
+            class="inline-flex items-center text-gray-500 hover:text-white transition-colors mb-10 group text-sm font-medium">
             <div
-                class="w-10 h-10 rounded-full bg-gray-900 border border-gray-800 flex items-center justify-center mr-4 group-hover:border-blue-600 transition-all">
-                <i class="fas fa-arrow-left transform group-hover:-translate-x-1 transition-transform"></i>
+                class="w-8 h-8 rounded-full bg-gray-900 border border-gray-800 flex items-center justify-center mr-3 group-hover:border-blue-600 transition-colors">
+                <i class="fas fa-arrow-left text-xs transform group-hover:-translate-x-0.5 transition-transform"></i>
             </div>
             Volver al inicio
         </a>
-    </div>
 
-    <div class="w-full bg-[#0d0d0d] border border-gray-800/60 p-8 lg:p-12 rounded-3xl shadow-2xl relative">
-        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-[1px] bg-blue-600 shadow-[0_0_15px_rgba(37,99,235,1)]">
+        <!-- Mobile Logo -->
+        <div class="lg:hidden flex justify-center mb-8">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/BMW.svg/2048px-BMW.svg.png" alt="BMW Logo"
+                class="h-16 w-auto drop-shadow-lg">
         </div>
 
-        <div class="mb-10">
-            <h2 class="text-3xl font-bold text-white tracking-tight mb-3">Bienvenido</h2>
-            <p class="text-gray-500 text-sm leading-relaxed">
-                Ingresa tus credenciales para acceder al panel.
+        <!-- Title Section -->
+        <div class="space-y-2 text-center lg:text-left">
+            <h2 class="text-4xl lg:text-5xl font-bold text-white tracking-tight">Bienvenido</h2>
+            <p class="text-gray-400 text-lg">Accede a tu panel de control</p>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <form class="space-y-8" action="{{ route('login') }}" method="POST" id="loginForm">
+        @csrf
+
+        <!-- Email -->
+        <div class="group space-y-2">
+            <label for="email"
+                class="block text-sm font-medium text-gray-400 group-focus-within:text-blue-500 transition-colors uppercase tracking-wider">
+                Correo Electrónico
+            </label>
+            <div class="relative">
+                <input id="email" name="email" type="email" autocomplete="email" required
+                    class="block w-full bg-gray-900 border border-gray-800 rounded-lg px-5 py-4 text-base text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all shadow-sm group-hover:border-gray-700"
+                    placeholder="nombre@bmw.cl" value="{{ old('email') }}">
+                <div class="absolute inset-y-0 right-0 pr-5 flex items-center pointer-events-none">
+                    <i class="fas fa-envelope text-gray-700 group-focus-within:text-blue-500 transition-colors text-lg"></i>
+                </div>
+            </div>
+            @error('email')
+                <p class="mt-2 text-sm text-red-500 flex items-center gap-2">
+                    <i class="fas fa-exclamation-circle"></i> {{ $message }}
+                </p>
+            @enderror
+        </div>
+
+        <!-- Password -->
+        <div class="group space-y-2">
+            <div class="flex justify-between items-center">
+                <label for="password"
+                    class="block text-sm font-medium text-gray-400 group-focus-within:text-blue-500 transition-colors uppercase tracking-wider">
+                    Contraseña
+                </label>
+            </div>
+            <div class="relative">
+                <input id="password" name="password" type="password" autocomplete="current-password" required
+                    class="block w-full bg-gray-900 border border-gray-800 rounded-lg px-5 py-4 text-base text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all shadow-sm group-hover:border-gray-700"
+                    placeholder="••••••••">
+                <div class="absolute inset-y-0 right-0 pr-5 flex items-center pointer-events-none">
+                    <i class="fas fa-lock text-gray-700 group-focus-within:text-blue-500 transition-colors text-lg"></i>
+                </div>
+            </div>
+            <div class="flex justify-end mt-1.5">
+                <a href="#" class="text-sm text-gray-500 hover:text-white transition-colors">¿Olvidaste tu contraseña?</a>
+            </div>
+            @error('password')
+                <p class="mt-2 text-sm text-red-500 flex items-center gap-2">
+                    <i class="fas fa-exclamation-circle"></i> {{ $message }}
+                </p>
+            @enderror
+        </div>
+
+        <!-- Actions -->
+        <div class="pt-6 space-y-6">
+            <!-- Checkbox -->
+            <div class="flex items-center">
+                <input id="remember" name="remember" type="checkbox"
+                    class="h-5 w-5 rounded border-gray-700 bg-gray-900 text-blue-600 focus:ring-blue-500 focus:ring-offset-gray-900 cursor-pointer transition">
+                <label for="remember"
+                    class="ml-3 block text-base text-gray-400 cursor-pointer hover:text-white transition-colors select-none">
+                    Mantener sesión iniciada
+                </label>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit"
+                class="w-full relative overflow-hidden flex justify-center items-center py-4 px-6 border border-transparent rounded-lg shadow-lg text-base font-bold text-white bg-blue-700 hover:bg-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-900 transition-all transform hover:-translate-y-0.5 group">
+                <span class="relative z-10 flex items-center gap-3 tracking-widest uppercase">
+                    Iniciar Sesión <i
+                        class="fas fa-arrow-right text-sm transform group-hover:translate-x-1 transition-transform"></i>
+                </span>
+                <div
+                    class="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-800 opacity-0 group-hover:opacity-100 transition-opacity">
+                </div>
+            </button>
+        </div>
+
+        <!-- Register Link -->
+        <div class="text-center mt-10">
+            <p class="text-gray-500 text-sm">
+                ¿Aún no tienes cuenta?
+                <a href="#"
+                    class="text-white font-semibold hover:text-blue-500 hover:underline transition-all ml-1">Regístrate
+                    aquí</a>
             </p>
         </div>
+    </form>
 
-        <form class="space-y-6" action="{{ route('login') }}" method="POST" id="loginForm">
-            @csrf
-            <div class="space-y-2">
-                <label class="text-[10px] font-bold text-gray-600 uppercase tracking-[0.2em] ml-1">Correo
-                    Electrónico</label>
-                <div class="relative group">
-                    <input id="email" name="email" type="email" required
-                        class="w-full h-14 bg-black border border-gray-800 rounded-xl px-6 text-sm text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
-                        placeholder="nombre@bmw.cl">
-                    <i
-                        class="fas fa-envelope absolute right-6 top-1/2 -translate-y-1/2 text-gray-800 group-focus-within:text-blue-500"></i>
-                </div>
-            </div>
-
-            <div class="space-y-2">
-                <div class="flex justify-between items-center px-1">
-                    <label class="text-[10px] font-bold text-gray-600 uppercase tracking-[0.2em]">Contraseña</label>
-                    <a href="#" class="text-[9px] text-blue-500 hover:text-blue-400 font-bold uppercase">¿Olvidaste la
-                        clave?</a>
-                </div>
-                <div class="relative group">
-                    <input id="password" name="password" type="password" required
-                        class="w-full h-14 bg-black border border-gray-800 rounded-xl px-6 text-sm text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
-                        placeholder="••••••••">
-                    <i
-                        class="fas fa-lock absolute right-6 top-1/2 -translate-y-1/2 text-gray-800 group-focus-within:text-blue-500"></i>
-                </div>
-            </div>
-
-            <div class="pt-2 space-y-6">
-                <label class="flex items-center cursor-pointer group w-fit">
-                    <input type="checkbox" class="peer hidden">
-                    <div
-                        class="w-5 h-5 border border-gray-800 bg-black rounded flex items-center justify-center peer-checked:bg-blue-600 peer-checked:border-blue-600 transition-all">
-                        <i class="fas fa-check text-[10px] text-white opacity-0 peer-checked:opacity-100"></i>
-                    </div>
-                    <span class="ml-3 text-xs text-gray-500 group-hover:text-gray-300">Recordar sesión</span>
-                </label>
-
-                <button type="submit"
-                    class="w-full h-14 bg-blue-600 hover:bg-blue-500 text-white font-black tracking-[0.2em] uppercase text-xs rounded-xl shadow-lg transition-all active:scale-[0.98]">
-                    INICIAR SESIÓN
-                </button>
-            </div>
-
-            <div class="text-center pt-4">
-                <p class="text-gray-600 text-[10px] font-bold uppercase tracking-[0.1em]">
-                    ¿No tienes cuenta? <a href="#"
-                        class="text-white hover:text-blue-500 ml-1 border-b border-gray-800">Regístrate</a>
-                </p>
-            </div>
-        </form>
-    </div>
+    @push('scripts')
+        @vite('resources/js/auth/login.js')
+    @endpush
 @endsection
