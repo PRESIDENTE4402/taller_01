@@ -153,8 +153,8 @@
                 <!-- Left: Title & Context -->
                 <div class="flex items-center gap-4">
                      <!-- Hamburger Button (Visible on Mobile) -->
-                    <button @click="sidebarOpen = !sidebarOpen" class="text-gray-300 hover:text-white focus:outline-none lg:hidden transition-all duration-200 p-4 hover:bg-white/10 rounded-xl active:scale-95 group">
-                        <i class="fas fa-bars text-3xl group-hover:text-[#00A3DA] transition-colors"></i>
+                    <button @click="sidebarOpen = !sidebarOpen" class="text-gray-300 hover:text-white focus:outline-none lg:hidden transition-all duration-200 p-3 hover:bg-white/10 rounded-lg">
+                        <i class="fas fa-bars text-3xl"></i>
                     </button>
 
                     <div class="flex flex-col">
@@ -168,29 +168,29 @@
                 </div>
 
                 <!-- Right: Actions -->
-                <div class="flex items-center gap-4 lg:gap-6">
+                <div class="flex items-center gap-6 lg:gap-10">
                     
-                    <!-- Search Bar (High Contrast & Visible) -->
+                    <!-- Search Bar (Larger & More Visible) -->
                     <div class="hidden md:block relative group">
                         <!-- Glow -->
-                        <div class="absolute -inset-0.5 bg-gradient-to-r from-[#00A3DA]/40 to-[#003399]/40 rounded-lg opacity-0 group-hover:opacity-100 transition duration-500 blur"></div>
+                        <div class="absolute -inset-0.5 bg-gradient-to-r from-[#00A3DA]/40 to-[#003399]/40 rounded-xl opacity-0 group-hover:opacity-100 transition duration-500 blur"></div>
                         
                         <!-- Input -->
-                        <div class="relative flex items-center bg-[#252525] rounded-lg px-4 py-2.5 border border-white/20 w-72 lg:w-96 transition-all focus-within:border-[#00A3DA] focus-within:bg-[#2a2a2a] focus-within:shadow-glow shadow-inner">
-                             <i class="fas fa-search text-gray-300 text-sm mr-3"></i>
-                            <input class="bg-transparent border-none text-sm text-white placeholder-gray-400 focus:ring-0 w-full p-0 font-medium" 
+                        <div class="relative flex items-center bg-[#252525] rounded-xl px-5 py-3.5 border border-white/20 w-80 lg:w-[32rem] transition-all focus-within:border-[#00A3DA] focus-within:bg-[#2a2a2a] focus-within:shadow-glow shadow-inner">
+                             <i class="fas fa-search text-gray-400 text-lg mr-4"></i>
+                            <input class="bg-transparent border-none text-base text-white placeholder-gray-400 focus:ring-0 w-full p-0 font-medium leading-relaxed" 
                                    type="text" placeholder="Buscar orden, chasis o cliente...">
-                            <div class="hidden lg:flex items-center gap-1">
-                                <span class="text-[0.6rem] text-gray-400 border border-gray-600 rounded px-1.5 py-0.5 bg-[#1a1a1a]">CMD</span>
-                                <span class="text-[0.6rem] text-gray-400 border border-gray-600 rounded px-1.5 py-0.5 bg-[#1a1a1a]">K</span>
+                            <div class="hidden lg:flex items-center gap-1.5 ml-2">
+                                <span class="text-[0.65rem] font-bold text-gray-400 border border-gray-600 rounded-md px-2 py-1 bg-[#1a1a1a]">CMD</span>
+                                <span class="text-[0.65rem] font-bold text-gray-400 border border-gray-600 rounded-md px-2 py-1 bg-[#1a1a1a]">K</span>
                             </div>
                         </div>
                     </div>
 
                     <!-- Notification -->
-                    <button class="relative p-2.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all border border-transparent hover:border-white/5">
-                        <i class="far fa-bell text-lg"></i>
-                        <span class="absolute top-2 right-2.5 h-2 w-2 rounded-full bg-[#DF0012] shadow-sm shadow-red-900/50"></span>
+                    <button class="relative p-3 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all border border-transparent hover:border-white/10 group">
+                        <i class="far fa-bell text-2xl group-hover:scale-110 transition-transform"></i>
+                        <span class="absolute top-2.5 right-3 h-3 w-3 rounded-full bg-[#DF0012] border-2 border-[#0a0a0a] shadow-sm shadow-red-900/50"></span>
                     </button>
                     
                 </div>
