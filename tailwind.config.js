@@ -11,8 +11,21 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+        sans: ['Prompt', 'sans-serif'],
       },
+      colors: {
+        bmw: {
+          black: '#0a0a0a',
+          dark: '#121212',
+          gray: '#1E1E1E',
+          blue: '#003399',
+          lightblue: '#00A3DA',
+          red: '#DF0012',
+        }
+      },
+      boxShadow: {
+        'glow': '0 0 15px rgba(0, 163, 218, 0.3)',
+      }
     },
   },
   plugins: [require("daisyui")],
