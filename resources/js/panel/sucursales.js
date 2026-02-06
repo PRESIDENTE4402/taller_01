@@ -124,6 +124,8 @@ async function loadSucursales() {
             icon: 'error',
             title: 'Error',
             text: 'No se pudieron cargar los datos.',
+            background: '#1e293b',
+            color: '#ffffff'
         });
     }
 }
@@ -239,6 +241,8 @@ async function saveSucursal(e) {
             icon: 'success',
             title: isEditing ? 'Actualizado' : 'Guardado',
             text: result.message,
+            background: '#1e293b',
+            color: '#ffffff',
             timer: 2000,
             showConfirmButton: false
         });
@@ -249,6 +253,8 @@ async function saveSucursal(e) {
             icon: 'error',
             title: 'Error',
             text: error.message,
+            background: '#1e293b',
+            color: '#ffffff'
         });
     }
 }
@@ -264,12 +270,14 @@ function deleteSucursal(id) {
         text: "No podrás revertir esta acción",
         icon: 'warning',
         showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#3b82f6',
         confirmButtonText: 'Sí, eliminar',
         cancelButtonText: 'Cancelar',
-        buttonsStyling: false,
+        background: '#0f172a',
+        color: '#f8fafc',
         customClass: {
-            confirmButton: 'btn btn-error text-white ml-2 rounded-lg',
-            cancelButton: 'btn btn-ghost text-gray-600 rounded-lg'
+            popup: 'border border-slate-700 rounded-xl'
         }
     }).then(async (result) => {
         if (result.isConfirmed) {
@@ -289,8 +297,10 @@ function deleteSucursal(id) {
                         title: '¡Eliminado!',
                         text: 'La sucursal ha sido eliminada.',
                         icon: 'success',
-                        background: '#1a1a1a',
-                        color: '#ffffff'
+                        background: '#1e293b',
+                        color: '#ffffff',
+                        timer: 2000,
+                        showConfirmButton: false
                     });
                     loadSucursales();
                 } else {

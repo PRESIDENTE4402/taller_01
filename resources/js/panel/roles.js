@@ -129,7 +129,9 @@ async function saveRole(e) {
             toast: true,
             position: 'top-end',
             showConfirmButton: false,
-            timer: 3000
+            timer: 3000,
+            background: '#1e293b',
+            color: '#ffffff'
         });
 
     } catch (error) {
@@ -143,12 +145,14 @@ function deleteRole(id) {
         text: "Esta acción no se puede deshacer.",
         icon: 'warning',
         showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#3b82f6',
         confirmButtonText: 'Sí, eliminar',
         cancelButtonText: 'Cancelar',
-        buttonsStyling: false,
+        background: '#0f172a',
+        color: '#f8fafc',
         customClass: {
-            confirmButton: 'btn btn-error text-white ml-2 rounded-lg',
-            cancelButton: 'btn btn-ghost text-gray-600 rounded-lg'
+            popup: 'border border-slate-700 rounded-xl'
         }
     }).then(async (result) => {
         if (result.isConfirmed) {
@@ -159,7 +163,15 @@ function deleteRole(id) {
                 });
                 if (response.ok) {
                     loadRoles();
-                    Swal.fire('Eliminado', 'El rol ha sido eliminado.', 'success');
+                    Swal.fire({
+                        title: 'Eliminado',
+                        text: 'El rol ha sido eliminado.',
+                        icon: 'success',
+                        background: '#1e293b',
+                        color: '#ffffff',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
                 }
             } catch (e) {
                 console.error(e);

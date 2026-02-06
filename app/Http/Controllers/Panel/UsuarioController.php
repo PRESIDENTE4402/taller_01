@@ -16,8 +16,8 @@ class UsuarioController extends Controller
 
     public function list()
     {
-        // Traemos usuarios con sus roles
-        $users = User::with('roles')->orderBy('id', 'desc')->get();
+        // Traemos usuarios con sus roles y perfil
+        $users = User::with('roles', 'persona')->orderBy('id', 'desc')->get();
         return response()->json($users);
     }
 
@@ -25,6 +25,58 @@ class UsuarioController extends Controller
     {
         $roles = Role::all();
         return response()->json($roles);
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8',
+            // Persona validation
+            'nombres' => 'required|string|max:255',
+            'apellidos' => 'required|string|max:255',
+            'telefono' => 'nullable|string|max:20',
+            'edad' => 'nullable|integer|min:18',
+        ]);
+
+        try {
+            \DB::beginTransaction();
+
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => \Hash::make($request->password),
+            ]);
+
+            $user->persona()->create([
+                'nombres' => $request->nombres,
+                'apellidos' => $request->apellidos,
+                'edad' => $request->edad,
+                'sexo' => $request->sexo,
+                'telefono' => $request->telefono,
+                'correo' => $request->correo, // Optional different email
+                'direccion' => $request->direccion,
+                'cursos' => $request->cursos,
+                'otros_datos' => $request->otros_datos,
+            ]);
+
+            // Assign default role if provided or handle later
+            if ($request->role_id) {
+                $user->roles()->sync([$request->role_id]);
+            }
+
+            \DB::commit();
+
+            return response()->json([
+                'message' => 'Usuario y perfil creados correctamente',
+                'user' => $user->load('persona', 'roles')
+            ], 201);
+
+        } catch (\Exception $e) {
+            \DB::rollback();
+            return response()->json(['message' => 'Error al crear usuario: ' . $e->getMessage()], 500);
+        }
     }
 
     public function assignRole(Request $request, $id)
@@ -48,5 +100,66 @@ class UsuarioController extends Controller
             'message' => 'Rol asignado correctamente',
             'user' => $user->load('roles')
         ]);
+    }
+    public function update(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'password' => 'nullable|string|min:8',
+            // Persona validation
+            'nombres' => 'required|string|max:255',
+            'apellidos' => 'required|string|max:255',
+            'telefono' => 'nullable|string|max:20',
+            'edad' => 'nullable|integer|min:18',
+        ]);
+
+        try {
+            \DB::beginTransaction();
+
+            $updateData = [
+                'name' => $request->name,
+                'email' => $request->email,
+            ];
+
+            if ($request->filled('password')) {
+                $updateData['password'] = \Hash::make($request->password);
+            }
+
+            $user->update($updateData);
+
+            $user->persona()->updateOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'nombres' => $request->nombres,
+                    'apellidos' => $request->apellidos,
+                    'edad' => $request->edad,
+                    'sexo' => $request->sexo,
+                    'telefono' => $request->telefono,
+                    'correo' => $request->correo,
+                    'direccion' => $request->direccion,
+                    'cursos' => $request->cursos,
+                    'otros_datos' => $request->otros_datos,
+                ]
+            );
+
+            // Update role if provided
+            if ($request->role_id) {
+                $user->roles()->sync([$request->role_id]);
+            }
+
+            \DB::commit();
+
+            return response()->json([
+                'message' => 'Usuario actualizado correctamente',
+                'user' => $user->load('persona', 'roles')
+            ]);
+
+        } catch (\Exception $e) {
+            \DB::rollback();
+            return response()->json(['message' => 'Error al actualizar usuario: ' . $e->getMessage()], 500);
+        }
     }
 }

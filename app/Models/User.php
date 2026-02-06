@@ -49,13 +49,18 @@ class User extends Authenticatable
     // En app/Models/User.php
     public function roles()
     {
-        return $this->belongsToMany(Role::class);
+        return $this->belongsToMany(Role::class, 'rol_usuario');
     }
 
     // Método útil para verificar permisos
     public function hasRole($roleSlug)
     {
         return $this->roles()->where('slug', $roleSlug)->exists();
+    }
+
+    public function persona()
+    {
+        return $this->hasOne(Persona::class);
     }
 
     /**
