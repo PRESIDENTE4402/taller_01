@@ -90,8 +90,8 @@
                 {{-- Sección Operaciones --}}
                 <div class="px-3 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Operaciones</div>
 
-                <a href="#"
-                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md sidebar-item text-slate-400 transition-colors">
+                <a href="{{ route('panel.operaciones.citas.index') }}"
+                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.operaciones.citas.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
                     <i class="fas fa-calendar-check w-5 text-center"></i>
                     Gestionar Citas
                 </a>

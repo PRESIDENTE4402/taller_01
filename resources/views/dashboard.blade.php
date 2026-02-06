@@ -65,10 +65,10 @@
             <div class="card-body">
                 <h3 class="card-title text-sm font-bold uppercase text-gray-400 mb-4 tracking-wider">Acciones Frecuentes</h3>
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    <button class="btn btn-outline btn-primary h-auto py-4 flex flex-col gap-2 hover:scale-105 transition-transform border-gray-200 hover:border-blue-500 hover:bg-blue-50 text-gray-600 hover:text-blue-600">
+                    <a href="{{ route('panel.operaciones.citas.index', ['action' => 'create']) }}" class="btn btn-outline btn-primary h-auto py-4 flex flex-col gap-2 hover:scale-105 transition-transform border-gray-200 hover:border-blue-500 hover:bg-blue-50 text-gray-600 hover:text-blue-600">
                         <i class="fas fa-plus-circle text-2xl text-blue-500"></i>
                         <span>Nueva Cita</span>
-                    </button>
+                    </a>
                     <button class="btn btn-outline btn-secondary h-auto py-4 flex flex-col gap-2 hover:scale-105 transition-transform border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 text-gray-600 hover:text-indigo-600">
                         <i class="fas fa-car-side text-2xl text-indigo-500"></i>
                         <span>Ingreso Taller</span>

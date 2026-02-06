@@ -10,10 +10,14 @@ use App\Http\Controllers\Panel\VersionVehiculoController;
 use App\Http\Controllers\Panel\ModeloVehiculoController;
 
 
+use App\Http\Controllers\Landing\CitaController;
+
 // Public Routes
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
+
+Route::post('/api/landing/citas', [CitaController::class, 'store'])->name('landing.citas.store');
 
 // Auth Routes
 Route::middleware('guest')->group(function () {
@@ -35,6 +39,24 @@ Route::middleware('auth')->group(function () {
         Route::get('/', function () {
             return view('dashboard');
         })->name('dashboard');
+
+
+        // Módulos de Operaciones (Nuevo Grupo)
+        Route::prefix('operaciones')->name('operaciones.')->group(function () {
+             // Citas
+             Route::prefix('citas')->name('citas.')->group(function () {
+                Route::get('/', [App\Http\Controllers\Panel\CitaController::class, 'index'])->name('index');
+                Route::get('/list', [App\Http\Controllers\Panel\CitaController::class, 'list'])->name('list');
+                Route::post('/', [App\Http\Controllers\Panel\CitaController::class, 'store'])->name('store'); // Manual
+                Route::put('/{id}', [App\Http\Controllers\Panel\CitaController::class, 'update'])->name('update');
+                Route::delete('/{id}', [App\Http\Controllers\Panel\CitaController::class, 'destroy'])->name('destroy');
+                
+                // APIs auxiliares para creación manual
+                Route::get('/api/search-clients', [App\Http\Controllers\Panel\CitaController::class, 'searchClients'])->name('searchClients');
+                Route::get('/api/get-client-vehicles/{clienteId}', [App\Http\Controllers\Panel\CitaController::class, 'getClientVehicles'])->name('getClientVehicles');
+                Route::get('/api/get-brands', [App\Http\Controllers\Panel\CitaController::class, 'getBrands'])->name('getBrands');
+             });
+        });
 
         // Módulos de Mantenimiento
         Route::prefix('mantenimientos')->name('mantenimientos.')->group(function () {
