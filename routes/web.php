@@ -34,7 +34,22 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    // Rutas del PANEL (Aplicación Interna)
+    Route::prefix('panel')->name('panel.')->group(function () {
+        Route::get('/', function () {
+            return view('dashboard');
+        })->name('dashboard');
+
+        // Módulos de Mantenimiento
+        Route::prefix('mantenimientos')->name('mantenimientos.')->group(function () {
+            
+            // Marcas
+            Route::get('/marcas', [App\Http\Controllers\Panel\MarcaVehiculoController::class, 'index'])->name('marcas.index');
+            Route::get('/marcas/list', [App\Http\Controllers\Panel\MarcaVehiculoController::class, 'list'])->name('marcas.list');
+            Route::post('/marcas', [App\Http\Controllers\Panel\MarcaVehiculoController::class, 'store'])->name('marcas.store');
+            Route::put('/marcas/{id}', [App\Http\Controllers\Panel\MarcaVehiculoController::class, 'update'])->name('marcas.update');
+            Route::delete('/marcas/{id}', [App\Http\Controllers\Panel\MarcaVehiculoController::class, 'destroy'])->name('marcas.destroy');
+
+        });
+    });
 });
