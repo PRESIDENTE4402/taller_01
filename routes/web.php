@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Panel\MarcaVehiculoController;
+use App\Http\Controllers\Panel\VersionVehiculoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -44,12 +46,23 @@ Route::middleware('auth')->group(function () {
         Route::prefix('mantenimientos')->name('mantenimientos.')->group(function () {
             
             // Marcas
-            Route::get('/marcas', [App\Http\Controllers\Panel\MarcaVehiculoController::class, 'index'])->name('marcas.index');
-            Route::get('/marcas/list', [App\Http\Controllers\Panel\MarcaVehiculoController::class, 'list'])->name('marcas.list');
-            Route::post('/marcas', [App\Http\Controllers\Panel\MarcaVehiculoController::class, 'store'])->name('marcas.store');
-            Route::put('/marcas/{id}', [App\Http\Controllers\Panel\MarcaVehiculoController::class, 'update'])->name('marcas.update');
-            Route::delete('/marcas/{id}', [App\Http\Controllers\Panel\MarcaVehiculoController::class, 'destroy'])->name('marcas.destroy');
+            Route::prefix('marcas')->name('marcas.')->group(function () {
+                Route::get('/', [MarcaVehiculoController::class, 'index'])->name('index');
+                Route::get('/list', [MarcaVehiculoController::class, 'list'])->name('list');
+                Route::post('/', [MarcaVehiculoController::class, 'store'])->name('store');
+                Route::put('/{id}', [MarcaVehiculoController::class, 'update'])->name('update');
+                Route::delete('/{id}', [MarcaVehiculoController::class, 'destroy'])->name('destroy');
+            });
 
+            // Versiones
+            Route::prefix('versiones')->name('versiones.')->group(function () {
+                Route::get('/', [VersionVehiculoController::class, 'index'])->name('index');
+                Route::get('/list', [VersionVehiculoController::class, 'list'])->name('list');
+                Route::get('/modelos-list', [VersionVehiculoController::class, 'listModelos'])->name('listModelos'); // Dropdown population
+                Route::post('/', [VersionVehiculoController::class, 'store'])->name('store');
+                Route::put('/{id}', [VersionVehiculoController::class, 'update'])->name('update');
+                Route::delete('/{id}', [VersionVehiculoController::class, 'destroy'])->name('destroy');
+            });
         });
     });
 });

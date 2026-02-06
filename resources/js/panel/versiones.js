@@ -1,19 +1,23 @@
 /**
- * Gestor de Marcas - JS Moderno y Funcional (Sin Alpine)
+ * Gestor de Versiones - JS Moderno y Funcional
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    loadMarcas();
+    loadVersiones();
+    loadModelos(); // Pre-cargar modelos para el modal
 
     // Filtro de búsqueda en tiempo real
     const searchInput = document.getElementById('searchInput');
     searchInput.addEventListener('input', (e) => {
         const term = e.target.value.toLowerCase();
-        const cards = document.querySelectorAll('#marcasGrid > div');
+        const cards = document.querySelectorAll('#versionesGrid > div');
 
         cards.forEach(card => {
-            const text = card.querySelector('h4').innerText.toLowerCase();
-            card.style.display = text.includes(term) ? '' : 'none';
+            const versionText = card.querySelector('h4').innerText.toLowerCase();
+            const modelText = card.querySelector('.model-tag').innerText.toLowerCase();
+            const fullText = versionText + ' ' + modelText;
+
+            card.style.display = fullText.includes(term) ? '' : 'none';
         });
     });
 });
@@ -25,17 +29,15 @@ let currentId = null;
 // CRUD Operations
 // ==========================================
 
-async function loadMarcas() {
-    const gridContainer = document.getElementById('marcasGrid');
+async function loadVersiones() {
+    const gridContainer = document.getElementById('versionesGrid');
     const emptyState = document.getElementById('emptyState');
-
-    // Skeleton loading can be implemented here if needed (e.g. inject skeleton cards)
 
     try {
         const response = await fetch(`${API_URL}/list`);
         const data = await response.json();
 
-        gridContainer.innerHTML = ''; // Limpiar contenido previo
+        gridContainer.innerHTML = '';
 
         if (data.length === 0) {
             emptyState.classList.remove('hidden');
@@ -46,25 +48,27 @@ async function loadMarcas() {
             emptyState.classList.remove('flex');
         }
 
-        data.forEach((marca) => {
+        data.forEach((version) => {
             const card = document.createElement('div');
+            // Estilo Sólido Dark (Igual al de Marcas)
             card.className = 'bg-slate-900 rounded-xl p-5 flex items-center justify-between group hover:shadow-lg hover:shadow-cyan-500/20 transition-all duration-300 border border-slate-800';
 
             card.innerHTML = `
                 <div class="flex items-center gap-4">
                     <div class="h-10 w-10 rounded-lg bg-slate-800 flex items-center justify-center text-cyan-500 font-bold border border-slate-700">
-                        ${marca.nombre.charAt(0).toUpperCase()}
+                        ${version.nombre.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                        <h4 class="text-white font-bold text-lg leading-tight tracking-wide">${marca.nombre}</h4>
+                        <div class="text-xs text-slate-400 font-mono mb-1 model-tag">${version.marca_nombre} ${version.modelo_nombre}</div>
+                        <h4 class="text-white font-bold text-lg leading-tight tracking-wide">${version.nombre}</h4>
                     </div>
                 </div>
                 
                 <div class="flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
-                    <button onclick="editMarca(${marca.id}, '${marca.nombre}')" class="h-9 w-9 rounded-lg bg-slate-800 text-blue-400 hover:bg-blue-600 hover:text-white transition-colors flex items-center justify-center border border-slate-700" title="Editar">
+                    <button onclick="editVersion(${version.id}, '${version.nombre}', ${version.modelo_id})" class="h-9 w-9 rounded-lg bg-slate-800 text-blue-400 hover:bg-blue-600 hover:text-white transition-colors flex items-center justify-center border border-slate-700" title="Editar">
                         <i class="fas fa-pen text-xs"></i>
                     </button>
-                    <button onclick="deleteMarca(${marca.id})" class="h-9 w-9 rounded-lg bg-slate-800 text-red-400 hover:bg-red-600 hover:text-white transition-colors flex items-center justify-center border border-slate-700" title="Eliminar">
+                    <button onclick="deleteVersion(${version.id})" class="h-9 w-9 rounded-lg bg-slate-800 text-red-400 hover:bg-red-600 hover:text-white transition-colors flex items-center justify-center border border-slate-700" title="Eliminar">
                         <i class="fas fa-trash text-xs"></i>
                     </button>
                 </div>
@@ -73,17 +77,44 @@ async function loadMarcas() {
         });
 
     } catch (error) {
-        console.error('Error cargando marcas:', error);
+        console.error('Error cargando versiones:', error);
         showToast('Error al cargar datos', 'error');
     }
 }
 
-async function saveMarca(e) {
+async function loadModelos() {
+    try {
+        const response = await fetch(`${API_URL}/modelos-list`);
+        const modelos = await response.json();
+        const select = document.getElementById('modeloSelect');
+
+        // Mantener la primera opción placeholder
+        select.innerHTML = '<option value="">Seleccione un modelo...</option>';
+
+        modelos.forEach(modelo => {
+            const option = document.createElement('option');
+            option.value = modelo.id;
+            option.textContent = `${modelo.marca_nombre} - ${modelo.nombre}`;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error cargando modelos:', error);
+    }
+}
+
+async function saveVersion(e) {
     e.preventDefault();
 
-    const nombreInput = document.getElementById('nombreMarca');
+    const nombreInput = document.getElementById('nombreVersion');
+    const modeloSelect = document.getElementById('modeloSelect');
     const name = nombreInput.value;
+    const modeloId = modeloSelect.value;
     const errorSpan = document.getElementById('errorNombre');
+
+    if (!modeloId) {
+        showToast('Debe seleccionar un modelo', 'error');
+        return;
+    }
 
     if (!name.trim()) {
         errorSpan.textContent = 'El nombre es obligatorio';
@@ -94,19 +125,15 @@ async function saveMarca(e) {
     const method = isEditing ? 'PUT' : 'POST';
     const url = isEditing ? `${API_URL}/${currentId}` : API_URL;
 
-    // Loading State
-    const submitBtn = e.target.closest('.relative')?.querySelector('button[type="button"]'); // Hacky find or use ID
-    // Better: use the form submit event handling
-
     try {
         const response = await fetch(url, {
             method: method,
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': CSRF_TOKEN,
-                'Accept': 'application/json' // Importante para forzar respuesta JSON de Laravel
+                'Accept': 'application/json'
             },
-            body: JSON.stringify({ nombre: name })
+            body: JSON.stringify({ nombre: name, modelo_id: modeloId })
         });
 
         let result;
@@ -118,11 +145,12 @@ async function saveMarca(e) {
         }
 
         if (!response.ok) {
-            // Manejo de errores de validación (Laravel 422)
-            if (response.status === 422 && result.errors && result.errors.nombre) {
-                const errorMsg = result.errors.nombre[0];
+            if (response.status === 422 && result.errors) {
+                // Check specific errors
+                let errorMsg = 'Error de validación';
+                if (result.errors.nombre) errorMsg = result.errors.nombre[0];
+                else if (result.errors.modelo_id) errorMsg = result.errors.modelo_id[0];
 
-                // Alerta Moderna de Duplicado
                 Swal.fire({
                     title: '¡Atención!',
                     text: errorMsg,
@@ -132,31 +160,31 @@ async function saveMarca(e) {
                     color: '#ffffff',
                     confirmButtonColor: '#3b82f6'
                 });
-
                 throw new Error(errorMsg);
             }
             throw new Error(result.message || 'Error en la petición');
         }
 
-        // Success
         closeModal();
-        loadMarcas();
-        showToast(isEditing ? 'Marca actualizada' : 'Marca creada', 'success');
+        loadVersiones();
+        showToast(isEditing ? 'Versión actualizada' : 'Versión creada', 'success');
 
     } catch (error) {
         console.error(error);
-        errorSpan.textContent = error.message;
-        errorSpan.classList.remove('hidden');
-
-        // Efecto de vibración/atención en el input
-        nombreInput.classList.add('border-red-500', 'text-red-600');
-        setTimeout(() => nombreInput.classList.remove('border-red-500', 'text-red-600'), 2000);
+        if (!response.ok && response.status !== 422) { // Only show toast if logic specific handling missed it
+            showToast(error.message, 'error');
+        } else if (response.status === 422) {
+            // Already handled by sweet alert
+        } else {
+            errorSpan.textContent = error.message;
+            errorSpan.classList.remove('hidden');
+        }
     }
 }
 
-async function deleteMarca(id) {
+async function deleteVersion(id) {
     const result = await Swal.fire({
-        title: '¿Eliminar Marca?',
+        title: '¿Eliminar Versión?',
         text: "Esta acción no se puede deshacer.",
         icon: 'warning',
         showCancelButton: true,
@@ -178,17 +206,18 @@ async function deleteMarca(id) {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': CSRF_TOKEN
+                'X-CSRF-TOKEN': CSRF_TOKEN,
+                'Accept': 'application/json'
             }
         });
 
         if (!response.ok) throw new Error('Error al eliminar');
 
-        loadMarcas();
-        showToast('Marca eliminada', 'success');
+        loadVersiones();
+        showToast('Versión eliminada', 'success');
 
     } catch (error) {
-        showToast('No se pudo eliminar la marca', 'error');
+        showToast('No se pudo eliminar la versión', 'error');
     }
 }
 
@@ -199,18 +228,20 @@ async function deleteMarca(id) {
 function openModal() {
     isEditing = false;
     currentId = null;
-    document.getElementById('modalTitle').textContent = 'Nueva Marca';
-    document.getElementById('nombreMarca').value = '';
+    document.getElementById('modalTitle').innerHTML = '<i class="fas fa-tag text-cyan-500"></i><span>Registro de Versión</span>';
+    document.getElementById('nombreVersion').value = '';
+    document.getElementById('modeloSelect').value = '';
     document.getElementById('errorNombre').classList.add('hidden');
 
     toggleModal(true);
 }
 
-function editMarca(id, nombre) {
+function editVersion(id, nombre, modeloId) {
     isEditing = true;
     currentId = id;
-    document.getElementById('modalTitle').textContent = 'Editar Marca';
-    document.getElementById('nombreMarca').value = nombre;
+    document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit text-cyan-500"></i><span>Editar Versión</span>';
+    document.getElementById('nombreVersion').value = nombre;
+    document.getElementById('modeloSelect').value = modeloId;
     document.getElementById('errorNombre').classList.add('hidden');
 
     toggleModal(true);
@@ -221,13 +252,12 @@ function closeModal() {
 }
 
 function toggleModal(show) {
-    const modal = document.getElementById('marcaModal');
+    const modal = document.getElementById('versionModal');
     const backdrop = document.getElementById('modalBackdrop');
     const panel = document.getElementById('modalPanel');
 
     if (show) {
         modal.classList.remove('hidden');
-        // Small delay for transition
         setTimeout(() => {
             backdrop.classList.remove('opacity-0');
             panel.classList.remove('opacity-0', 'translate-y-4', 'sm:translate-y-0', 'sm:scale-95');
@@ -249,7 +279,6 @@ function toggleModal(show) {
 // ==========================================
 
 function showToast(message, type = 'info') {
-    // Simple Toast implementation
     const toast = document.createElement('div');
     const bgColor = type === 'success' ? 'bg-green-600' : (type === 'error' ? 'bg-red-600' : 'bg-blue-600');
 
@@ -261,7 +290,6 @@ function showToast(message, type = 'info') {
 
     document.body.appendChild(toast);
 
-    // Animate In
     setTimeout(() => {
         toast.classList.remove('translate-y-20', 'opacity-0');
     }, 10);
@@ -272,3 +300,11 @@ function showToast(message, type = 'info') {
         setTimeout(() => toast.remove(), 300);
     }, 3000);
 }
+
+// Hacer funciones accesibles globalmente para el HTML
+window.loadVersiones = loadVersiones;
+window.saveVersion = saveVersion;
+window.deleteVersion = deleteVersion;
+window.openModal = openModal;
+window.editVersion = editVersion;
+window.closeModal = closeModal;

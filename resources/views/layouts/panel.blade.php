@@ -108,6 +108,11 @@
                     <i class="fas fa-tags w-5 text-center"></i>
                     Marcas de Vehículos
                 </a>
+                
+                <a href="{{ route('panel.mantenimientos.versiones.index') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.mantenimientos.versiones.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                    <i class="fas fa-code-branch w-5 text-center"></i>
+                    Versiones de Modelos
+                </a>
             </nav>
         </div>
 
@@ -172,5 +177,6 @@
         </main>
     </div>
 
+    @stack('scripts')
 </body>
 </html>
