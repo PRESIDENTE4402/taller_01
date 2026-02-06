@@ -48,25 +48,47 @@ async function loadMarcas() {
 
         data.forEach((marca) => {
             const card = document.createElement('div');
-            card.className = 'bg-slate-900 rounded-xl p-5 flex items-center justify-between group hover:shadow-lg hover:shadow-cyan-500/20 transition-all duration-300 border border-slate-800';
+            // Hacer la tarjeta clickeable para ver modelos
+            card.onclick = (e) => {
+                // Evitar abrir modal si se clickea en botones de acción
+                if (e.target.closest('button')) return;
+                openModelosModal(marca.id, marca.nombre);
+            };
+
+            card.className = 'bg-slate-900 rounded-xl p-5 flex items-center justify-between group hover:shadow-lg hover:shadow-cyan-500/20 transition-all duration-300 border border-slate-800 cursor-pointer relative overflow-hidden';
 
             card.innerHTML = `
-                <div class="flex items-center gap-4">
-                    <div class="h-10 w-10 rounded-lg bg-slate-800 flex items-center justify-center text-cyan-500 font-bold border border-slate-700">
-                        ${marca.nombre.charAt(0).toUpperCase()}
+                <!-- Fondo con Gradiente Dinámico -->
+                <div class="absolute inset-0 bg-gradient-to-br from-slate-800 to-slate-900 opacity-100 transition-all duration-500"></div>
+                <div class="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/5 to-blue-600/10 opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
+
+                <!-- Contenido -->
+                <div class="relative z-10 flex items-center justify-between w-full h-full">
+                    <div class="flex items-center gap-5">
+                        <!-- Icono Marca -->
+                        <div class="h-14 w-14 rounded-2xl bg-slate-800 shadow-inner flex items-center justify-center text-2xl font-black text-transparent bg-clip-text bg-gradient-to-br from-cyan-400 to-blue-600 border border-slate-700/50 group-hover:scale-110 transition-transform duration-300 shrink-0">
+                            ${marca.nombre.charAt(0).toUpperCase()}
+                        </div>
+                        
+                        <div class="flex flex-col justify-center">
+                            <h4 class="text-white font-bold text-xl tracking-tight group-hover:text-cyan-400 transition-colors line-clamp-1">${marca.nombre}</h4>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700 group-hover:border-cyan-500/30 group-hover:text-cyan-400 transition-colors uppercase tracking-wider">
+                                    <i class="fas fa-layer-group text-[9px] mr-1"></i> Ver Modelos
+                                </span>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <h4 class="text-white font-bold text-lg leading-tight tracking-wide">${marca.nombre}</h4>
+
+                    <!-- Acciones -->
+                    <div class="flex flex-col gap-2 opacity-100 sm:opacity-40 sm:group-hover:opacity-100 transition-all duration-300 translate-x-2 sm:translate-x-0 shrink-0">
+                        <button onclick="editMarca(${marca.id}, '${marca.nombre}')" class="h-8 w-8 rounded-lg bg-slate-800 hover:bg-blue-600 hover:text-white text-slate-500 transition-all shadow-sm border border-slate-700 hover:border-blue-500 flex items-center justify-center p-0 z-20" title="Editar">
+                            <i class="fas fa-pen text-xs"></i>
+                        </button>
+                        <button onclick="deleteMarca(${marca.id})" class="h-8 w-8 rounded-lg bg-slate-800 hover:bg-red-600 hover:text-white text-slate-500 transition-all shadow-sm border border-slate-700 hover:border-red-500 flex items-center justify-center p-0 z-20" title="Eliminar">
+                            <i class="fas fa-trash text-xs"></i>
+                        </button>
                     </div>
-                </div>
-                
-                <div class="flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
-                    <button onclick="editMarca(${marca.id}, '${marca.nombre}')" class="h-9 w-9 rounded-lg bg-slate-800 text-blue-400 hover:bg-blue-600 hover:text-white transition-colors flex items-center justify-center border border-slate-700" title="Editar">
-                        <i class="fas fa-pen text-xs"></i>
-                    </button>
-                    <button onclick="deleteMarca(${marca.id})" class="h-9 w-9 rounded-lg bg-slate-800 text-red-400 hover:bg-red-600 hover:text-white transition-colors flex items-center justify-center border border-slate-700" title="Eliminar">
-                        <i class="fas fa-trash text-xs"></i>
-                    </button>
                 </div>
             `;
             gridContainer.appendChild(card);
@@ -246,38 +268,209 @@ function toggleModal(show) {
 }
 
 // ==========================================
-// UI Helpers
+// Integración de Gestión de Modelos
 // ==========================================
 
-function showToast(message, type = 'info') {
-    // Simple Toast implementation
-    const toast = document.createElement('div');
-    const bgColor = type === 'success' ? 'bg-green-600' : (type === 'error' ? 'bg-red-600' : 'bg-blue-600');
+async function openModelosModal(marcaId, marcaNombre) {
+    document.getElementById('currentMarcaId').value = marcaId;
+    document.getElementById('marcaTitleName').textContent = marcaNombre;
+    document.getElementById('nombreModelo').value = '';
 
-    toast.className = `fixed bottom-4 right-4 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-3 transform transition-all duration-300 translate-y-20 opacity-0`;
-    toast.innerHTML = `
-        <i class="fas ${type === 'success' ? 'fa-check-circle' : (type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle')}"></i>
-        <span class="font-medium text-sm">${message}</span>
-    `;
-
-    document.body.appendChild(toast);
-
-    // Animate In
-    setTimeout(() => {
-        toast.classList.remove('translate-y-20', 'opacity-0');
-    }, 10);
-
-    // Remove after 3s
-    setTimeout(() => {
-        toast.classList.add('translate-y-20', 'opacity-0');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
+    toggleModelosModal(true);
+    await loadModelos(marcaId);
 }
 
-// Hacer funciones accesibles globalmente para el HTML
+function closeModelosModal() {
+    toggleModelosModal(false);
+}
+
+function toggleModelosModal(show) {
+    const modal = document.getElementById('modelosModal');
+    const backdrop = document.getElementById('modelosBackdrop');
+    const panel = document.getElementById('modelosPanel');
+
+    if (show) {
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            backdrop.classList.remove('opacity-0');
+            panel.classList.remove('opacity-0', 'scale-95');
+            panel.classList.add('opacity-100', 'scale-100');
+        }, 10);
+    } else {
+        backdrop.classList.add('opacity-0');
+        panel.classList.remove('opacity-100', 'scale-100');
+        panel.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+    }
+}
+
+async function loadModelos(marcaId) {
+    const listContainer = document.getElementById('listaModelos');
+    const emptyState = document.getElementById('modelosEmpty');
+    listContainer.innerHTML = '<div class="text-center py-4 text-slate-500"><i class="fas fa-circle-notch fa-spin"></i> Cargando...</div>';
+
+    try {
+        const response = await fetch(`${API_MODELOS_URL}/by-marca/${marcaId}`);
+        const data = await response.json();
+
+        listContainer.innerHTML = '';
+
+        if (data.length === 0) {
+            emptyState.classList.remove('hidden');
+        } else {
+            emptyState.classList.add('hidden');
+            data.forEach(modelo => {
+                const item = document.createElement('div');
+                item.className = 'p-4 flex items-center justify-between hover:bg-white/5 transition-colors group';
+                item.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-angle-right text-cyan-500/50"></i>
+                        <span class="text-slate-200 font-medium">${modelo.nombre}</span>
+                    </div>
+                    <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                         <button onclick="editModelo(${modelo.id}, '${modelo.nombre}')" class="text-blue-400 hover:text-blue-300 p-1" title="Editar">
+                            <i class="fas fa-pen text-xs"></i>
+                        </button>
+                        <button onclick="deleteModelo(${modelo.id})" class="text-red-400 hover:text-red-300 p-1" title="Eliminar">
+                            <i class="fas fa-trash text-xs"></i>
+                        </button>
+                    </div>
+                `;
+                listContainer.appendChild(item);
+            });
+        }
+    } catch (error) {
+        console.error(error);
+        listContainer.innerHTML = '<div class="text-center py-4 text-red-400">Error al cargar modelos</div>';
+    }
+}
+
+async function saveModelo(e) {
+    e.preventDefault();
+    const marcaId = document.getElementById('currentMarcaId').value;
+    const nombreInput = document.getElementById('nombreModelo');
+    const nombre = nombreInput.value.trim();
+
+    if (!nombre) return;
+
+    try {
+        const response = await fetch(API_MODELOS_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': CSRF_TOKEN,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ marca_id: marcaId, nombre: nombre })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            if (response.status === 422 && result.errors && result.errors.nombre) {
+                Swal.fire({
+                    title: '¡Atención!',
+                    text: result.errors.nombre[0],
+                    icon: 'warning',
+                    background: '#1e293b',
+                    color: '#ffffff',
+                    confirmButtonColor: '#3b82f6'
+                });
+                return;
+            }
+            throw new Error(result.message || 'Error al guardar');
+        }
+
+        nombreInput.value = '';
+        loadModelos(marcaId);
+        showToast('Modelo agregado', 'success');
+
+    } catch (error) {
+        showToast(error.message, 'error');
+    }
+}
+
+async function deleteModelo(id) {
+    const result = await Swal.fire({
+        title: '¿Eliminar Modelo?',
+        text: "Esta acción no se puede deshacer.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#3b82f6',
+        confirmButtonText: 'Sí, eliminar',
+        background: '#0f172a',
+        color: '#f8fafc'
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+        await fetch(`${API_MODELOS_URL}/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': CSRF_TOKEN
+            }
+        });
+
+        const marcaId = document.getElementById('currentMarcaId').value;
+        loadModelos(marcaId);
+        showToast('Modelo eliminado', 'success');
+    } catch (error) {
+        showToast('Error al eliminar modelo', 'error');
+    }
+}
+
+// Editable Model (Simple Prompt wrapper for MVP)
+async function editModelo(id, currentName) {
+    const { value: newName } = await Swal.fire({
+        title: 'Editar Modelo',
+        input: 'text',
+        inputValue: currentName,
+        background: '#1e293b',
+        color: '#ffffff',
+        showCancelButton: true,
+        confirmButtonColor: '#3b82f6',
+        inputValidator: (value) => {
+            if (!value) return 'El nombre es obligatorio';
+        }
+    });
+
+    if (newName && newName !== currentName) {
+        try {
+            const response = await fetch(`${API_MODELOS_URL}/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': CSRF_TOKEN,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ nombre: newName })
+            });
+
+            if (!response.ok) throw new Error('Error al actualizar');
+
+            const marcaId = document.getElementById('currentMarcaId').value;
+            loadModelos(marcaId);
+            showToast('Modelo actualizado', 'success');
+
+        } catch (error) {
+            showToast('Error al actualizar modelo', 'error');
+        }
+    }
+}
+
+// Helpers globales para el HTML
 window.loadMarcas = loadMarcas;
 window.saveMarca = saveMarca;
 window.deleteMarca = deleteMarca;
 window.openModal = openModal;
 window.editMarca = editMarca;
 window.closeModal = closeModal;
+// Nuevos Helpers Modelos
+window.openModelosModal = openModelosModal;
+window.closeModelosModal = closeModelosModal;
+window.saveModelo = saveModelo;
+window.deleteModelo = deleteModelo;
+window.editModelo = editModelo;

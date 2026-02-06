@@ -97,9 +97,8 @@
                     </div>
                 </div>
                 
-                <div class="bg-gray-50/80 px-8 py-4 sm:flex sm:flex-row-reverse gap-3 border-t border-gray-100">
-                    <button type="button" onclick="document.getElementById('marcaForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true}))" 
-                        class="inline-flex w-full justify-center rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-bold text-white shadow-lg hover:shadow-cyan-500/30 hover:bg-black transition-all sm:w-auto">
+                <div class="bg-gray-50/80 px-8 py-4 sm:flex sm:flex-row-reverse gap-3 border-t border-gray-100 rounded-b-2xl">
+                    <button type="button" class="btn_save_marca inline-flex w-full justify-center rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-bold text-white shadow-lg hover:shadow-cyan-500/30 hover:bg-black transition-all sm:w-auto" onclick="document.getElementById('marcaForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true}))">
                         Guardar Registro
                     </button>
                     <button type="button" onclick="closeModal()" 
@@ -112,9 +111,67 @@
     </div>
 </div>
 
+{{-- Modal de Gestión de Modelos --}}
+<div id="modelosModal" class="fixed inset-0 z-[60] hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    {{-- Backdrop --}}
+    <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity opacity-0" id="modelosBackdrop"></div>
+
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+        <div class="flex min-h-full items-center justify-center p-4 text-center">
+            
+            <div class="relative transform overflow-hidden rounded-2xl bg-slate-900 text-left shadow-2xl transition-all sm:w-full sm:max-w-2xl opacity-0 scale-95 border border-white/10" id="modelosPanel">
+                
+                {{-- Header --}}
+                <div class="bg-slate-800/50 px-6 py-4 border-b border-white/5 flex justify-between items-center">
+                    <div>
+                        <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                            <i class="fas fa-layer-group text-cyan-400"></i>
+                            Gestión de Modelos
+                        </h3>
+                        <p class="text-sm text-slate-400 mt-1">Marca: <span id="marcaTitleName" class="text-cyan-300 font-bold"></span></p>
+                    </div>
+                    <button onclick="closeModelosModal()" class="text-slate-400 hover:text-white transition-colors">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+
+                <div class="p-6">
+                    {{-- Formulario Agregar Modelo --}}
+                    <form id="modeloForm" onsubmit="saveModelo(event)" class="flex gap-3 mb-6">
+                        <input type="hidden" id="currentMarcaId">
+                        <div class="relative flex-1">
+                            <input type="text" id="nombreModelo" name="nombre" 
+                                class="w-full bg-slate-800/50 border border-slate-700 rounded-lg py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all"
+                                placeholder="Nuevo Modelo (Ej. Corolla, Civic...)" required>
+                        </div>
+                        <button type="submit" 
+                            class="px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold rounded-lg shadow-lg shadow-cyan-500/20 transition-all flex items-center gap-2">
+                            <i class="fas fa-plus"></i> <span class="hidden sm:inline">Agregar</span>
+                        </button>
+                    </form>
+
+                    {{-- Lista de Modelos (Scrollable) --}}
+                    <div class="bg-slate-950/50 rounded-xl border border-white/5 overflow-hidden max-h-[400px] overflow-y-auto custom-scrollbar">
+                        <div id="listaModelos" class="divide-y divide-white/5">
+                            {{-- Items inyectados por JS --}}
+                        </div>
+                        
+                        {{-- Empty State Modelos --}}
+                        <div id="modelosEmpty" class="hidden py-12 text-center">
+                            <i class="fas fa-car-side text-slate-700 text-4xl mb-3"></i>
+                            <p class="text-slate-500 text-sm">No hay modelos registrados.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 {{-- Scripts --}}
 <script>
     const API_URL = "{{ route('panel.mantenimientos.marcas.index') }}";
+    const API_MODELOS_URL = "{{ url('panel/mantenimientos/modelos') }}"; // Base URL para modelos
     const CSRF_TOKEN = "{{ csrf_token() }}";
 </script>
 @endsection

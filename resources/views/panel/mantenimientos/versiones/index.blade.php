@@ -12,34 +12,39 @@
     <div class="absolute -top-10 -right-10 w-64 h-64 bg-slate-900/10 rounded-full blur-3xl pointer-events-none"></div>
     <div class="absolute -bottom-10 -left-10 w-64 h-64 bg-blue-900/10 rounded-full blur-3xl pointer-events-none"></div>
 
-    {{-- Header de Acciones --}}
-    <div class="flex flex-col sm:flex-row justify-between items-center gap-6 mb-8 relative z-10">
+    {{-- Header de Navegación y Búsqueda --}}
+    <div class="flex flex-col gap-6 mb-8 relative z-10">
         
-        {{-- Búsqueda Futurista --}}
-        <div class="relative w-full sm:w-80 group">
-            <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-300 to-cyan-300 rounded-lg blur opacity-30 group-hover:opacity-75 transition duration-500"></div>
-            <div class="relative flex items-center bg-white rounded-lg">
-                <i class="fas fa-search absolute left-4 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
-                <input type="text" id="searchInput" placeholder="Buscar versión, modelo..." 
-                    class="w-full py-3 pl-12 pr-4 bg-transparent border-none focus:ring-0 text-gray-700 placeholder-gray-400 font-medium rounded-lg"
-                    style="outline: none;">
+        {{-- Breadcrumbs / Título --}}
+        <div class="flex items-center gap-4">
+            {{-- Botón Volver --}}
+            <button id="btnBack" onclick="goBack()" class="hidden h-10 w-10 text-white bg-slate-800 hover:bg-slate-700 rounded-xl items-center justify-center transition-all shadow-lg hover:shadow-cyan-500/20 border border-slate-700">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            
+            <div>
+                <h2 class="text-3xl font-black text-white tracking-tight flex items-center gap-2" id="viewTitle">
+                    Marcas
+                </h2>
+                <p class="text-slate-400 font-medium" id="viewSubtitle">Selecciona una marca para explorar sus modelos</p>
             </div>
         </div>
 
-        {{-- Botón Nueva Versión --}}
-        <button onclick="openModal()" 
-            class="relative inline-flex items-center justify-center px-8 py-3 overflow-hidden font-bold text-white transition-all duration-300 bg-gray-900 rounded-lg group hover:scale-105 shadow-lg hover:shadow-cyan-500/50">
-            <span class="absolute top-0 right-0 inline-block w-4 h-4 transition-all duration-500 ease-in-out bg-cyan-500 rounded group-hover:-mr-4 group-hover:-mt-4">
-                <span class="absolute top-0 right-0 w-5 h-5 rotate-45 translate-x-1/2 -translate-y-1/2 bg-white"></span>
-            </span>
-            <span class="absolute bottom-0 rotate-180 left-0 inline-block w-4 h-4 transition-all duration-500 ease-in-out bg-blue-600 rounded group-hover:-ml-4 group-hover:-mb-4">
-                <span class="absolute top-0 right-0 w-5 h-5 rotate-45 translate-x-1/2 -translate-y-1/2 bg-white"></span>
-            </span>
-            <span class="absolute bottom-0 left-0 w-full h-full transition-all duration-500 ease-in-out delay-200 -translate-x-full bg-gradient-to-r from-blue-600 to-cyan-500 rounded-lg group-hover:translate-x-0"></span>
-            <span class="relative w-full text-left flex items-center gap-2">
-                <i class="fas fa-plus"></i> Nueva Versión
-            </span>
-        </button>
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+            {{-- Búsqueda --}}
+            <div class="relative w-full sm:w-96 group">
+                <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl blur opacity-20 group-hover:opacity-60 transition duration-500"></div>
+                <div class="relative flex items-center bg-slate-900 rounded-xl border border-slate-700">
+                    <i class="fas fa-search absolute left-4 text-slate-500 group-focus-within:text-cyan-400 transition-colors"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar..." 
+                        class="w-full py-3.5 pl-12 pr-4 bg-transparent border-none focus:ring-0 text-white placeholder-slate-500 font-medium rounded-xl"
+                        style="outline: none;">
+                </div>
+            </div>
+
+            {{-- Botón Nueva Versión (Solo visible en nivel de modelos, manejado por JS) --}}
+            <!-- Este botón global se elimina, ahora se agrega contexto específico en cada tarjeta de modelo -->
+        </div>
     </div>
 
     {{-- Contenedor de Grid de Tarjetas --}}
@@ -57,70 +62,64 @@
     </div>
 </div>
 
-{{-- Modal Tech --}}
-<div id="versionModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    {{-- Backdrop con Blur --}}
-    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity opacity-0" id="modalBackdrop"></div>
-
+{{-- Modal Nuevo: Gestión de Versiones de un Modelo --}}
+<div id="versionesListModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity opacity-0" id="versionesListBackdrop"></div>
     <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
         <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
             
-            {{-- Panel del Modal --}}
-            <div class="relative transform overflow-visible rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95 border border-white/20" id="modalPanel">
-                
-                {{-- Barra Superior Decorativa --}}
-                <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-600 to-cyan-400 rounded-t-2xl"></div>
+            <input type="hidden" id="currentModeloIdList">
+            <input type="hidden" id="currentMarcaIdList">
 
-                <div class="px-8 pt-8 pb-6">
-                    <div class="text-center sm:text-left">
-                        <h3 class="text-xl font-bold leading-6 text-gray-900 flex items-center gap-2" id="modalTitle">
-                            <i class="fas fa-tag text-cyan-500"></i>
-                            <span>Registro de Versión</span>
+            <div class="relative transform overflow-hidden rounded-2xl bg-[#0f172a] text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl border border-slate-700 opacity-0 scale-95" id="versionesListPanel">
+                
+                {{-- Header Modal --}}
+                <div class="bg-slate-800 px-4 py-4 sm:px-6 flex justify-between items-center border-b border-slate-700">
+                    <div>
+                        <h3 class="text-xl font-bold text-white flex items-center gap-2" id="versionesListTitle">
+                            {{-- JS inyectará el título --}}
                         </h3>
-                        <p class="text-sm text-gray-500 mt-1">Especifica el modelo y nombre de la versión.</p>
-                        
-                        <div class="mt-6">
-                            <form id="versionForm" onsubmit="saveVersion(event)">
-                                <input type="hidden" id="versionId">
-                                
-                                {{-- Select Modelo --}}
-                                <div class="mb-6 relative">
-                                    <label for="modeloSelect" class="block text-sm font-medium text-gray-700 mb-2">Modelo de Vehículo</label>
-                                    <div class="relative">
-                                        <select id="modeloSelect" name="modelo_id" class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-3 px-4 bg-gray-50" required>
-                                            <option value="">Seleccione un modelo...</option>
-                                            {{-- Options injected by JS --}}
-                                        </select>
-                                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                                            <i class="fas fa-chevron-down text-xs"></i>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {{-- Input Nombre --}}
-                                <div class="group relative z-0 w-full mb-6 max-h-45">
-                                    <input type="text" id="nombreVersion" name="nombre" 
-                                        class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer" 
-                                        placeholder=" " required />
-                                    <label for="nombreVersion" 
-                                        class="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">
-                                        Versión (Ej. Limited, Sport, GLX)
-                                    </label>
-                                    <span class="text-xs text-red-500 mt-1 hidden font-medium" id="errorNombre"></span>
-                                </div>
-                            </form>
-                        </div>
+                        <p class="text-sm text-slate-400 mt-0.5">Gestión de versiones disponibles</p>
                     </div>
-                </div>
-                
-                <div class="bg-gray-50/80 px-8 py-4 sm:flex sm:flex-row-reverse gap-3 border-t border-gray-100 rounded-b-2xl">
-                    <button type="button" onclick="document.getElementById('versionForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true}))" 
-                        class="inline-flex w-full justify-center rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-bold text-white shadow-lg hover:shadow-cyan-500/30 hover:bg-black transition-all sm:w-auto">
-                        Guardar Registro
+                    <button type="button" onclick="closeVersionesListModal()" class="text-slate-400 hover:text-white transition-colors">
+                        <i class="fas fa-times text-xl"></i>
                     </button>
-                    <button type="button" onclick="closeModal()" 
-                        class="mt-3 inline-flex w-full justify-center rounded-lg bg-white px-5 py-2.5 text-sm font-bold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-200 hover:bg-gray-50 sm:mt-0 sm:w-auto">
-                        Cancelar
+                </div>
+
+                {{-- Body Modal --}}
+                <div class="px-4 py-6 sm:px-6 bg-[#0f172a]">
+                    
+                    {{-- Formulario Rápido Agregar --}}
+                    <div class="mb-6 bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
+                        <form id="quickVersionForm" onsubmit="saveQuickVersion(event)" class="flex gap-3 items-end">
+                            <div class="flex-1">
+                                <label class="block text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">Nueva Versión</label>
+                                <input type="text" id="quickNombreVersion" 
+                                    class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white placeholder-slate-500 focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 text-sm font-medium" 
+                                    placeholder="Ej. LE, XLE, Sport..." required>
+                            </div>
+                            <button type="submit" class="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2 text-sm h-[38px]">
+                                <i class="fas fa-plus"></i> Agregar
+                            </button>
+                        </form>
+                    </div>
+
+                    {{-- Lista de Versiones --}}
+                    <div class="max-h-[300px] overflow-y-auto pr-2 custom-scrollbar" id="listaVersionesContainer">
+                        {{-- Inyectado por JS --}}
+                    </div>
+
+                    {{-- Empty State (Oculto por defecto) --}}
+                    <div id="versionesListEmpty" class="hidden flex-col items-center justify-center py-8 text-center text-slate-500">
+                        <i class="fas fa-info-circle text-2xl mb-2 opacity-50"></i>
+                        <p class="text-sm">No hay versiones registradas.</p>
+                    </div>
+
+                </div>
+
+                <div class="bg-slate-800 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 border-t border-slate-700">
+                    <button type="button" onclick="closeVersionesListModal()" class="mt-3 inline-flex w-full justify-center rounded-lg bg-slate-700 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-slate-600 sm:mt-0 sm:w-auto transition-colors">
+                        Cerrar
                     </button>
                 </div>
             </div>
@@ -128,9 +127,16 @@
     </div>
 </div>
 
+{{-- Mantener el modal de edición/creación "Completo" (Si se quiere usar) o eliminarlo. 
+     Para MVP, usaremos el "quick form" para agregar y quizas SweetAlert para editar al vuelo 
+     como en Modelos. Es más rápido y consistente. Comentemos el viejo modal. --}}
+<!-- Old Modal Removed to avoid duplication and confusion -->
+
 {{-- Scripts --}}
 <script>
     const API_URL = "{{ route('panel.mantenimientos.versiones.index') }}";
+    const API_MODELOS_URL = "{{ url('panel/mantenimientos/modelos') }}";
+    const API_MARCAS_URL = "{{ route('panel.mantenimientos.marcas.list') }}";
     const CSRF_TOKEN = "{{ csrf_token() }}";
 </script>
 @endsection

@@ -12,7 +12,7 @@ return new class extends Migration {
     {
         Schema::create('vehiculos', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('cliente_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('cliente_id')->constrained('clientes')->onDelete('cascade');
             $table->foreignId('marca_id')->constrained('marcas_vehiculos');
             $table->foreignId('modelo_id')->constrained('modelos_vehiculos');
             $table->foreignId('version_id')->nullable()->constrained('versiones_vehiculos');

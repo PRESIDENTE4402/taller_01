@@ -5,17 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Panel\MarcaVehiculoController;
 use App\Http\Controllers\Panel\VersionVehiculoController;
+use App\Http\Controllers\Panel\ModeloVehiculoController;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
 
 // Public Routes
 Route::get('/', function () {
@@ -59,43 +50,19 @@ Route::middleware('auth')->group(function () {
             Route::prefix('versiones')->name('versiones.')->group(function () {
                 Route::get('/', [VersionVehiculoController::class, 'index'])->name('index');
                 Route::get('/list', [VersionVehiculoController::class, 'list'])->name('list');
-                Route::get('/modelos-list', [VersionVehiculoController::class, 'listModelos'])->name('listModelos');
+                Route::get('/by-modelo/{modeloId}', [VersionVehiculoController::class, 'listByModelo'])->name('listByModelo');
+                Route::get('/modelos-list', [VersionVehiculoController::class, 'listModelos'])->name('listModelos'); // Dropdown population
                 Route::post('/', [VersionVehiculoController::class, 'store'])->name('store');
                 Route::put('/{id}', [VersionVehiculoController::class, 'update'])->name('update');
                 Route::delete('/{id}', [VersionVehiculoController::class, 'destroy'])->name('destroy');
             });
-
-            // Sucursales
-            Route::prefix('sucursales')->name('sucursales.')->group(function () {
-                Route::get('/', [SucursalController::class, 'index'])->name('index');
-                Route::get('/list', [SucursalController::class, 'list'])->name('list');
-                Route::post('/', [SucursalController::class, 'store'])->name('store');
-                Route::put('/{id}', [SucursalController::class, 'update'])->name('update');
-                Route::delete('/{id}', [SucursalController::class, 'destroy'])->name('destroy');
+            // Modelos (API para Modal)
+            Route::prefix('modelos')->name('modelos.')->group(function () {
+                Route::get('/by-marca/{marcaId}', [ModeloVehiculoController::class, 'listByMarca'])->name('listByMarca');
+                Route::post('/', [ModeloVehiculoController::class, 'store'])->name('store');
+                Route::put('/{id}', [ModeloVehiculoController::class, 'update'])->name('update');
+                Route::delete('/{id}', [ModeloVehiculoController::class, 'destroy'])->name('destroy');
             });
-
-        });
-
-        // Seguridad (Roles y Usuarios)
-        Route::prefix('seguridad')->name('seguridad.')->group(function () {
-
-            // Roles
-            Route::prefix('roles')->name('roles.')->group(function () {
-                Route::get('/', [App\Http\Controllers\Panel\RoleController::class, 'index'])->name('index');
-                Route::get('/list', [App\Http\Controllers\Panel\RoleController::class, 'list'])->name('list');
-                Route::post('/', [App\Http\Controllers\Panel\RoleController::class, 'store'])->name('store');
-                Route::put('/{id}', [App\Http\Controllers\Panel\RoleController::class, 'update'])->name('update');
-                Route::delete('/{id}', [App\Http\Controllers\Panel\RoleController::class, 'destroy'])->name('destroy');
-            });
-
-            // Usuarios (Asignación Roles)
-            Route::prefix('usuarios')->name('usuarios.')->group(function () {
-                Route::get('/', [App\Http\Controllers\Panel\UsuarioController::class, 'index'])->name('index');
-                Route::get('/list', [App\Http\Controllers\Panel\UsuarioController::class, 'list'])->name('list');
-                Route::get('/roles-list', [App\Http\Controllers\Panel\UsuarioController::class, 'listRoles'])->name('listRoles');
-                Route::post('/{id}/assign-role', [App\Http\Controllers\Panel\UsuarioController::class, 'assignRole'])->name('assignRole');
-            });
-
         });
     });
 });

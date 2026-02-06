@@ -15,20 +15,31 @@ class VersionVehiculoController extends Controller
 
     public function list()
     {
-        // Join with modelos and marcas to show full context (e.g. Toyota Corolla - Sport)
-        $versiones = DB::table('versiones_vehiculos')
-            ->join('modelos_vehiculos', 'versiones_vehiculos.modelo_id', '=', 'modelos_vehiculos.id')
+        $modelos = DB::table('modelos_vehiculos')
             ->join('marcas_vehiculos', 'modelos_vehiculos.marca_id', '=', 'marcas_vehiculos.id')
+            ->leftJoin('versiones_vehiculos', 'modelos_vehiculos.id', '=', 'versiones_vehiculos.modelo_id')
             ->select(
-                'versiones_vehiculos.*', 
-                'modelos_vehiculos.nombre as modelo_nombre',
-                'marcas_vehiculos.nombre as marca_nombre'
+                'modelos_vehiculos.id',
+                'modelos_vehiculos.nombre',
+                'marcas_vehiculos.nombre as marca_nombre',
+                'marcas_vehiculos.id as marca_id',
+                DB::raw('count(versiones_vehiculos.id) as versiones_count')
             )
+            ->groupBy('modelos_vehiculos.id', 'modelos_vehiculos.nombre', 'marcas_vehiculos.nombre', 'marcas_vehiculos.id')
             ->orderBy('marcas_vehiculos.nombre', 'asc')
             ->orderBy('modelos_vehiculos.nombre', 'asc')
-            ->orderBy('versiones_vehiculos.nombre', 'asc')
             ->get();
 
+        return response()->json($modelos);
+    }
+
+    public function listByModelo($modeloId)
+    {
+        $versiones = DB::table('versiones_vehiculos')
+            ->where('modelo_id', $modeloId)
+            ->orderBy('nombre', 'asc')
+            ->get();
+            
         return response()->json($versiones);
     }
 
