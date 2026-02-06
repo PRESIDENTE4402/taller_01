@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
+    console.log('Sucursales JS loaded');
     loadSucursales();
 
     // Event Listeners para buscador
@@ -72,6 +73,10 @@ async function loadSucursales() {
             const card = document.createElement('div');
             card.className = 'bg-white rounded-xl p-5 flex flex-col justify-between group hover:shadow-xl transition-all duration-300 border border-gray-100 relative overflow-hidden';
 
+            // Escaping simple quotes for the onclick handler
+            const safeNombre = sucursal.nombre.replace(/'/g, "\\'");
+            const safeDireccion = sucursal.direccion.replace(/'/g, "\\'");
+
             card.innerHTML = `
                 <div class="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-blue-500 to-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 
@@ -81,7 +86,7 @@ async function loadSucursales() {
                             ${sucursal.nombre.charAt(0).toUpperCase()}
                         </div>
                         <div class="flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
-                             <button onclick="editSucursal(${sucursal.id}, '${sucursal.nombre.replace(/'/g, "\\'")}', '${sucursal.direccion.replace(/'/g, "\\'")}', '${sucursal.telefono}', ${sucursal.capacidad_bahias})" 
+                             <button onclick="editSucursal(${sucursal.id}, '${safeNombre}', '${safeDireccion}', '${sucursal.telefono}', ${sucursal.capacidad_bahias})" 
                                 class="h-8 w-8 rounded-full bg-gray-100 text-blue-500 hover:bg-blue-500 hover:text-white transition-colors flex items-center justify-center" title="Editar">
                                 <i class="fas fa-pen text-xs"></i>
                             </button>
