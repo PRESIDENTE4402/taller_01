@@ -4,17 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Panel\MarcaVehiculoController;
 use App\Http\Controllers\Panel\VersionVehiculoController;
+use App\Http\Controllers\Panel\ModeloVehiculoController;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
 
 // Public Routes
 Route::get('/', function () {
@@ -58,10 +49,18 @@ Route::middleware('auth')->group(function () {
             Route::prefix('versiones')->name('versiones.')->group(function () {
                 Route::get('/', [VersionVehiculoController::class, 'index'])->name('index');
                 Route::get('/list', [VersionVehiculoController::class, 'list'])->name('list');
+                Route::get('/by-modelo/{modeloId}', [VersionVehiculoController::class, 'listByModelo'])->name('listByModelo');
                 Route::get('/modelos-list', [VersionVehiculoController::class, 'listModelos'])->name('listModelos'); // Dropdown population
                 Route::post('/', [VersionVehiculoController::class, 'store'])->name('store');
                 Route::put('/{id}', [VersionVehiculoController::class, 'update'])->name('update');
                 Route::delete('/{id}', [VersionVehiculoController::class, 'destroy'])->name('destroy');
+            });
+            // Modelos (API para Modal)
+            Route::prefix('modelos')->name('modelos.')->group(function () {
+                Route::get('/by-marca/{marcaId}', [ModeloVehiculoController::class, 'listByMarca'])->name('listByMarca');
+                Route::post('/', [ModeloVehiculoController::class, 'store'])->name('store');
+                Route::put('/{id}', [ModeloVehiculoController::class, 'update'])->name('update');
+                Route::delete('/{id}', [ModeloVehiculoController::class, 'destroy'])->name('destroy');
             });
         });
     });

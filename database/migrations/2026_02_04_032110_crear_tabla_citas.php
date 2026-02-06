@@ -13,27 +13,27 @@ return new class extends Migration {
         Schema::create('citas', function (Blueprint $table) {
             $table->id();
             // Relaciones
-            $table->foreignId('cliente_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('cliente_id')->constrained('clientes')->onDelete('cascade');
             $table->foreignId('vehiculo_id')->constrained('vehiculos')->onDelete('cascade');
 
             // Datos de la cita
-            $table->dateTime('fecha_programada'); // Cuándo reservó en la web
+            $table->dateTime('fecha_programada'); // Para cuándo es la cita
+            $table->dateTime('fecha_realizacion')->nullable(); // Cuándo se realizó/completó efectivamente
+            
             $table->text('motivo_cita'); // "Cambio de aceite", "Ruidos en motor"
             $table->foreignId('sucursal_id')->constrained('sucursales');
-            // Canal de origen (Para saber si reservó por la web o por teléfono)
+            
+            // Canal de origen
             $table->enum('origen', ['web', 'telefono', 'presencial', 'whatsapp'])->default('web');
 
             // Estados de la cita
             $table->enum('estado', [
-                'pendiente',    // Recién creada en la web
-                'confirmada',   // El secretario ya habló con el cliente y confirmó
-                'concretada',   // El cliente LLEGÓ y se creó una Orden de Trabajo
-                'cancelada',    // El cliente avisó que no venía
-                'no_asistio'    // Pasó la hora y nunca llegó
+                'pendiente',    // Recién creada
+                'confirmada',   // Confirmada por secretario
+                'concretada',   // Cliente llegó -> Se crea OT
+                'cancelada',    // Cliente canceló
+                'no_asistio'    // No show
             ])->default('pendiente');
-
-            // Relación con la orden (Solo se llena si el estado es 'concretada')
-            $table->foreignId('orden_trabajo_id')->nullable()->constrained('ordenes_trabajo');
 
             $table->text('notas_secretario')->nullable();
             $table->timestamps();
