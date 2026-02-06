@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Panel\SucursalController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Panel\MarcaVehiculoController;
@@ -44,7 +45,7 @@ Route::middleware('auth')->group(function () {
 
         // Módulos de Mantenimiento
         Route::prefix('mantenimientos')->name('mantenimientos.')->group(function () {
-            
+
             // Marcas
             Route::prefix('marcas')->name('marcas.')->group(function () {
                 Route::get('/', [MarcaVehiculoController::class, 'index'])->name('index');
@@ -58,11 +59,21 @@ Route::middleware('auth')->group(function () {
             Route::prefix('versiones')->name('versiones.')->group(function () {
                 Route::get('/', [VersionVehiculoController::class, 'index'])->name('index');
                 Route::get('/list', [VersionVehiculoController::class, 'list'])->name('list');
-                Route::get('/modelos-list', [VersionVehiculoController::class, 'listModelos'])->name('listModelos'); // Dropdown population
+                Route::get('/modelos-list', [VersionVehiculoController::class, 'listModelos'])->name('listModelos');
                 Route::post('/', [VersionVehiculoController::class, 'store'])->name('store');
                 Route::put('/{id}', [VersionVehiculoController::class, 'update'])->name('update');
                 Route::delete('/{id}', [VersionVehiculoController::class, 'destroy'])->name('destroy');
             });
+
+            // Sucursales
+            Route::prefix('sucursales')->name('sucursales.')->group(function () {
+                Route::get('/', [SucursalController::class, 'index'])->name('index');
+                Route::get('/list', [SucursalController::class, 'list'])->name('list');
+                Route::post('/', [SucursalController::class, 'store'])->name('store');
+                Route::put('/{id}', [SucursalController::class, 'update'])->name('update');
+                Route::delete('/{id}', [SucursalController::class, 'destroy'])->name('destroy');
+            });
+
         });
     });
 });
