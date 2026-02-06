@@ -4,6 +4,8 @@ use App\Http\Controllers\Panel\SucursalController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Panel\MarcaVehiculoController;
+use App\Http\Controllers\Panel\RoleController;
+use App\Http\Controllers\Panel\UsuarioController;
 use App\Http\Controllers\Panel\VersionVehiculoController;
 use App\Http\Controllers\Panel\ModeloVehiculoController;
 
@@ -63,6 +65,37 @@ Route::middleware('auth')->group(function () {
                 Route::put('/{id}', [ModeloVehiculoController::class, 'update'])->name('update');
                 Route::delete('/{id}', [ModeloVehiculoController::class, 'destroy'])->name('destroy');
             });
+            // Sucursales
+            Route::prefix('sucursales')->name('sucursales.')->group(function () {
+                Route::get('/', [SucursalController::class, 'index'])->name('index');
+                Route::get('/list', [SucursalController::class, 'list'])->name('list');
+                Route::post('/', [SucursalController::class, 'store'])->name('store');
+                Route::put('/{id}', [SucursalController::class, 'update'])->name('update');
+                Route::delete('/{id}', [SucursalController::class, 'destroy'])->name('destroy');
+            });
+
+        });
+
+        // Seguridad (Roles y Usuarios)
+        Route::prefix('seguridad')->name('seguridad.')->group(function () {
+
+            // Roles
+            Route::prefix('roles')->name('roles.')->group(function () {
+                Route::get('/', [RoleController::class, 'index'])->name('index');
+                Route::get('/list', [RoleController::class, 'list'])->name('list');
+                Route::post('/', [RoleController::class, 'store'])->name('store');
+                Route::put('/{id}', [RoleController::class, 'update'])->name('update');
+                Route::delete('/{id}', [RoleController::class, 'destroy'])->name('destroy');
+            });
+
+            // Usuarios (Asignación Roles)
+            Route::prefix('usuarios')->name('usuarios.')->group(function () {
+                Route::get('/', [UsuarioController::class, 'index'])->name('index');
+                Route::get('/list', [UsuarioController::class, 'list'])->name('list');
+                Route::get('/roles-list', [UsuarioController::class, 'listRoles'])->name('listRoles');
+                Route::post('/{id}/assign-role', [UsuarioController::class, 'assignRole'])->name('assignRole');
+            });
+
         });
     });
 });
