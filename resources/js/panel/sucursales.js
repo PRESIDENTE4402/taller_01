@@ -85,7 +85,7 @@ async function loadSucursales() {
                         <div class="h-10 w-10 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 font-bold text-lg">
                             ${sucursal.nombre.charAt(0).toUpperCase()}
                         </div>
-                        <div class="flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
+                        <div class="flex gap-2">
                              <button onclick="editSucursal(${sucursal.id}, '${safeNombre}', '${safeDireccion}', '${sucursal.telefono}', ${sucursal.capacidad_bahias})" 
                                 class="h-8 w-8 rounded-full bg-gray-100 text-blue-500 hover:bg-blue-500 hover:text-white transition-colors flex items-center justify-center" title="Editar">
                                 <i class="fas fa-pen text-xs"></i>
@@ -124,8 +124,6 @@ async function loadSucursales() {
             icon: 'error',
             title: 'Error',
             text: 'No se pudieron cargar los datos.',
-            background: '#1a1a1a',
-            color: '#ffffff',
         });
     }
 }
@@ -241,8 +239,6 @@ async function saveSucursal(e) {
             icon: 'success',
             title: isEditing ? 'Actualizado' : 'Guardado',
             text: result.message,
-            background: '#1a1a1a',
-            color: '#ffffff',
             timer: 2000,
             showConfirmButton: false
         });
@@ -253,8 +249,6 @@ async function saveSucursal(e) {
             icon: 'error',
             title: 'Error',
             text: error.message,
-            background: '#1a1a1a',
-            color: '#ffffff',
         });
     }
 }
@@ -270,12 +264,13 @@ function deleteSucursal(id) {
         text: "No podrás revertir esta acción",
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
         confirmButtonText: 'Sí, eliminar',
         cancelButtonText: 'Cancelar',
-        background: '#1a1a1a',
-        color: '#ffffff'
+        buttonsStyling: false,
+        customClass: {
+            confirmButton: 'btn btn-error text-white ml-2 rounded-lg',
+            cancelButton: 'btn btn-ghost text-gray-600 rounded-lg'
+        }
     }).then(async (result) => {
         if (result.isConfirmed) {
             try {

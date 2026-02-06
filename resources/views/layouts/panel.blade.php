@@ -138,6 +138,21 @@
                     <i class="fas fa-store w-5 text-center"></i>
                     Sucursales
                 </a>
+
+                {{-- Sección Seguridad --}}
+                <div class="px-3 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Seguridad</div>
+
+                <a href="{{ route('panel.seguridad.roles.index') }}"
+                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.seguridad.roles.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                    <i class="fas fa-user-shield w-5 text-center"></i>
+                    Roles y Permisos
+                </a>
+
+                <a href="{{ route('panel.seguridad.usuarios.index') }}"
+                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.seguridad.usuarios.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                    <i class="fas fa-users-cog w-5 text-center"></i>
+                    Usuarios
+                </a>
             </nav>
         </div>
 

@@ -75,5 +75,27 @@ Route::middleware('auth')->group(function () {
             });
 
         });
+
+        // Seguridad (Roles y Usuarios)
+        Route::prefix('seguridad')->name('seguridad.')->group(function () {
+
+            // Roles
+            Route::prefix('roles')->name('roles.')->group(function () {
+                Route::get('/', [App\Http\Controllers\Panel\RoleController::class, 'index'])->name('index');
+                Route::get('/list', [App\Http\Controllers\Panel\RoleController::class, 'list'])->name('list');
+                Route::post('/', [App\Http\Controllers\Panel\RoleController::class, 'store'])->name('store');
+                Route::put('/{id}', [App\Http\Controllers\Panel\RoleController::class, 'update'])->name('update');
+                Route::delete('/{id}', [App\Http\Controllers\Panel\RoleController::class, 'destroy'])->name('destroy');
+            });
+
+            // Usuarios (Asignación Roles)
+            Route::prefix('usuarios')->name('usuarios.')->group(function () {
+                Route::get('/', [App\Http\Controllers\Panel\UsuarioController::class, 'index'])->name('index');
+                Route::get('/list', [App\Http\Controllers\Panel\UsuarioController::class, 'list'])->name('list');
+                Route::get('/roles-list', [App\Http\Controllers\Panel\UsuarioController::class, 'listRoles'])->name('listRoles');
+                Route::post('/{id}/assign-role', [App\Http\Controllers\Panel\UsuarioController::class, 'assignRole'])->name('assignRole');
+            });
+
+        });
     });
 });
