@@ -114,8 +114,10 @@ Route::middleware('auth')->group(function () {
             Route::prefix('usuarios')->name('usuarios.')->group(function () {
                 Route::get('/', [UsuarioController::class, 'index'])->name('index');
                 Route::get('/list', [UsuarioController::class, 'list'])->name('list');
+                Route::post('/', [UsuarioController::class, 'store'])->name('store');
                 Route::get('/roles-list', [UsuarioController::class, 'listRoles'])->name('listRoles');
                 Route::post('/{id}/assign-role', [UsuarioController::class, 'assignRole'])->name('assignRole');
+                Route::put('/{id}', [UsuarioController::class, 'update'])->name('update');
             });
 
         });
