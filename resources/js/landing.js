@@ -7,7 +7,14 @@ document.addEventListener('DOMContentLoaded', () => {
     initScrollAnimations();
     initNavbarTransition();
     initVideoPlayer();
+    initVehicleSelectors();
 });
+
+const API_CONFIG = {
+    GET_BRANDS: '/panel/operaciones/citas/api/get-brands',
+    GET_MODELS: '/panel/mantenimientos/modelos/by-marca',
+    GET_VERSIONS: '/panel/mantenimientos/versiones/by-modelo'
+};
 
 // ===== AUTH MODAL LOGIC =====
 function initAuth() {
@@ -62,11 +69,85 @@ function initAuth() {
         }
     };
 
-    window.submitBooking = (event) => {
+    window.submitBooking = async (event) => {
         event.preventDefault();
-        showNotification('¡Cita agendada correctamente! Un asesor BMW le contactará.', 'success');
-        event.target.reset();
-        window.toggleBookingModal();
+
+        // Recoger datos
+        const data = {
+            nombre: document.getElementById('clientName').value,
+            email: document.getElementById('clientEmail').value,
+            telefono: document.getElementById('clientPhone').value,
+            placa: document.getElementById('vehiculoPlaca').value,
+            marca: document.getElementById('vehiculoMarca').value,
+            modelo: document.getElementById('vehiculoModelo').value,
+            version: document.getElementById('vehiculoVersion').value,
+            motivo: document.getElementById('requestDetails').value,
+            valet: document.getElementById('valet_service').checked,
+            fecha: document.getElementById('selectedDate').value || new Date().toISOString().split('T')[0],
+            hora: document.getElementById('selectedTime').value || '09:00'
+        };
+
+        // Validación Frontend
+        if (!data.placa || !data.marca || !data.nombre || !data.email) {
+            Swal.fire('Atención', 'Por favor complete los campos obligatorios (Contacto, Placa y Marca).', 'warning');
+            return;
+        }
+
+        // UI Loading
+        const btn = event.target.querySelector('button[type="submit"]');
+        const originalText = btn.innerText;
+        btn.innerText = 'Procesando...';
+        btn.disabled = true;
+
+        try {
+            // Get CSRF Token
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+            const response = await fetch('/api/landing/citas', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                // Validación de Laravel (422)
+                if (response.status === 422) {
+                    const errors = Object.values(result.errors).flat().join('\n');
+                    throw new Error(errors || 'Datos inválidos');
+                }
+                throw new Error(result.message || 'Ocurrió un error al procesar la cita');
+            }
+
+            // Éxito
+            Swal.fire({
+                title: '¡Solicitud Recibida!',
+                text: 'Su cita ha sido registrada. Un asesor se pondrá en contacto pronto para confirmar.',
+                icon: 'success',
+                confirmButtonColor: '#1C69D4',
+                background: '#fff',
+                color: '#333'
+            });
+
+            event.target.reset();
+            window.toggleBookingModal();
+
+        } catch (error) {
+            Swal.fire({
+                title: 'Error',
+                text: error.message,
+                icon: 'error',
+                confirmButtonColor: '#d33'
+            });
+        } finally {
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
     };
 
     // ===== BOOKING MODAL LOGIC (PREMIUM) =====
@@ -132,6 +213,119 @@ function initAuth() {
         if (document.getElementById('seguimiento')) document.getElementById('seguimiento').style.display = 'none';
         if (document.getElementById('citas-auth')) document.getElementById('citas-auth').style.display = 'block';
         if (document.getElementById('seguimiento-auth')) document.getElementById('seguimiento-auth').style.display = 'block';
+    }
+
+    // ===== VEHICLE SELECTORS LOGIC =====
+    async function initVehicleSelectors() {
+        loadBrands();
+
+        const marcaSelect = document.getElementById('vehiculoMarcaSelect');
+        const modeloSelect = document.getElementById('vehiculoModeloSelect');
+        const versionSelect = document.getElementById('vehiculoVersionSelect');
+
+        if (marcaSelect) {
+            marcaSelect.addEventListener('change', (e) => {
+                const input = document.getElementById('vehiculoMarca');
+                const val = e.target.value;
+                if (val === 'otro') {
+                    input.classList.remove('hidden');
+                    input.value = '';
+                    input.focus();
+                    resetSelect(modeloSelect, 'Escriba Modelo...');
+                    resetSelect(versionSelect, 'Escriba Versión...');
+                } else {
+                    input.classList.add('hidden');
+                    input.value = e.target.options[e.target.selectedIndex].text;
+                    if (val) loadModels(val);
+                    else resetSelect(modeloSelect, 'Seleccione Marca...');
+                }
+            });
+        }
+
+        if (modeloSelect) {
+            modeloSelect.addEventListener('change', (e) => {
+                const input = document.getElementById('vehiculoModelo');
+                const val = e.target.value;
+                if (val === 'otro') {
+                    input.classList.remove('hidden');
+                    input.value = '';
+                    input.focus();
+                    resetSelect(versionSelect, 'Escriba Versión...');
+                } else {
+                    input.classList.add('hidden');
+                    input.value = e.target.options[e.target.selectedIndex].text;
+                    if (val) loadVersions(val);
+                    else resetSelect(versionSelect, 'Seleccione Modelo...');
+                }
+            });
+        }
+
+        if (versionSelect) {
+            versionSelect.addEventListener('change', (e) => {
+                const input = document.getElementById('vehiculoVersion');
+                const val = e.target.value;
+                if (val === 'otro') {
+                    input.classList.remove('hidden');
+                    input.value = '';
+                    input.focus();
+                } else {
+                    input.classList.add('hidden');
+                    input.value = e.target.options[e.target.selectedIndex].text;
+                }
+            });
+        }
+    }
+
+    async function loadBrands() {
+        const select = document.getElementById('vehiculoMarcaSelect');
+        if (!select) return;
+        try {
+            const res = await fetch(API_CONFIG.GET_BRANDS);
+            const data = await res.json();
+            fillSelect(select, data, 'Seleccione Marca...');
+        } catch (e) { console.error(e); }
+    }
+
+    async function loadModels(marcaId) {
+        const select = document.getElementById('vehiculoModeloSelect');
+        if (!select) return;
+        try {
+            const res = await fetch(`${API_CONFIG.GET_MODELS}/${marcaId}`);
+            const data = await res.json();
+            fillSelect(select, data, 'Seleccione Modelo...');
+        } catch (e) { console.error(e); }
+    }
+
+    async function loadVersions(modeloId) {
+        const select = document.getElementById('vehiculoVersionSelect');
+        if (!select) return;
+        try {
+            const res = await fetch(`${API_CONFIG.GET_VERSIONS}/${modeloId}`);
+            const data = await res.json();
+            fillSelect(select, data, 'Seleccione Versión...');
+        } catch (e) { console.error(e); }
+    }
+
+    function fillSelect(select, items, defaultText) {
+        select.innerHTML = `<option value="">${defaultText}</option>`;
+        items.forEach(item => {
+            const opt = document.createElement('option');
+            opt.value = item.id;
+            opt.textContent = item.nombre;
+            select.appendChild(opt);
+        });
+        const optOtro = document.createElement('option');
+        optOtro.value = 'otro';
+        optOtro.textContent = '-- OTRO / MANUAL --';
+        optOtro.style.fontWeight = 'bold';
+        select.appendChild(optOtro);
+        select.disabled = false;
+    }
+
+    function resetSelect(select, text) {
+        if (!select) return;
+        select.innerHTML = `<option value="">${text}</option>`;
+        select.disabled = true;
     }
 }
 

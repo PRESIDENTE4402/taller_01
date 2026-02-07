@@ -1,23 +1,23 @@
 <?php
 
+use App\Http\Controllers\Panel\SucursalController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Panel\MarcaVehiculoController;
+use App\Http\Controllers\Panel\RoleController;
+use App\Http\Controllers\Panel\UsuarioController;
+use App\Http\Controllers\Panel\VersionVehiculoController;
+use App\Http\Controllers\Panel\ModeloVehiculoController;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
+
+use App\Http\Controllers\Landing\CitaController;
 
 // Public Routes
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
+
+Route::post('/api/landing/citas', [CitaController::class, 'store'])->name('landing.citas.store');
 
 // Auth Routes
 Route::middleware('guest')->group(function () {
@@ -34,7 +34,92 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    // Rutas del PANEL (Aplicación Interna)
+    Route::prefix('panel')->name('panel.')->group(function () {
+        Route::get('/', function () {
+            return view('dashboard');
+        })->name('dashboard');
+
+
+        // Módulos de Operaciones (Nuevo Grupo)
+        Route::prefix('operaciones')->name('operaciones.')->group(function () {
+             // Citas
+             Route::prefix('citas')->name('citas.')->group(function () {
+                Route::get('/', [App\Http\Controllers\Panel\CitaController::class, 'index'])->name('index');
+                Route::get('/list', [App\Http\Controllers\Panel\CitaController::class, 'list'])->name('list');
+                Route::post('/', [App\Http\Controllers\Panel\CitaController::class, 'store'])->name('store'); // Manual
+                Route::put('/{id}', [App\Http\Controllers\Panel\CitaController::class, 'update'])->name('update');
+                Route::delete('/{id}', [App\Http\Controllers\Panel\CitaController::class, 'destroy'])->name('destroy');
+                
+                // APIs auxiliares para creación manual
+                Route::get('/api/search-clients', [App\Http\Controllers\Panel\CitaController::class, 'searchClients'])->name('searchClients');
+                Route::get('/api/get-client-vehicles/{clienteId}', [App\Http\Controllers\Panel\CitaController::class, 'getClientVehicles'])->name('getClientVehicles');
+                Route::get('/api/get-brands', [App\Http\Controllers\Panel\CitaController::class, 'getBrands'])->name('getBrands');
+             });
+        });
+
+        // Módulos de Mantenimiento
+        Route::prefix('mantenimientos')->name('mantenimientos.')->group(function () {
+
+            // Marcas
+            Route::prefix('marcas')->name('marcas.')->group(function () {
+                Route::get('/', [MarcaVehiculoController::class, 'index'])->name('index');
+                Route::get('/list', [MarcaVehiculoController::class, 'list'])->name('list');
+                Route::post('/', [MarcaVehiculoController::class, 'store'])->name('store');
+                Route::put('/{id}', [MarcaVehiculoController::class, 'update'])->name('update');
+                Route::delete('/{id}', [MarcaVehiculoController::class, 'destroy'])->name('destroy');
+            });
+
+            // Versiones
+            Route::prefix('versiones')->name('versiones.')->group(function () {
+                Route::get('/', [VersionVehiculoController::class, 'index'])->name('index');
+                Route::get('/list', [VersionVehiculoController::class, 'list'])->name('list');
+                Route::get('/by-modelo/{modeloId}', [VersionVehiculoController::class, 'listByModelo'])->name('listByModelo');
+                Route::get('/modelos-list', [VersionVehiculoController::class, 'listModelos'])->name('listModelos'); // Dropdown population
+                Route::post('/', [VersionVehiculoController::class, 'store'])->name('store');
+                Route::put('/{id}', [VersionVehiculoController::class, 'update'])->name('update');
+                Route::delete('/{id}', [VersionVehiculoController::class, 'destroy'])->name('destroy');
+            });
+            // Modelos (API para Modal)
+            Route::prefix('modelos')->name('modelos.')->group(function () {
+                Route::get('/by-marca/{marcaId}', [ModeloVehiculoController::class, 'listByMarca'])->name('listByMarca');
+                Route::post('/', [ModeloVehiculoController::class, 'store'])->name('store');
+                Route::put('/{id}', [ModeloVehiculoController::class, 'update'])->name('update');
+                Route::delete('/{id}', [ModeloVehiculoController::class, 'destroy'])->name('destroy');
+            });
+            // Sucursales
+            Route::prefix('sucursales')->name('sucursales.')->group(function () {
+                Route::get('/', [SucursalController::class, 'index'])->name('index');
+                Route::get('/list', [SucursalController::class, 'list'])->name('list');
+                Route::post('/', [SucursalController::class, 'store'])->name('store');
+                Route::put('/{id}', [SucursalController::class, 'update'])->name('update');
+                Route::delete('/{id}', [SucursalController::class, 'destroy'])->name('destroy');
+            });
+
+        });
+
+        // Seguridad (Roles y Usuarios)
+        Route::prefix('seguridad')->name('seguridad.')->group(function () {
+
+            // Roles
+            Route::prefix('roles')->name('roles.')->group(function () {
+                Route::get('/', [RoleController::class, 'index'])->name('index');
+                Route::get('/list', [RoleController::class, 'list'])->name('list');
+                Route::post('/', [RoleController::class, 'store'])->name('store');
+                Route::put('/{id}', [RoleController::class, 'update'])->name('update');
+                Route::delete('/{id}', [RoleController::class, 'destroy'])->name('destroy');
+            });
+
+            // Usuarios (Asignación Roles)
+            Route::prefix('usuarios')->name('usuarios.')->group(function () {
+                Route::get('/', [UsuarioController::class, 'index'])->name('index');
+                Route::get('/list', [UsuarioController::class, 'list'])->name('list');
+                Route::post('/', [UsuarioController::class, 'store'])->name('store');
+                Route::get('/roles-list', [UsuarioController::class, 'listRoles'])->name('listRoles');
+                Route::post('/{id}/assign-role', [UsuarioController::class, 'assignRole'])->name('assignRole');
+                Route::put('/{id}', [UsuarioController::class, 'update'])->name('update');
+            });
+
+        });
+    });
 });

@@ -13,6 +13,8 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap"
         rel="stylesheet">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
@@ -571,76 +573,99 @@
                         <p>BMW Service Inclusive</p>
                     </div>
 
-                    <form class="booking-form-premium" onsubmit="submitBooking(event)">
-                        <div class="form-group-premium">
-                            <label>Información de Contacto</label>
-                            <input type="text" placeholder="Nombre Completo / Empresa" required>
-                            <input type="email" placeholder="Correo Electrónico" required>
-                            <input type="tel" placeholder="Teléfono Móvil" required>
+                <form class="booking-form-premium" id="bookingForm" onsubmit="submitBooking(event)">
+                    <div class="form-group-premium">
+                        <label>Información de Contacto</label>
+                        <input type="text" id="clientName" placeholder="Nombre Completo / Empresa" required>
+                        <input type="email" id="clientEmail" placeholder="Correo Electrónico" required>
+                        <input type="tel" id="clientPhone" placeholder="Teléfono Móvil" required>
+                    </div>
+
+                    <div class="form-group-premium">
+                        <label>Datos del Vehículo</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                            <input type="text" id="vehiculoPlaca" placeholder="Placa (Indispensable)" required style="text-transform: uppercase;">
+                            <div class="select-wrapper">
+                                <select id="vehiculoMarcaSelect" class="premium-select">
+                                    <option value="">Cargando marcas...</option>
+                                </select>
+                                <input type="text" id="vehiculoMarca" placeholder="Escriba Marca..." class="hidden mt-2">
+                            </div>
                         </div>
-
-                        <div class="form-group-premium">
-                            <label>Detalles del Vehículo</label>
-                            <input type="text" placeholder="Modelo / VIN (Últimos 7 dígitos)" required>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                            <div class="select-wrapper">
+                                <select id="vehiculoModeloSelect" class="premium-select" disabled>
+                                    <option value="">Seleccione Marca...</option>
+                                </select>
+                                <input type="text" id="vehiculoModelo" placeholder="Escriba Modelo..." class="hidden mt-2">
+                            </div>
+                            <div class="select-wrapper">
+                                <select id="vehiculoVersionSelect" class="premium-select" disabled>
+                                    <option value="">Seleccione Modelo...</option>
+                                </select>
+                                <input type="text" id="vehiculoVersion" placeholder="Escriba Versión..." class="hidden mt-2">
+                            </div>
                         </div>
+                    </div>
 
-                        <div class="form-group-premium">
-                            <label>Tipo de Requerimiento</label>
-                            <textarea placeholder="Describa el servicio (ej. Mantención 40.000km, Testigo encendido...)"
-                                rows="3" required></textarea>
-                        </div>
+                    <div class="form-group-premium">
+                        <label>Tipo de Requerimiento</label>
+                        <textarea id="requestDetails" placeholder="Describa el servicio (ej. Mantención 40.000km, Testigo encendido...)"
+                            rows="3" required></textarea>
+                    </div>
 
-                        <div class="checkbox-premium">
-                            <input type="checkbox" id="valet_service">
-                            <label for="valet_service">Solicitar Valet Service (Retiro a domicilio)</label>
-                        </div>
+                    <div class="checkbox-premium">
+                        <input type="checkbox" id="valet_service">
+                        <label for="valet_service">Solicitar Valet Service (Retiro a domicilio)</label>
+                    </div>
 
-                        <!-- Hidden Inputs for Date/Time -->
-                        <input type="hidden" id="selectedDate" required>
-                        <input type="hidden" id="selectedTime" required>
+                    <!-- Hidden Inputs for Date/Time -->
+                    <input type="hidden" id="selectedDate" required>
+                    <input type="hidden" id="selectedTime" required>
 
-                        <button type="submit" class="btn btn-primary submit-btn">Confirmar Cita</button>
-                    </form>
+                    <button type="submit" class="btn btn-primary submit-btn">Confirmar Cita</button>
+                </form>
+            </div>
+
+            <!-- Right: Calendar & Time -->
+            <div class="booking-right-panel">
+                <div class="panel-header-right">
+                    <h3>Selecciona Fecha y Hora</h3>
+                    <p>Disponibilidad en tiempo real</p>
                 </div>
 
-                <!-- Right: Calendar & Time -->
-                <div class="booking-right-panel">
-                    <div class="panel-header-right">
-                        <h3>Selecciona Fecha y Hora</h3>
-                        <p>Disponibilidad en tiempo real</p>
-                    </div>
+                <div class="calendar-wrapper">
+                    <label>Fecha Preferida</label>
+                    <input type="date" class="premium-date-input" onchange="updateTimeSlots(this.value)">
+                </div>
 
-                    <div class="calendar-wrapper">
-                        <label>Fecha Preferida</label>
-                        <input type="date" class="premium-date-input" onchange="updateTimeSlots(this.value)">
+                <div class="time-selection-wrapper">
+                    <label>Horarios Disponibles</label>
+                    <div class="time-grid" id="timeSlotsGrid">
+                        <!-- Times generated by JS -->
+                        <button type="button" class="time-slot" onclick="selectTime(this, '07:00')">07:00</button>
+                        <button type="button" class="time-slot" onclick="selectTime(this, '08:00')">08:00</button>
+                        <button type="button" class="time-slot" onclick="selectTime(this, '09:00')">09:00</button>
+                        <button type="button" class="time-slot" onclick="selectTime(this, '10:00')">10:00</button>
+                        <button type="button" class="time-slot" onclick="selectTime(this, '11:00')">11:00</button>
+                        <button type="button" class="time-slot" onclick="selectTime(this, '12:00')">12:00</button>
+                        <button type="button" class="time-slot" onclick="selectTime(this, '13:00')">13:00</button>
+                        <button type="button" class="time-slot" onclick="selectTime(this, '14:00')">14:00</button>
+                        <button type="button" class="time-slot" onclick="selectTime(this, '15:00')">15:00</button>
+                        <button type="button" class="time-slot" onclick="selectTime(this, '16:00')">16:00</button>
                     </div>
-
-                    <div class="time-selection-wrapper">
-                        <label>Horarios Disponibles</label>
-                        <div class="time-grid" id="timeSlotsGrid">
-                            <!-- Times generated by JS -->
-                            <button type="button" class="time-slot" onclick="selectTime(this, '07:00')">07:00</button>
-                            <button type="button" class="time-slot" onclick="selectTime(this, '08:00')">08:00</button>
-                            <button type="button" class="time-slot" onclick="selectTime(this, '09:00')">09:00</button>
-                            <button type="button" class="time-slot" onclick="selectTime(this, '10:00')">10:00</button>
-                            <button type="button" class="time-slot" onclick="selectTime(this, '11:00')">11:00</button>
-                            <button type="button" class="time-slot" onclick="selectTime(this, '12:00')">12:00</button>
-                            <button type="button" class="time-slot" onclick="selectTime(this, '13:00')">13:00</button>
-                            <button type="button" class="time-slot" onclick="selectTime(this, '14:00')">14:00</button>
-                            <button type="button" class="time-slot" onclick="selectTime(this, '15:00')">15:00</button>
-                            <button type="button" class="time-slot" onclick="selectTime(this, '16:00')">16:00</button>
-                        </div>
-                        <p class="helper-text">* Horarios sujetos a confirmación por el asesor.</p>
-                    </div>
+                    <p class="helper-text">* Horarios sujetos a confirmación por el asesor.</p>
                 </div>
             </div>
         </div>
     </div>
-    </div>
-    </div>
-    </div>
+</div>
 
-    <!-- ===== JAVASCRIPT ===== -->
+
+</body>
+</html>
+
+<!-- ===== JAVASCRIPT ===== -->
 
 </body>
 
