@@ -25,9 +25,9 @@ export default defineConfig({
         watch: {
             ignored: ['**/storage/framework/views/**'],
         },
-        host: '0.0.0.0',
+        host: 'localhost',
         hmr: {
-            host: '172.20.10.6', // <--- PON AQUÍ TU IP (la del hotspot o wifi)
+            host: 'localhost', 
         },
     },
 });
