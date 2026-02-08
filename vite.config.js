@@ -15,7 +15,8 @@ export default defineConfig({
                 'resources/js/panel/sucursales.js',
                 'resources/js/panel/roles.js',
                 'resources/js/panel/usuarios.js',
-                'resources/js/panel/citas.js'],
+                'resources/js/panel/citas.js',
+                'resources/js/panel/asistencia.js'],
             refresh: true,
         }),
         tailwindcss(),
@@ -23,6 +24,10 @@ export default defineConfig({
     server: {
         watch: {
             ignored: ['**/storage/framework/views/**'],
+        },
+        host: '0.0.0.0',
+        hmr: {
+            host: '172.20.10.6', // <--- PON AQUÍ TU IP (la del hotspot o wifi)
         },
     },
 });

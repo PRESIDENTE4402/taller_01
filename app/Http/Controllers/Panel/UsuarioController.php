@@ -16,8 +16,8 @@ class UsuarioController extends Controller
 
     public function list()
     {
-        // Traemos usuarios con sus roles y perfil
-        $users = User::with('roles', 'persona')->orderBy('id', 'desc')->get();
+        // Traemos usuarios con sus roles, perfil y sucursales
+        $users = User::with('roles', 'persona', 'sucursales')->orderBy('id', 'desc')->get();
         return response()->json($users);
     }
 
@@ -27,12 +27,18 @@ class UsuarioController extends Controller
         return response()->json($roles);
     }
 
+    public function listSucursales()
+    {
+        $sucursales = \App\Models\Sucursal::all();
+        return response()->json($sucursales);
+    }
+
     public function store(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            // 'password' => 'required|string|min:8', // Generated automatically
+            'sucursal_id' => 'required|exists:sucursales,id',
             // Persona validation
             'nombres' => 'required|string|max:255',
             'apellidos' => 'required|string|max:255',
@@ -69,6 +75,11 @@ class UsuarioController extends Controller
                 $user->roles()->sync([$request->role_id]);
             }
 
+            // Assign Sucursal
+            if ($request->sucursal_id) {
+                $user->sucursales()->sync([$request->sucursal_id]);
+            }
+
             // Send Notification with the generated password
             $user->notify(new \App\Notifications\NewUserWelcomeNotification($generatedPassword));
 
@@ -76,7 +87,7 @@ class UsuarioController extends Controller
 
             return response()->json([
                 'message' => 'Usuario creado. Se ha enviado un correo con la contraseña temporal.',
-                'user' => $user->load('persona', 'roles')
+                'user' => $user->load('persona', 'roles', 'sucursales')
             ], 201);
 
         } catch (\Exception $e) {
@@ -93,13 +104,6 @@ class UsuarioController extends Controller
             'role_id' => 'required|exists:roles,id'
         ]);
 
-        // Sincronizar roles (asumimos un usuario puede tener varios, o uno solo, 
-        // pero sync() reemplaza los anteriores si pasamos un array o un solo id)
-        // Si queremos permitir multiples roles acumulativos, usar attach.
-        // Por simplicidad de gestión, usaremos sync para "establecer" los roles seleccionados.
-        // Aquí asumimos que el frontend envía un solo role_id para "Cambiar rol principal" o similar.
-        // Si quisieramos multiples, recibiríamos un array de IDs.
-
         $user->roles()->sync([$request->role_id]);
 
         return response()->json([
@@ -115,6 +119,7 @@ class UsuarioController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'password' => 'nullable|string|min:8',
+            'sucursal_id' => 'required|exists:sucursales,id',
             // Persona validation
             'nombres' => 'required|string|max:255',
             'apellidos' => 'required|string|max:255',
@@ -156,11 +161,16 @@ class UsuarioController extends Controller
                 $user->roles()->sync([$request->role_id]);
             }
 
+            // Update Sucursal
+            if ($request->sucursal_id) {
+                $user->sucursales()->sync([$request->sucursal_id]);
+            }
+
             \DB::commit();
 
             return response()->json([
                 'message' => 'Usuario actualizado correctamente',
-                'user' => $user->load('persona', 'roles')
+                'user' => $user->load('persona', 'roles', 'sucursales')
             ]);
 
         } catch (\Exception $e) {

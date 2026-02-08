@@ -177,6 +177,16 @@
                                     </select>
                                 </div>
 
+                                <div class="relative">
+                                    <label for="newUserSucursal"
+                                        class="block mb-1.5 text-xs font-bold text-slate-700 uppercase tracking-wider">Sucursal
+                                        Asignada</label>
+                                    <select id="newUserSucursal" name="sucursal_id" required
+                                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm transition-all focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none appearance-none cursor-pointer">
+                                        <option value="">-- Seleccionar Sucursal --</option>
+                                    </select>
+                                </div>
+
                                 {{-- Sección: Datos Personales --}}
                                 <div class="col-span-1 md:col-span-2 mt-4">
                                     <h4

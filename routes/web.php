@@ -43,19 +43,19 @@ Route::middleware('auth')->group(function () {
 
         // Módulos de Operaciones (Nuevo Grupo)
         Route::prefix('operaciones')->name('operaciones.')->group(function () {
-             // Citas
-             Route::prefix('citas')->name('citas.')->group(function () {
+            // Citas
+            Route::prefix('citas')->name('citas.')->group(function () {
                 Route::get('/', [App\Http\Controllers\Panel\CitaController::class, 'index'])->name('index');
                 Route::get('/list', [App\Http\Controllers\Panel\CitaController::class, 'list'])->name('list');
                 Route::post('/', [App\Http\Controllers\Panel\CitaController::class, 'store'])->name('store'); // Manual
                 Route::put('/{id}', [App\Http\Controllers\Panel\CitaController::class, 'update'])->name('update');
                 Route::delete('/{id}', [App\Http\Controllers\Panel\CitaController::class, 'destroy'])->name('destroy');
-                
+
                 // APIs auxiliares para creación manual
                 Route::get('/api/search-clients', [App\Http\Controllers\Panel\CitaController::class, 'searchClients'])->name('searchClients');
                 Route::get('/api/get-client-vehicles/{clienteId}', [App\Http\Controllers\Panel\CitaController::class, 'getClientVehicles'])->name('getClientVehicles');
                 Route::get('/api/get-brands', [App\Http\Controllers\Panel\CitaController::class, 'getBrands'])->name('getBrands');
-             });
+            });
         });
 
         // Módulos de Mantenimiento
@@ -110,16 +110,47 @@ Route::middleware('auth')->group(function () {
                 Route::delete('/{id}', [RoleController::class, 'destroy'])->name('destroy');
             });
 
+            // Permisos
+            Route::prefix('permisos')->name('permisos.')->group(function () {
+                Route::get('/', [\App\Http\Controllers\Panel\PermissionController::class, 'index'])->name('index');
+                Route::get('/list', [\App\Http\Controllers\Panel\PermissionController::class, 'list'])->name('list');
+                Route::post('/', [\App\Http\Controllers\Panel\PermissionController::class, 'store'])->name('store');
+                Route::put('/{id}', [\App\Http\Controllers\Panel\PermissionController::class, 'update'])->name('update');
+                Route::delete('/{id}', [\App\Http\Controllers\Panel\PermissionController::class, 'destroy'])->name('destroy');
+            });
+
             // Usuarios (Asignación Roles)
             Route::prefix('usuarios')->name('usuarios.')->group(function () {
                 Route::get('/', [UsuarioController::class, 'index'])->name('index');
                 Route::get('/list', [UsuarioController::class, 'list'])->name('list');
+                Route::get('/sucursales-list', [UsuarioController::class, 'listSucursales'])->name('listSucursales');
                 Route::post('/', [UsuarioController::class, 'store'])->name('store');
                 Route::get('/roles-list', [UsuarioController::class, 'listRoles'])->name('listRoles');
                 Route::post('/{id}/assign-role', [UsuarioController::class, 'assignRole'])->name('assignRole');
                 Route::put('/{id}', [UsuarioController::class, 'update'])->name('update');
             });
 
+        });
+
+        // Recursos Humanos (Asistencias)
+        Route::prefix('rrhh')->name('rrhh.')->group(function () {
+            // Asistencias
+            Route::prefix('asistencias')->name('asistencias.')->group(function () {
+                Route::get('/mi-qr', function () {
+                    return view('panel.rrhh.mi-qr');
+                })->name('mi-qr');
+
+                // Solo usuarios con permiso 'ver_asistencias' pueden entrar al listado
+                Route::middleware('can_do:ver_asistencias')->group(function () {
+                    Route::get('/', [App\Http\Controllers\Panel\AsistenciaController::class, 'index'])->name('index');
+                    Route::get('/list', [App\Http\Controllers\Panel\AsistenciaController::class, 'list'])->name('list');
+                });
+
+                Route::get('/check-status/{userId}', [App\Http\Controllers\Panel\AsistenciaController::class, 'verifyUser'])->name('verifyUser');
+                Route::get('/search-users', [App\Http\Controllers\Panel\AsistenciaController::class, 'searchUsers'])->name('searchUsers');
+                Route::post('/register', [App\Http\Controllers\Panel\AsistenciaController::class, 'registerAttendance'])->name('register');
+                Route::delete('/{id}', [App\Http\Controllers\Panel\AsistenciaController::class, 'destroy'])->name('destroy');
+            });
         });
     });
 });

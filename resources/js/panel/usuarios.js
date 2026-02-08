@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     loadUsers();
     loadRoles();
+    loadSucursales();
 
     document.getElementById('searchInput').addEventListener('input', function (e) {
         const term = e.target.value.toLowerCase();
@@ -32,6 +33,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 let currentUserId = null;
 let allRoles = [];
+let allSucursales = [];
 let allUsers = []; // Store users to avoid re-fetching for edit
 
 const getAssignElements = () => ({
@@ -49,7 +51,8 @@ const getCreateElements = () => ({
     createModal: document.getElementById('createUserModal'),
     createBackdrop: document.getElementById('createBackdrop'),
     createPanel: document.getElementById('createPanel'),
-    newUserRole: document.getElementById('newUserRole')
+    newUserRole: document.getElementById('newUserRole'),
+    newUserSucursal: document.getElementById('newUserSucursal')
 });
 
 async function loadRoles() {
@@ -68,6 +71,15 @@ async function loadRoles() {
                 roleSelect.appendChild(opt);
             });
         }
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+async function loadSucursales() {
+    try {
+        const response = await fetch(`${window.API_URL}/sucursales-list`);
+        allSucursales = await response.json();
     } catch (e) {
         console.error(e);
     }
@@ -100,6 +112,7 @@ async function loadUsers() {
         users.forEach(user => {
             const currentRole = user.roles.length > 0 ? user.roles[0].nombre : 'Sin Rol';
             const currentRoleId = user.roles.length > 0 ? user.roles[0].id : '';
+            const sucursalName = user.sucursales && user.sucursales.length > 0 ? user.sucursales[0].nombre : 'Sin Sucursal';
 
             const card = document.createElement('div');
             card.className = 'bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all flex flex-col overflow-hidden group';
@@ -117,6 +130,9 @@ async function loadUsers() {
                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${user.roles.length > 0 ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}">
                             ${currentRole}
                         </span>
+                        <div class="mt-1 text-xs text-gray-400">
+                            <i class="fas fa-store mr-1"></i> ${sucursalName}
+                        </div>
                     </div>
                 </div>
                 <div class="mt-auto border-t border-gray-100 bg-gray-50 flex divide-x divide-gray-200/50">
@@ -220,7 +236,7 @@ async function saveAssignment(e) {
 }
 
 function openCreateModal() {
-    const { createModal, createBackdrop, createPanel, newUserRole } = getCreateElements();
+    const { createModal, createBackdrop, createPanel, newUserRole, newUserSucursal } = getCreateElements();
 
     // Populate Roles dropdown if empty
     if (newUserRole && newUserRole.options.length <= 1 && allRoles.length > 0) {
@@ -230,6 +246,17 @@ function openCreateModal() {
             opt.value = role.id;
             opt.textContent = role.nombre;
             newUserRole.appendChild(opt);
+        });
+    }
+
+    // Populate Sucursales dropdown if empty
+    if (newUserSucursal && newUserSucursal.options.length <= 1 && allSucursales.length > 0) {
+        newUserSucursal.innerHTML = '<option value="">-- Seleccionar Sucursal --</option>';
+        allSucursales.forEach(suc => {
+            const opt = document.createElement('option');
+            opt.value = suc.id;
+            opt.textContent = suc.nombre;
+            newUserSucursal.appendChild(opt);
         });
     }
 
@@ -263,9 +290,12 @@ async function saveUser(e) {
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
 
-    const { newUserRole } = getCreateElements();
+    const { newUserRole, newUserSucursal } = getCreateElements();
     const roleId = newUserRole ? newUserRole.value : null;
+    const sucursalId = newUserSucursal ? newUserSucursal.value : null;
+
     if (roleId) data.role_id = roleId;
+    if (sucursalId) data.sucursal_id = sucursalId;
 
     try {
         const response = await fetch(window.API_URL, {
@@ -316,7 +346,7 @@ function openEditModal(userId) {
 
     currentUserId = userId; // Set global currentUserId for update
 
-    const { createModal, createBackdrop, createPanel, newUserRole } = getCreateElements();
+    const { createModal, createBackdrop, createPanel, newUserRole, newUserSucursal } = getCreateElements();
 
     // Change Title (Visual only)
     const titleEl = createPanel.querySelector('h3 span');
@@ -339,9 +369,25 @@ function openEditModal(userId) {
         });
     }
 
+    // Populate Sucursales dropdown if empty
+    if (newUserSucursal && newUserSucursal.options.length <= 1 && allSucursales.length > 0) {
+        newUserSucursal.innerHTML = '<option value="">-- Seleccionar Sucursal --</option>';
+        allSucursales.forEach(suc => {
+            const opt = document.createElement('option');
+            opt.value = suc.id;
+            opt.textContent = suc.nombre;
+            newUserSucursal.appendChild(opt);
+        });
+    }
+
     // Set Role
     if (user.roles && user.roles.length > 0) {
         newUserRole.value = user.roles[0].id;
+    }
+
+    // Set Sucursal
+    if (user.sucursales && user.sucursales.length > 0) {
+        newUserSucursal.value = user.sucursales[0].id;
     }
 
     // Populate Persona Data
@@ -385,9 +431,12 @@ async function updateUser(e) {
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
 
-    const { newUserRole } = getCreateElements();
+    const { newUserRole, newUserSucursal } = getCreateElements();
     const roleId = newUserRole ? newUserRole.value : null;
+    const sucursalId = newUserSucursal ? newUserSucursal.value : null;
+
     if (roleId) data.role_id = roleId;
+    if (sucursalId) data.sucursal_id = sucursalId;
 
     try {
         const response = await fetch(`${window.API_URL}/${currentUserId}`, {
@@ -438,7 +487,7 @@ window.closeModal = closeModal;
 window.saveAssignment = saveAssignment;
 window.openCreateModal = (isCreate = true) => {
     // Reset form generic logic
-    const { createModal, createBackdrop, createPanel, newUserRole } = getCreateElements();
+    const { createModal, createBackdrop, createPanel, newUserRole, newUserSucursal } = getCreateElements();
     // Populate Roles dropdown if empty
     if (newUserRole && newUserRole.options.length <= 1 && allRoles.length > 0) {
         newUserRole.innerHTML = '<option value="">-- Sin Rol --</option>';
@@ -447,6 +496,17 @@ window.openCreateModal = (isCreate = true) => {
             opt.value = role.id;
             opt.textContent = role.nombre;
             newUserRole.appendChild(opt);
+        });
+    }
+
+    // Populate Sucursales dropdown if empty
+    if (newUserSucursal && newUserSucursal.options.length <= 1 && allSucursales.length > 0) {
+        newUserSucursal.innerHTML = '<option value="">-- Seleccionar Sucursal --</option>';
+        allSucursales.forEach(suc => {
+            const opt = document.createElement('option');
+            opt.value = suc.id;
+            opt.textContent = suc.nombre;
+            newUserSucursal.appendChild(opt);
         });
     }
 
