@@ -103,167 +103,171 @@
     {{-- Modal Crear Usuario (Personas) --}}
     <div id="createUserModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog"
         aria-modal="true">
-        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity opacity-0" id="createBackdrop"></div>
+        <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-md transition-opacity opacity-100" id="createBackdrop">
+        </div>
 
         <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
             <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-                <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95 border border-gray-100"
+
+                <div class="relative transform overflow-hidden rounded-2xl bg-[#fcfcfc] text-left shadow-[0_20px_50px_rgba(0,0,0,0.3)] transition-all sm:my-8 sm:w-full sm:max-w-2xl border border-gray-200"
                     id="createPanel">
 
-                    {{-- Header Tech --}}
-                    <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-600 to-cyan-400"></div>
+                    {{-- Acento de color: "Electric Blue" para Tesla y Silver para Euro --}}
+                    <div
+                        class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-700 via-cyan-400 to-slate-800">
+                    </div>
 
-                    <div class="px-8 pt-8 pb-6">
-                        <h3 class="text-xl font-bold leading-6 text-gray-900 flex items-center gap-2">
-                            <i class="fas fa-user-plus text-cyan-500"></i>
-                            <span>Nuevo Registro de Personal</span>
-                        </h3>
-                        <p class="text-sm text-gray-500 mt-1">Crea un usuario y vincula sus datos personales.</p>
+                    <div class="px-8 pt-10 pb-8">
+                        <div class="flex items-center justify-between mb-8">
+                            <div>
+                                <h3 class="text-2xl font-black tracking-tight text-slate-900 uppercase">
+                                    <i class="fas fa-bolt text-blue-600 mr-2"></i> <span class="text-blue-600">_</span>
+                                </h3>
+                                <p class="text-xs font-medium text-slate-500 tracking-widest uppercase mt-1">Specialized
+                                    Tech Division</p>
+                            </div>
+                            <i class="fas fa-microchip text-3xl text-slate-200"></i>
+                        </div>
 
-                        <form id="createUserForm" onsubmit="saveUser(event)" class="mt-6">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {{-- Datos de Cuenta --}}
+                        <form id="createUserForm" onsubmit="saveUser(event)">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+
+                                {{-- Sección: Datos de Cuenta --}}
                                 <div class="col-span-1 md:col-span-2">
-                                    <h4 class="text-sm font-bold text-gray-900 border-b pb-1 mb-3">Datos de Cuenta</h4>
+                                    <h4
+                                        class="text-[10px] font-bold text-blue-600 tracking-[0.2em] uppercase border-b border-blue-100 pb-1 mb-2">
+                                        Acceso al Sistema</h4>
                                 </div>
 
-                                <div>
-                                    <div class="group relative z-0 w-full mb-6">
-                                        <input type="text" name="name" id="newUserName" required placeholder=" "
-                                            class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer" />
-                                        <label for="newUserName"
-                                            class="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">
-                                            Nombre Usuario *
-                                        </label>
-                                    </div>
-                                </div>
-                                <div>
-                                    <div class="group relative z-0 w-full mb-6">
-                                        <input type="email" name="email" id="newUserEmail" required placeholder=" "
-                                            class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer" />
-                                        <label for="newUserEmail"
-                                            class="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">
-                                            Email (Login) *
-                                        </label>
-                                    </div>
-                                </div>
-                                <div>
-                                    <div class="group relative z-0 w-full mb-6">
-                                        <input type="password" name="password" id="newUserPassword" required minlength="8"
-                                            placeholder=" "
-                                            class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer" />
-                                        <label for="newUserPassword"
-                                            class="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">
-                                            Contraseña *
-                                        </label>
-                                    </div>
-                                </div>
-                                <div>
-                                    <div class="group relative z-0 w-full mb-6">
-                                        <select id="newUserRole"
-                                            class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3E%3Cpath stroke=\'%236B7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3E%3C/svg%3E')] bg-no-repeat bg-[length:1.25em_1.25em] bg-[right_0.5rem_center] pr-10">
-                                            <option value="">-- Sin Rol --</option>
-                                        </select>
-                                        <label for="newUserRole"
-                                            class="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 scale-75 -translate-y-6">
-                                            Rol Inicial
-                                        </label>
-                                    </div>
+                                <div class="relative">
+                                    <label for="newUserName"
+                                        class="block mb-1.5 text-xs font-bold text-slate-700 uppercase tracking-wider">Nombre
+                                        de Usuario *</label>
+                                    <input type="text" id="newUserName" name="name" required
+                                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm transition-all focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none placeholder:text-slate-400"
+                                        placeholder="ej. j.doe_tesla">
                                 </div>
 
-                                {{-- Datos Personales --}}
-                                <div class="col-span-1 md:col-span-2 mt-2">
-                                    <h4 class="text-sm font-bold text-gray-900 border-b pb-1 mb-3">Datos Personales</h4>
+                                <div class="relative">
+                                    <label for="newUserEmail"
+                                        class="block mb-1.5 text-xs font-bold text-slate-700 uppercase tracking-wider">Email
+                                        (Login) *</label>
+                                    <input type="email" id="newUserEmail" name="email" required
+                                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm transition-all focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none"
+                                        placeholder="staff@workshop.com">
                                 </div>
 
-                                <div>
-                                    <div class="group relative z-0 w-full mb-6">
-                                        <input type="text" name="nombres" id="persNombres" required placeholder=" "
-                                            class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer" />
-                                        <label for="persNombres"
-                                            class="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">
-                                            Nombres *
-                                        </label>
-                                    </div>
+                                <div class="relative">
+                                    <label for="newUserPassword"
+                                        class="block mb-1.5 text-xs font-bold text-slate-700 uppercase tracking-wider">Contraseña
+                                        *</label>
+                                    <input type="password" id="newUserPassword" name="password" required minlength="8"
+                                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm transition-all focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none"
+                                        placeholder="••••••••">
                                 </div>
-                                <div>
-                                    <div class="group relative z-0 w-full mb-6">
-                                        <input type="text" name="apellidos" id="persApellidos" required placeholder=" "
-                                            class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer" />
-                                        <label for="persApellidos"
-                                            class="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">
-                                            Apellidos *
-                                        </label>
-                                    </div>
+
+                                <div class="relative">
+                                    <label for="newUserRole"
+                                        class="block mb-1.5 text-xs font-bold text-slate-700 uppercase tracking-wider">Rol
+                                        de Sistema</label>
+                                    <select id="newUserRole"
+                                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm transition-all focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none appearance-none cursor-pointer">
+                                        <option value="">-- Seleccionar Nivel --</option>
+
+                                    </select>
+                                </div>
+
+                                <div class="relative">
+                                    <label for="newUserSucursal"
+                                        class="block mb-1.5 text-xs font-bold text-slate-700 uppercase tracking-wider">Sucursal
+                                        Asignada</label>
+                                    <select id="newUserSucursal" name="sucursal_id" required
+                                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm transition-all focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none appearance-none cursor-pointer">
+                                        <option value="">-- Seleccionar Sucursal --</option>
+                                    </select>
+                                </div>
+
+                                {{-- Sección: Datos Personales --}}
+                                <div class="col-span-1 md:col-span-2 mt-4">
+                                    <h4
+                                        class="text-[10px] font-bold text-blue-600 tracking-[0.2em] uppercase border-b border-blue-100 pb-1 mb-2">
+                                        Información del Personal</h4>
+                                </div>
+
+                                <div class="relative">
+                                    <label for="persNombres"
+                                        class="block mb-1.5 text-xs font-bold text-slate-700 uppercase tracking-wider">Nombres
+                                        *</label>
+                                    <input type="text" id="persNombres" name="nombres" required
+                                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm transition-all focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none"
+                                        placeholder="Nombre completo">
+                                </div>
+
+                                <div class="relative">
+                                    <label for="persApellidos"
+                                        class="block mb-1.5 text-xs font-bold text-slate-700 uppercase tracking-wider">Apellidos
+                                        *</label>
+                                    <input type="text" id="persApellidos" name="apellidos" required
+                                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm transition-all focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none"
+                                        placeholder="Apellidos completos">
                                 </div>
 
                                 <div class="grid grid-cols-2 gap-4">
                                     <div>
-                                        <div class="group relative z-0 w-full mb-6">
-                                            <input type="number" name="edad" id="persEdad" min="18" placeholder=" "
-                                                class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer" />
-                                            <label for="persEdad"
-                                                class="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">
-                                                Edad
-                                            </label>
-                                        </div>
+                                        <label for="persEdad"
+                                            class="block mb-1.5 text-xs font-bold text-slate-700 uppercase tracking-wider">Edad</label>
+                                        <input type="number" id="persEdad" name="edad" min="18"
+                                            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm transition-all focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none">
                                     </div>
                                     <div>
-                                        <div class="group relative z-0 w-full mb-6">
-                                            <select name="sexo" id="persSexo"
-                                                class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3E%3Cpath stroke=\'%236B7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3E%3C/svg%3E')] bg-no-repeat bg-[length:1.25em_1.25em] bg-[right_0.5rem_center] pr-10">
-                                                <option value="">Seleccionar</option>
-                                                <option value="Masculino">Masculino</option>
-                                                <option value="Femenino">Femenino</option>
-                                            </select>
-                                            <label for="persSexo"
-                                                class="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 scale-75 -translate-y-6">
-                                                Sexo
-                                            </label>
-                                        </div>
+                                        <label for="persSexo"
+                                            class="block mb-1.5 text-xs font-bold text-slate-700 uppercase tracking-wider">Género</label>
+                                        <select id="persSexo" name="sexo"
+                                            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm transition-all focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none appearance-none cursor-pointer">
+                                            <option value="">N/A</option>
+                                            <option value="Masculino">Masculino</option>
+                                            <option value="Femenino">Femenino</option>
+                                        </select>
                                     </div>
                                 </div>
 
-                                <div>
-                                    <div class="group relative z-0 w-full mb-6">
-                                        <input type="text" name="telefono" id="persTelefono" placeholder=" "
-                                            class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer" />
-                                        <label for="persTelefono"
-                                            class="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">
-                                            Teléfono
-                                        </label>
-                                    </div>
+                                <div class="relative">
+                                    <label for="persTelefono"
+                                        class="block mb-1.5 text-xs font-bold text-slate-700 uppercase tracking-wider">Teléfono
+                                        de Contacto</label>
+                                    <input type="text" id="persTelefono" name="telefono"
+                                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm transition-all focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none"
+                                        placeholder="+1 234 567 890">
                                 </div>
 
                                 <div class="col-span-1 md:col-span-2">
-                                    <div class="group relative z-0 w-full mb-6">
-                                        <input type="text" name="direccion" id="persDireccion" placeholder=" "
-                                            class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer" />
-                                        <label for="persDireccion"
-                                            class="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">
-                                            Dirección
-                                        </label>
-                                    </div>
+                                    <label for="persDireccion"
+                                        class="block mb-1.5 text-xs font-bold text-slate-700 uppercase tracking-wider">Residencia</label>
+                                    <input type="text" id="persDireccion" name="direccion"
+                                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm transition-all focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none"
+                                        placeholder="Calle, Ciudad, Código Postal">
                                 </div>
 
                                 <div class="col-span-1 md:col-span-2">
-                                    <div class="group relative z-0 w-full mb-6">
-                                        <textarea name="cursos" id="persCursos" rows="2" placeholder=" "
-                                            class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"></textarea>
-                                        <label for="persCursos"
-                                            class="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">
-                                            Cursos / Certificaciones
-                                        </label>
-                                    </div>
+                                    <label for="persCursos"
+                                        class="block mb-1.5 text-xs font-bold text-slate-700 uppercase tracking-wider">Certificaciones
+                                        (Tesla / BMW / Audi)</label>
+                                    <textarea id="persCursos" name="cursos" rows="2"
+                                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm transition-all focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none resize-none"
+                                        placeholder="Listado de certificaciones técnicas..."></textarea>
                                 </div>
                             </div>
 
-                            <div class="flex justify-end gap-3 mt-8">
+                            {{-- Botones de Acción --}}
+                            <div class="flex justify-end gap-4 mt-10">
                                 <button type="button" onclick="closeCreateModal()"
-                                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancelar</button>
+                                    class="px-6 py-2.5 text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors uppercase tracking-[0.2em]">
+                                    Cancelar
+                                </button>
                                 <button type="submit"
-                                    class="px-6 py-2 text-sm font-bold text-white bg-gray-900 rounded-lg hover:bg-black shadow-lg hover:shadow-cyan-500/20">Registrar
-                                    Usuario</button>
+                                    class="px-8 py-2.5 text-xs font-bold text-white bg-blue-700 hover:bg-blue-600 rounded-full shadow-[0_4px_15px_rgba(29,78,216,0.3)] transition-all hover:-translate-y-0.5 active:scale-95 uppercase tracking-[0.2em]">
+                                    Guardar Registro
+                                </button>
                             </div>
                         </form>
                     </div>

@@ -64,6 +64,15 @@
                                             class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                                             placeholder="Describe los permisos o el propósito de este rol."></textarea>
                                     </div>
+
+                                    <div class="mb-4">
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Permisos
+                                            Asignados</label>
+                                        <div id="permissionsCheckboxList"
+                                            class="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-3 border rounded-lg bg-gray-50 border-gray-200">
+                                            {{-- Inyectado por JS --}}
+                                        </div>
+                                    </div>
                                 </form>
                             </div>
                         </div>
@@ -83,8 +92,9 @@
     </div>
 
     <script>
-            const API_URL = "{{ route('panel.seguridad.roles.index') }}";
-            const CSRF_TOKEN = "{{ csrf_token() }}";
+        const API_URL = "{{ route('panel.seguridad.roles.index') }}";
+        const PERMISSIONS_API_URL = "{{ route('panel.seguridad.permisos.index') }}";
+        const CSRF_TOKEN = "{{ csrf_token() }}";
     </script>
 @endsection
 

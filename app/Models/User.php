@@ -58,9 +58,21 @@ class User extends Authenticatable
         return $this->roles()->where('slug', $roleSlug)->exists();
     }
 
+    public function hasPermission($permissionSlug)
+    {
+        return $this->roles()->whereHas('permissions', function ($q) use ($permissionSlug) {
+            $q->where('slug', $permissionSlug);
+        })->exists();
+    }
+
     public function persona()
     {
         return $this->hasOne(Persona::class);
+    }
+
+    public function sucursales()
+    {
+        return $this->belongsToMany(Sucursal::class, 'sucursal_usuario');
     }
 
     /**

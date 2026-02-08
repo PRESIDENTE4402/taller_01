@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ config('app.name', 'TallerPro') }} - Gestión</title>
 
     {{-- Tipografía Oficial Inter --}}
@@ -60,11 +61,17 @@
 
 <body class="h-screen overflow-hidden flex text-gray-800 bg-gray-50">
 
+    {{-- MOBILE BACKDROP --}}
+    <div id="mobile-backdrop"
+        class="fixed inset-0 bg-black/50 z-10 hidden md:hidden glass transition-opacity duration-300"
+        onclick="toggleMobileMenu()"></div>
+
     {{-- SIDEBAR / MENÚ LATERAL OSCURO --}}
-    <aside
-        class="w-64 sidebar-container shadow-xl flex-shrink-0 flex flex-col transition-all duration-300 hidden md:flex z-20">
+    <aside id="sidebar"
+        class="w-64 sidebar-container shadow-xl flex-shrink-0 flex flex-col transition-transform duration-300 fixed md:relative z-20 h-full -translate-x-full md:translate-x-0">
+
         {{-- Logo Area --}}
-        <div class="h-16 flex items-center px-6 border-b border-slate-700 bg-slate-900">
+        <div class="h-16 flex items-center px-6 border-b border-slate-700 bg-slate-900 justify-between">
             <div class="flex items-center gap-3 font-bold text-xl tracking-tight text-white">
                 <div
                     class="w-8 h-8 rounded bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg">
@@ -72,6 +79,10 @@
                 </div>
                 <span>Taller<span class="text-blue-400">Pro</span></span>
             </div>
+            <!-- Close Button Mobile -->
+            <button class="md:hidden text-gray-400 hover:text-white" onclick="toggleMobileMenu()">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
 
         {{-- Scrollable Menu --}}
@@ -139,20 +150,52 @@
                     Sucursales
                 </a>
 
+                {{-- Sección Recursos Humanos --}}
+                <div class="px-3 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Recursos Humanos
+                </div>
+
+                <a href="{{ route('panel.rrhh.asistencias.mi-qr') }}"
+                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.rrhh.asistencias.mi-qr') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                    <i class="fas fa-qrcode w-5 text-center"></i>
+                    Mi Credencial QR
+                </a>
+
+                @can('ver_asistencias')
+                    <a href="{{ route('panel.rrhh.asistencias.index') }}"
+                        class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.rrhh.asistencias.index') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                        <i class="fas fa-fingerprint w-5 text-center"></i>
+                        Control Asistencias (Admin)
+                    </a>
+                @endcan
+
                 {{-- Sección Seguridad --}}
-                <div class="px-3 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Seguridad</div>
+                @if(Gate::check('gestionar_roles') || Gate::check('gestionar_permisos') || Gate::check('gestionar_usuarios'))
+                    <div class="px-3 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Seguridad</div>
 
-                <a href="{{ route('panel.seguridad.roles.index') }}"
-                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.seguridad.roles.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
-                    <i class="fas fa-user-shield w-5 text-center"></i>
-                    Roles y Permisos
-                </a>
+                    @can('gestionar_roles')
+                        <a href="{{ route('panel.seguridad.roles.index') }}"
+                            class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.seguridad.roles.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                            <i class="fas fa-user-shield w-5 text-center"></i>
+                            Roles
+                        </a>
+                    @endcan
 
-                <a href="{{ route('panel.seguridad.usuarios.index') }}"
-                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.seguridad.usuarios.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
-                    <i class="fas fa-users-cog w-5 text-center"></i>
-                    Usuarios
-                </a>
+                    @can('gestionar_permisos')
+                        <a href="{{ route('panel.seguridad.permisos.index') }}"
+                            class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.seguridad.permisos.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                            <i class="fas fa-key w-5 text-center"></i>
+                            Permisos
+                        </a>
+                    @endcan
+
+                    @can('gestionar_usuarios')
+                        <a href="{{ route('panel.seguridad.usuarios.index') }}"
+                            class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.seguridad.usuarios.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                            <i class="fas fa-users-cog w-5 text-center"></i>
+                            Usuarios
+                        </a>
+                    @endcan
+                @endif
             </nav>
         </div>
 
@@ -186,7 +229,8 @@
         <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 z-10">
             <div class="flex items-center gap-4">
                 {{-- Mobile Menu Trigger (Solo visible mobile) --}}
-                <button class="md:hidden text-gray-500 hover:text-blue-600 p-2">
+                <button id="mobile-menu-btn" onclick="toggleMobileMenu()"
+                    class="md:hidden text-gray-500 hover:text-blue-600 p-2">
                     <i class="fas fa-bars text-xl"></i>
                 </button>
 
@@ -222,6 +266,24 @@
     </div>
 
     @stack('scripts')
+
+    <script>
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('mobile-backdrop');
+
+            // Toggle translate-x to slide in/out
+            if (sidebar.classList.contains('-translate-x-full')) {
+                // Open
+                sidebar.classList.remove('-translate-x-full');
+                backdrop.classList.remove('hidden');
+            } else {
+                // Close
+                sidebar.classList.add('-translate-x-full');
+                backdrop.classList.add('hidden');
+            }
+    }
+    </script>
 </body>
 
 </html>

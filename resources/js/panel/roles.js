@@ -1,9 +1,11 @@
 document.addEventListener('DOMContentLoaded', function () {
     loadRoles();
+    fetchPermissions();
 });
 
 let isEditing = false;
 let currentId = null;
+let allPermissions = [];
 
 const modal = document.getElementById('roleModal');
 const modalBackdrop = document.getElementById('modalBackdrop');
@@ -33,20 +35,35 @@ async function loadRoles() {
 
         data.forEach(role => {
             const card = document.createElement('div');
-            card.className = 'bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center hover:shadow-md transition-shadow';
+            card.className = 'bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex flex-col hover:shadow-md transition-shadow';
+
+            const permsCount = role.permissions ? role.permissions.length : 0;
+            const permsBadges = role.permissions ? role.permissions.slice(0, 3).map(p => `
+                <span class="inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">${p.nombre}</span>
+            `).join('') : '';
+
             card.innerHTML = `
-                <div class="flex items-center gap-4">
-                    <div class="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
-                        <i class="fas fa-user-tag"></i>
+                <div class="flex justify-between items-start mb-3">
+                    <div class="flex items-center gap-3">
+                        <div class="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                            <i class="fas fa-user-shield"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-gray-800">${role.nombre}</h4>
+                            <span class="text-[10px] text-gray-400 font-medium uppercase tracking-wider">${permsCount} Permisos</span>
+                        </div>
                     </div>
-                    <div>
-                        <h4 class="font-bold text-gray-800">${role.nombre}</h4>
-                        <p class="text-xs text-gray-500 mt-1 max-w-xs line-clamp-2">${role.descripcion || 'Sin descripción'}</p>
+                    <div class="flex gap-1">
+                        <button onclick='editRole(${JSON.stringify(role)})' class="text-gray-400 hover:text-blue-600 p-1.5"><i class="fas fa-pen"></i></button>
+                        <button onclick="deleteRole(${role.id})" class="text-gray-400 hover:text-red-600 p-1.5"><i class="fas fa-trash"></i></button>
                     </div>
                 </div>
-                <div class="flex gap-2">
-                    <button onclick="editRole(${role.id}, '${role.nombre}', '${(role.descripcion || '').replace(/'/g, "\\'")}')" class="text-gray-400 hover:text-blue-600 p-2"><i class="fas fa-pen"></i></button>
-                    <button onclick="deleteRole(${role.id})" class="text-gray-400 hover:text-red-600 p-2"><i class="fas fa-trash"></i></button>
+                <div class="mt-auto">
+                    <p class="text-xs text-gray-500 line-clamp-2 mb-3 h-8">${role.descripcion || 'Sin descripción'}</p>
+                    <div class="flex flex-wrap gap-1">
+                        ${permsBadges}
+                        ${permsCount > 3 ? `<span class="text-[9px] text-gray-400"> +${permsCount - 3} más</span>` : ''}
+                    </div>
                 </div>
             `;
             grid.appendChild(card);
@@ -80,12 +97,44 @@ function closeModal() {
     }, 300);
 }
 
-function editRole(id, nombre, descripcion) {
+async function fetchPermissions() {
+    try {
+        const response = await fetch(`${PERMISSIONS_API_URL}/list`);
+        allPermissions = await response.json();
+        renderPermissionCheckboxes();
+    } catch (e) {
+        console.error("Error loading permissions:", e);
+    }
+}
+
+function renderPermissionCheckboxes() {
+    const list = document.getElementById('permissionsCheckboxList');
+    if (!list) return;
+
+    list.innerHTML = allPermissions.map(p => `
+        <label class="flex items-center gap-2 p-2 rounded hover:bg-blue-50 cursor-pointer transition-colors border border-transparent hover:border-blue-100">
+            <input type="checkbox" name="permisos[]" value="${p.id}" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+            <div class="flex flex-col">
+                <span class="text-xs font-semibold text-gray-700">${p.nombre}</span>
+                <span class="text-[9px] text-gray-400 font-mono">${p.slug}</span>
+            </div>
+        </label>
+    `).join('');
+}
+
+function editRole(role) {
     isEditing = true;
-    currentId = id;
-    nameInput.value = nombre;
-    descInput.value = descripcion || '';
+    currentId = role.id;
+    nameInput.value = role.nombre;
+    descInput.value = role.descripcion || '';
     modalTitle.textContent = 'Editar Rol';
+
+    // Check relevant boxes
+    const checkboxes = document.querySelectorAll('#permissionsCheckboxList input[type="checkbox"]');
+    checkboxes.forEach(cb => {
+        cb.checked = role.permissions ? role.permissions.some(p => p.id == cb.value) : false;
+    });
+
     openModal(true);
 }
 
@@ -95,6 +144,9 @@ async function saveRole(e) {
 
     const nombre = nameInput.value;
     const descripcion = descInput.value;
+    const selectedPerms = Array.from(document.querySelectorAll('#permissionsCheckboxList input[type="checkbox"]:checked'))
+        .map(cb => cb.value);
+
     if (!nombre.trim()) return;
 
     const url = isEditing ? `${API_URL}/${currentId}` : API_URL;
@@ -108,7 +160,11 @@ async function saveRole(e) {
                 'X-CSRF-TOKEN': CSRF_TOKEN,
                 'Accept': 'application/json'
             },
-            body: JSON.stringify({ nombre, descripcion })
+            body: JSON.stringify({
+                nombre,
+                descripcion,
+                permisos: selectedPerms
+            })
         });
 
         const result = await response.json();
