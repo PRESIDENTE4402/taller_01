@@ -32,7 +32,7 @@ class UsuarioController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8',
+            // 'password' => 'required|string|min:8', // Generated automatically
             // Persona validation
             'nombres' => 'required|string|max:255',
             'apellidos' => 'required|string|max:255',
@@ -43,10 +43,13 @@ class UsuarioController extends Controller
         try {
             \DB::beginTransaction();
 
+            // Generar una contraseña genérica/aleatoria de 8 caracteres
+            $generatedPassword = \Illuminate\Support\Str::random(8);
+
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
-                'password' => \Hash::make($request->password),
+                'password' => \Hash::make($generatedPassword),
             ]);
 
             $user->persona()->create([
@@ -66,10 +69,13 @@ class UsuarioController extends Controller
                 $user->roles()->sync([$request->role_id]);
             }
 
+            // Send Notification with the generated password
+            $user->notify(new \App\Notifications\NewUserWelcomeNotification($generatedPassword));
+
             \DB::commit();
 
             return response()->json([
-                'message' => 'Usuario y perfil creados correctamente',
+                'message' => 'Usuario creado. Se ha enviado un correo con la contraseña temporal.',
                 'user' => $user->load('persona', 'roles')
             ], 201);
 

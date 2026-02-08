@@ -97,24 +97,31 @@
         </div>
 
         <div class="content">
-            <h2>Solicitud de Restablecimiento</h2>
+            <h2>¡Tu cuenta ha sido creada!</h2>
             <p>Hola,</p>
-            <p>Recibiste este correo porque se solicitó un restablecimiento de contraseña para tu cuenta.</p>
+            <p>Se ha creado una cuenta de usuario para ti en Tecnimecanica California.</p>
+            <p>Tus credenciales de acceso son:</p>
 
-            <a href="{{ $url }}" class="btn"
-                style="display: inline-block; background-color: #1C69D4; color: #ffffff; text-decoration: none; padding: 15px 30px; border-radius: 5px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin: 20px 0;">Restablecer
-                Contraseña</a>
+            <div
+                style="background-color: #2E2E2E; padding: 15px; border-radius: 5px; margin: 20px 0; text-align: center;">
+                <p style="margin: 0; color: #888888; font-size: 14px;">Contraseña Temporal:</p>
+                <p style="margin: 5px 0 0 0; color: #ffffff; font-size: 24px; font-weight: bold; letter-spacing: 2px;">
+                    {{ $password }}</p>
+            </div>
 
-            <p>Este enlace de restablecimiento expirará en 60 minutos.</p>
-            <p>Si no realizaste esta solicitud, no se requiere ninguna otra acción.</p>
+            <p>Te recomendamos cambiar esta contraseña después de iniciar sesión.</p>
+
+            <a href="{{ $url }}" class="btn">Iniciar Sesión</a>
+
+            <p>Si no esperabas esta cuenta, puedes ignorar este correo.</p>
         </div>
 
         <div class="footer">
-            &copy; {{ date('Y') }} BMW Service. Todos los derechos reservados.
+            &copy; {{ date('Y') }} Tecnimecanica California. Todos los derechos reservados.
 
             <div class="sub-copy">
-                <p>Si tienes problemas para hacer clic en el botón "Restablecer Contraseña", copia y pega la siguiente
-                    URL en tu navegador web: <br>
+                <p>Si tienes problemas para hacer clic en el botón "Iniciar Sesión", copia y pega la siguiente URL en tu
+                    navegador web: <br>
                     <a href="{{ $url }}" style="color: #1C69D4;">{{ $url }}</a>
                 </p>
             </div>
