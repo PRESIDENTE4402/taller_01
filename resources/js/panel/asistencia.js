@@ -333,14 +333,42 @@ if (filterName) filterName.addEventListener('input', () => {
     window.searchTimer = setTimeout(loadAttendanceReport, 500);
 });
 
+// Make global for onclick handlers
+window.verifyAndPrompt = verifyAndPrompt;
+
 // Delete Logic
 window.deleteAttendance = function (id) {
-    if (!confirm('¿Eliminar este registro?')) return;
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-    fetch(`${API_URL}/${id}`, {
-        method: 'DELETE',
-        headers: { 'X-CSRF-TOKEN': csrfToken }
-    }).then(() => loadAttendanceReport());
+    Swal.fire({
+        title: '¿Eliminar registro?',
+        text: "Esta acción no se puede deshacer.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#E11D48',
+        cancelButtonColor: '#4B5563',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        background: '#1A1B1E',
+        color: '#fff'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            fetch(`${API_URL}/${id}`, {
+                method: 'DELETE',
+                headers: { 'X-CSRF-TOKEN': csrfToken }
+            }).then(() => {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Eliminado',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000,
+                    background: '#1A1B1E', color: '#fff'
+                });
+                loadAttendanceReport();
+            });
+        }
+    });
 }
 
 // Manual Input (Live Search for main scanner search) - We can keep it or remove it if redundant
