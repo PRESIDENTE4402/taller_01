@@ -55,6 +55,15 @@ Route::middleware('auth')->group(function () {
                 Route::get('/api/search-clients', [App\Http\Controllers\Panel\CitaController::class, 'searchClients'])->name('searchClients');
                 Route::get('/api/get-client-vehicles/{clienteId}', [App\Http\Controllers\Panel\CitaController::class, 'getClientVehicles'])->name('getClientVehicles');
                 Route::get('/api/get-brands', [App\Http\Controllers\Panel\CitaController::class, 'getBrands'])->name('getBrands');
+                Route::get('/api/calendar-counts', [App\Http\Controllers\Panel\CitaController::class, 'getCalendarCounts'])->name('getCalendarCounts'); // New
+            });
+
+            // Órdenes de Trabajo (New)
+            Route::prefix('ordenes-trabajo')->name('ordenes_trabajo.')->group(function () {
+                Route::get('/', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'index'])->name('index');
+                Route::get('/list', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'list'])->name('list');
+                Route::get('/create', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'create'])->name('create');
+                Route::post('/', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'store'])->name('store');
             });
         });
 

@@ -28,47 +28,49 @@ class SistemaSeeder extends Seeder
             'created_at' => now(),
         ]);
 
-        // 2. Crear Roles
+        // 2. Crear Roles con slugs
         $roles = [
-            'admin',
-            'gerente',
-            'secretario',
-            'mecanico',
-            'contador',
-            'supervisor',
-            'dueño',
-            'cliente'
+            ['nombre' => 'Administrador', 'slug' => 'admin', 'descripcion' => 'Acceso total al sistema'],
+            ['nombre' => 'Gerente', 'slug' => 'gerente', 'descripcion' => 'Gestión de sucursal'],
+            ['nombre' => 'Secretario', 'slug' => 'secretario', 'descripcion' => 'Gestión administrativa'],
+            ['nombre' => 'Mecánico', 'slug' => 'mecanico', 'descripcion' => 'Personal técnico'],
+            ['nombre' => 'Contador', 'slug' => 'contador', 'descripcion' => 'Gestión financiera'],
+            ['nombre' => 'Supervisor', 'slug' => 'supervisor', 'descripcion' => 'Supervisión de taller'],
+            ['nombre' => 'Dueño', 'slug' => 'dueno', 'descripcion' => 'Propietario'],
+            ['nombre' => 'Cliente', 'slug' => 'cliente', 'descripcion' => 'Usuario final'],
         ];
 
         foreach ($roles as $rol) {
-            DB::table('roles')->insert([
-                'nombre' => $rol,
-                'created_at' => now(),
-            ]);
+            DB::table('roles')->updateOrInsert(
+                ['slug' => $rol['slug']],
+                array_merge($rol, ['created_at' => now()])
+            );
         }
 
-        // 3. Crear Usuario Administrador (Dueño)
-        $admin = User::create([
+        // 3. Crear Usuario Administrador
+        $admin = User::firstOrCreate(['email' => 'admin@taller.com'], [
             'name' => 'Administrador General',
-            'email' => 'admin@taller.com',
             'password' => Hash::make('admin123'),
-            'phone' => '4444-5555',
         ]);
 
-        // Asignar Rol de Dueño y Admin al usuario
-        $rolAdmin = DB::table('roles')->where('nombre', 'admin')->first();
-        $rolDueño = DB::table('roles')->where('nombre', 'dueño')->first();
+        // Asignar Roles (Admin y Dueno)
+        $rolAdmin = DB::table('roles')->where('slug', 'admin')->first();
+        $rolDueno = DB::table('roles')->where('slug', 'dueno')->first();
 
-        DB::table('rol_usuario')->insert([
-            ['user_id' => $admin->id, 'role_id' => $rolAdmin->id],
-            ['user_id' => $admin->id, 'role_id' => $rolDueño->id],
-        ]);
+        DB::table('rol_usuario')->updateOrInsert(
+            ['user_id' => $admin->id, 'role_id' => $rolAdmin->id]
+        );
+        DB::table('rol_usuario')->updateOrInsert(
+            ['user_id' => $admin->id, 'role_id' => $rolDueno->id]
+        );
 
         // Asignar al admin a AMBAS sucursales
-        DB::table('sucursal_usuario')->insert([
-            ['user_id' => $admin->id, 'sucursal_id' => $sucursal1],
-            ['user_id' => $admin->id, 'sucursal_id' => $sucursal2],
-        ]);
+        DB::table('sucursal_usuario')->updateOrInsert(
+            ['user_id' => $admin->id, 'sucursal_id' => $sucursal1]
+        );
+        DB::table('sucursal_usuario')->updateOrInsert(
+            ['user_id' => $admin->id, 'sucursal_id' => $sucursal2]
+        );
 
         // 4. Catálogo de Marcas y Modelos
         $marcas = [
