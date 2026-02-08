@@ -98,6 +98,7 @@ class CitaController extends Controller
                 'cliente' => $clienteNombre,
                 'telefono' => $cita->cliente?->telefono ?? 'N/A',
                 'vehiculo' => $vehiculoTexto,
+                'email' => $cita->cliente?->email,
                 'className' => 'fc-event-' . $cita->estado
             ];
         });

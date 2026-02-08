@@ -15,7 +15,7 @@
                 <span>Rango de Fechas</span>
                 <button onclick="clearDateFilters()" class="text-xs text-red-400 hover:text-red-600 font-medium" title="Limpiar"><i class="fas fa-times"></i> Limpiar</button>
             </h4>
-            <div class="grid grid-cols-2 gap-2 mb-6">
+            <div class="grid grid-cols-2 gap-2 mb-4">
                  <div>
                     <label class="text-[10px] uppercase font-bold text-gray-400 mb-1 block">Desde</label>
                     <input type="date" id="dateStart" class="w-full text-xs border border-gray-200 rounded-lg py-1.5 px-2 text-gray-600 font-medium focus:ring-1 focus:ring-blue-500 outline-none" onchange="loadCitas()">
@@ -24,6 +24,15 @@
                     <label class="text-[10px] uppercase font-bold text-gray-400 mb-1 block">Hasta</label>
                     <input type="date" id="dateEnd" class="w-full text-xs border border-gray-200 rounded-lg py-1.5 px-2 text-gray-600 font-medium focus:ring-1 focus:ring-blue-500 outline-none" onchange="loadCitas()">
                  </div>
+            </div>
+            
+            <div class="flex gap-2 mb-6">
+                <button onclick="setDateFilter('today')" class="flex-1 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-xs font-bold text-gray-600 transition-colors">
+                    Hoy
+                </button>
+                <button onclick="setDateFilter('tomorrow')" class="flex-1 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-xs font-bold text-blue-600 transition-colors border border-blue-100">
+                    <i class="fas fa-bell mr-1"></i> Mañana
+                </button>
             </div>
 
             <h4 class="font-bold text-gray-700 mb-4 border-t border-gray-100 pt-4">Filtrar Estado</h4>
@@ -110,21 +119,27 @@
 </div>
 
 <!-- Modal Detalle Cita -->
-<div id="citaModal" class="fixed inset-0 bg-black/50 z-50 hidden backdrop-blur-sm transition-opacity opacity-0 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg transform scale-95 transition-transform duration-300" id="citaModalContent">
-        <div class="p-6">
-            <div class="flex justify-between items-start mb-6">
-                <div>
-                     <span class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide mb-2" id="modalStatusBadge">PENDIENTE</span>
-                     <h3 class="text-2xl font-black text-gray-800 leading-none" id="modalClienteName">Cliente</h3>
-                     <p class="text-gray-500 text-sm mt-1" id="modalVehiculoInfo">Vehículo</p>
+<div id="citaModal" class="fixed inset-0 bg-black/60 z-50 hidden backdrop-blur-sm transition-opacity opacity-0 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md transform scale-95 transition-transform duration-300 overflow-hidden relative" id="citaModalContent">
+        
+        <!-- Header Decorativo -->
+        <div class="h-24 bg-gradient-to-br from-gray-900 to-gray-800 relative">
+            <button onclick="closeCitaModal()" class="absolute top-4 right-4 text-white/70 hover:text-white transition-colors">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+
+        <div class="px-6 pb-6 -mt-12 relative z-10">
+            <!-- Tarjeta Principal -->
+            <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-5 text-center mb-6">
+                <div class="flex justify-center -mt-8 mb-3">
+                    <span id="modalStatusBadge" class="shadow-md">PENDIENTE</span>
                 </div>
-                <button onclick="closeCitaModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
-                    <i class="fas fa-times text-xl"></i>
-                </button>
+                <h3 class="text-xl font-black text-gray-800 leading-tight mb-1" id="modalClienteName">Cliente</h3>
+                <p class="text-sm font-medium text-gray-500 bg-gray-50 inline-block px-3 py-1 rounded-full border border-gray-100" id="modalVehiculoInfo">Vehículo</p>
             </div>
 
-            <div class="space-y-4 mb-8">
+            <div class="space-y-3 mb-6">
                 <div class="flex items-center gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
                     <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 flex-shrink-0">
                         <i class="far fa-clock"></i>
@@ -145,14 +160,34 @@
                     </div>
                 </div>
                 
-                 <div class="flex items-center gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                <div class="flex items-center gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
                     <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 flex-shrink-0">
+                        <i class="fas fa-envelope"></i> <!-- Changed icon to represent contact general or keep phone -->
+                        <!-- Actually keep phone icon or use address-card -->
+                        <i class="fas fa-address-card absolute opacity-0"></i> <!-- Hack -->
                         <i class="fas fa-phone"></i>
                     </div>
-                    <div>
+                    <div class="flex-1 min-w-0"> <!-- Added flex layout -->
                         <p class="text-xs text-gray-500 font-bold uppercase">Contacto</p>
-                        <a href="#" id="modalPhoneLink" class="font-semibold text-blue-600 hover:underline">--</a>
+                        <a href="#" id="modalPhoneLink" class="font-semibold text-blue-600 hover:underline block leading-tight truncate">--</a>
+                        <a href="#" id="modalEmailLink" class="text-xs text-gray-400 block mt-0.5 hover:text-blue-500 truncate" title="Enviar Correo">--</a>
                     </div>
+                </div>
+
+                <!-- Communication Actions -->
+                <div class="grid grid-cols-3 gap-3">
+                    <a href="#" id="btnWhatsApp" target="_blank" class="flex flex-col items-center justify-center p-3 rounded-xl bg-green-50 text-green-600 hover:bg-green-100 hover:text-green-700 transition-colors border border-green-100 group">
+                        <i class="fab fa-whatsapp text-2xl mb-1 group-hover:scale-110 transition-transform"></i>
+                        <span class="text-[10px] font-bold uppercase">WhatsApp</span>
+                    </a>
+                    <button type="button" id="btnReminder" class="flex flex-col items-center justify-center p-3 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 transition-colors border border-blue-100 group w-full">
+                        <i class="fas fa-bell text-2xl mb-1 group-hover:scale-110 transition-transform"></i>
+                        <span class="text-[10px] font-bold uppercase">Recordatorio</span>
+                    </button>
+                     <a href="#" id="btnCall" class="flex flex-col items-center justify-center p-3 rounded-xl bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-800 transition-colors border border-gray-100 group">
+                        <i class="fas fa-phone-alt text-2xl mb-1 group-hover:scale-110 transition-transform"></i>
+                        <span class="text-[10px] font-bold uppercase">Llamar</span>
+                    </a>
                 </div>
             </div>
 

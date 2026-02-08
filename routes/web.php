@@ -18,6 +18,9 @@ Route::get('/', function () {
 })->name('home');
 
 Route::post('/api/landing/citas', [CitaController::class, 'store'])->name('landing.citas.store');
+Route::get('/api/landing/brands', [CitaController::class, 'getBrands'])->name('landing.brands');
+Route::get('/api/landing/models/{marcaId}', [CitaController::class, 'getModels'])->name('landing.models');
+Route::get('/api/landing/versions/{modeloId}', [CitaController::class, 'getVersions'])->name('landing.versions');
 
 // Auth Routes
 Route::middleware('guest')->group(function () {

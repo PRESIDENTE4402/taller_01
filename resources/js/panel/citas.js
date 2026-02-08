@@ -934,6 +934,56 @@ function openCitaModal(cita) {
     phoneLink.textContent = cita.telefono;
     phoneLink.href = `tel:${cita.telefono}`;
 
+    // Email
+    const emailLink = document.getElementById('modalEmailLink');
+    if (emailLink) {
+        emailLink.textContent = cita.email || 'Sin correo registrado';
+        emailLink.href = cita.email ? `mailto:${cita.email}` : '#';
+        // Style adjustments if empty
+        if (!cita.email) {
+            emailLink.classList.add('text-gray-300', 'italic');
+            emailLink.classList.remove('text-blue-600', 'hover:underline');
+        } else {
+            emailLink.classList.remove('text-gray-300', 'italic');
+            emailLink.classList.add('text-blue-600', 'hover:underline');
+        }
+    }
+
+    // Communication Actions
+    const cleanPhone = cita.telefono ? cita.telefono.replace(/\D/g, '') : '';
+    const formattedDate = new Date(cita.start).toLocaleString('es-ES', { weekday: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+    // 1. WhatsApp (Generic)
+    const btnWhatsApp = document.getElementById('btnWhatsApp');
+    const waMsg = encodeURIComponent(`Hola ${cita.cliente}, le escribimos de TallerPro sobre su vehículo ${cita.vehiculo}.`);
+    // Use whatsapp:// protocol to open native app directly if installed, avoiding intermediate browser tab
+    btnWhatsApp.onclick = (e) => {
+        e.preventDefault();
+        if (cleanPhone) {
+            window.location.href = `whatsapp://send?phone=${cleanPhone}&text=${waMsg}`;
+        }
+    };
+    if (!cleanPhone) btnWhatsApp.classList.add('opacity-50', 'pointer-events-none');
+    else btnWhatsApp.classList.remove('opacity-50', 'pointer-events-none');
+
+    // 2. Reminder (Predefined Message via WhatsApp)
+    const btnReminder = document.getElementById('btnReminder');
+    const reminderMsg = encodeURIComponent(`Hola ${cita.cliente}, le recordamos su cita en TallerPro para el vehículo ${cita.vehiculo} el día ${formattedDate}. Por favor confirme su asistencia. Le esperamos.`);
+
+    btnReminder.onclick = () => {
+        if (cleanPhone) {
+            window.location.href = `whatsapp://send?phone=${cleanPhone}&text=${reminderMsg}`;
+        } else {
+            Swal.fire('Error', 'El cliente no tiene teléfono registrado', 'warning');
+        }
+    };
+
+    // 3. Call
+    const btnCall = document.getElementById('btnCall');
+    btnCall.href = cleanPhone ? `tel:${cleanPhone}` : '#';
+    if (!cleanPhone) btnCall.classList.add('opacity-50', 'pointer-events-none');
+    else btnCall.classList.remove('opacity-50', 'pointer-events-none');
+
     // Badge
     const badgeContainer = document.getElementById('modalStatusBadge');
     badgeContainer.outerHTML = getStatusBadge(cita.estado, 'modalStatusBadge', true);
@@ -1107,3 +1157,27 @@ function getStatusBadge(status, id = '', large = false) {
         </span>
     `;
 }
+
+window.setDateFilter = function (type) {
+    const today = new Date();
+    let start = new Date(today);
+    let end = new Date(today);
+
+    if (type === 'tomorrow') {
+        start.setDate(today.getDate() + 1);
+        end.setDate(today.getDate() + 1);
+    }
+    // If type is 'today', it remains today
+
+    const fmt = (d) => {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+    };
+
+    if (document.getElementById('dateStart')) document.getElementById('dateStart').value = fmt(start);
+    if (document.getElementById('dateEnd')) document.getElementById('dateEnd').value = fmt(end);
+
+    window.loadCitas();
+};

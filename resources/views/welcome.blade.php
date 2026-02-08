@@ -20,6 +20,95 @@
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
         @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/landing.js'])
     @endif
+
+    <style>
+        /* Modern Form Aesthetics */
+        .booking-modal-overlay {
+            backdrop-filter: blur(8px);
+            background-color: rgba(0,0,0,0.6);
+        }
+        
+        .booking-modal-container {
+            border-radius: 24px !important;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .booking-form-premium input,
+        .booking-form-premium select,
+        .booking-form-premium textarea,
+        .premium-select {
+            border: 2px solid #f3f4f6;
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-size: 0.95rem;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            background-color: #f9fafb;
+            color: #1f2937;
+            width: 100%;
+        }
+
+        .booking-form-premium input:focus,
+        .booking-form-premium select:focus,
+        .booking-form-premium textarea:focus,
+        .premium-select:focus {
+            border-color: #2563eb;
+            background-color: #fff;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+            outline: none;
+        }
+
+        .booking-form-premium input::placeholder {
+            color: #9ca3af;
+        }
+
+        .booking-form-premium label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #6b7280;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        /* Time Slot Modernization */
+        .time-slot {
+            border-radius: 12px !important;
+            border: 2px solid #f3f4f6 !important;
+            font-weight: 600 !important;
+            color: #4b5563;
+        }
+        
+        .time-slot:hover {
+            border-color: #bfdbfe !important;
+            background-color: #eff6ff !important;
+            color: #1e40af !important;
+        }
+        
+        .time-slot.selected {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+            border-color: transparent !important;
+            color: white !important;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3) !important;
+            transform: translateY(-1px);
+        }
+
+        /* Buttons */
+        .btn-confirm {
+            background: linear-gradient(135deg, #111827, #000000);
+            border-radius: 12px;
+            padding: 16px;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            transition: transform 0.2s;
+        }
+        .btn-confirm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+    </style>
 </head>
 
 <body>
