@@ -160,32 +160,42 @@
                     Mi Credencial QR
                 </a>
 
-                <a href="{{ route('panel.rrhh.asistencias.index') }}"
-                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.rrhh.asistencias.index') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
-                    <i class="fas fa-fingerprint w-5 text-center"></i>
-                    Control Asistencias (Admin)
-                </a>
+                @can('ver_asistencias')
+                    <a href="{{ route('panel.rrhh.asistencias.index') }}"
+                        class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.rrhh.asistencias.index') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                        <i class="fas fa-fingerprint w-5 text-center"></i>
+                        Control Asistencias (Admin)
+                    </a>
+                @endcan
 
                 {{-- Sección Seguridad --}}
-                <div class="px-3 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Seguridad</div>
+                @if(Gate::check('gestionar_roles') || Gate::check('gestionar_permisos') || Gate::check('gestionar_usuarios'))
+                    <div class="px-3 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Seguridad</div>
 
-                <a href="{{ route('panel.seguridad.roles.index') }}"
-                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.seguridad.roles.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
-                    <i class="fas fa-user-shield w-5 text-center"></i>
-                    Roles
-                </a>
+                    @can('gestionar_roles')
+                        <a href="{{ route('panel.seguridad.roles.index') }}"
+                            class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.seguridad.roles.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                            <i class="fas fa-user-shield w-5 text-center"></i>
+                            Roles
+                        </a>
+                    @endcan
 
-                <a href="{{ route('panel.seguridad.permisos.index') }}"
-                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.seguridad.permisos.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
-                    <i class="fas fa-key w-5 text-center"></i>
-                    Permisos
-                </a>
+                    @can('gestionar_permisos')
+                        <a href="{{ route('panel.seguridad.permisos.index') }}"
+                            class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.seguridad.permisos.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                            <i class="fas fa-key w-5 text-center"></i>
+                            Permisos
+                        </a>
+                    @endcan
 
-                <a href="{{ route('panel.seguridad.usuarios.index') }}"
-                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.seguridad.usuarios.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
-                    <i class="fas fa-users-cog w-5 text-center"></i>
-                    Usuarios
-                </a>
+                    @can('gestionar_usuarios')
+                        <a href="{{ route('panel.seguridad.usuarios.index') }}"
+                            class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.seguridad.usuarios.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                            <i class="fas fa-users-cog w-5 text-center"></i>
+                            Usuarios
+                        </a>
+                    @endcan
+                @endif
             </nav>
         </div>
 
@@ -272,7 +282,7 @@
                 sidebar.classList.add('-translate-x-full');
                 backdrop.classList.add('hidden');
             }
-        }
+    }
     </script>
 </body>
 
