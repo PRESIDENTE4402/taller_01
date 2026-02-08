@@ -37,4 +37,9 @@ class Cita extends Model
     {
         return $this->belongsTo(Sucursal::class);
     }
+
+    public function ordenTrabajo()
+    {
+        return $this->hasOne(OrdenTrabajo::class, 'cita_id');
+    }
 }

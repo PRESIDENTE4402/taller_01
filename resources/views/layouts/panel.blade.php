@@ -102,8 +102,8 @@
                     Recepción Vehículos
                 </a>
 
-                <a href="#"
-                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md sidebar-item text-slate-400 transition-colors">
+                <a href="{{ route('panel.operaciones.ordenes_trabajo.index') }}"
+                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.operaciones.ordenes_trabajo.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
                     <i class="fas fa-clipboard-list w-5 text-center"></i>
                     Órdenes de Trabajo
                 </a>
