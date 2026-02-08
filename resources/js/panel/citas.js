@@ -1,4 +1,29 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Set Default Week (Current Week)
+    const today = new Date();
+    const day = today.getDay(); // 0 (Sun) - 6 (Sat)
+
+    // Calculate Monday
+    const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(today);
+    monday.setDate(diff);
+
+    // Calculate Sunday
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+
+    // Helper for Local Date String (YYYY-MM-DD)
+    const toLocal = (d) => new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+
+    const ds = document.getElementById('dateStart');
+    const de = document.getElementById('dateEnd');
+
+    if (ds && de) {
+        ds.value = toLocal(monday);
+        de.value = toLocal(sunday);
+    }
+
+    renderCalendar();
     // Cargar citas iniciales
     loadCitas();
 
@@ -7,15 +32,24 @@ document.addEventListener('DOMContentLoaded', () => {
     if (form) form.addEventListener('submit', storeCita);
 
     // Check URL params for auto-open
+    // Check URL params for auto-open
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('action') === 'create') {
         openManualCitaModal();
-        // Limpiar URL
         window.history.replaceState({}, document.title, window.location.pathname);
     }
+
+    // Init Calendar
+    renderCalendar();
+    fetchCalendarCounts();
 });
 
 let currentFilter = 'all';
+
+// Calendar Variables
+let currentMonth = new Date().getMonth();
+let currentYear = new Date().getFullYear();
+let calendarCounts = {}; // { '2026-02-10': 3 }
 
 // ===== GLOBAL EXPORTS =====
 window.loadCitas = loadCitas;
@@ -27,8 +61,140 @@ window.clearSelectedClient = clearSelectedClient;
 window.openCitaModal = openCitaModal;
 window.closeCitaModal = closeCitaModal;
 window.updateStatus = updateStatus;
-// Note: loadBrands, loadModelsByMarca, loadVersionsByModelo, checkMarcaManual, etc. 
-// are assigned to window directly in their definitions or after.
+window.clearDateFilters = clearDateFilters;
+window.prevMonth = prevMonth;
+window.nextMonth = nextMonth;
+window.selectCalendarDate = selectCalendarDate;
+
+// ===== CALENDAR LOGIC =====
+function prevMonth() {
+    currentMonth--;
+    if (currentMonth < 0) {
+        currentMonth = 11;
+        currentYear--;
+    }
+    renderCalendar();
+    fetchCalendarCounts();
+}
+
+function nextMonth() {
+    currentMonth++;
+    if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear++;
+    }
+    renderCalendar();
+    fetchCalendarCounts();
+}
+
+function renderCalendar() {
+    const title = document.getElementById('miniCalendarTitle');
+    const grid = document.getElementById('miniCalendarGrid');
+
+    if (!title || !grid) return;
+
+    // Set Title
+    const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    title.textContent = `${months[currentMonth]} ${currentYear}`;
+
+    // Logic
+    const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+    // Today's Date
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+    grid.innerHTML = '';
+
+    // Empty cells
+    for (let i = 0; i < firstDay; i++) {
+        grid.innerHTML += `<div></div>`;
+    }
+
+    // Days
+    for (let i = 1; i <= daysInMonth; i++) {
+        const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+        const hasAppt = calendarCounts[dateStr];
+        let colorClass = 'bg-gray-50 text-gray-400 hover:bg-gray-100'; // Default
+
+        if (hasAppt) {
+            colorClass = 'bg-green-500 text-white shadow-sm shadow-green-200 hover:bg-green-600 font-bold';
+        } else {
+            colorClass = 'bg-red-50 text-red-300 hover:bg-red-100';
+        }
+
+        // Highlight Today
+        if (dateStr === todayStr) {
+            if (!hasAppt) { // If no appointment, make it distinct but not green
+                colorClass = 'bg-orange-50 text-orange-600 font-black border-2 border-orange-400 z-10';
+            } else {
+                // Stronger Highlight for Today with Appt (Orange Ring to distinguish from Blue Selection)
+                colorClass += ' ring-2 ring-orange-500 ring-offset-2 ring-offset-white font-black z-10 transform scale-105 shadow-md shadow-orange-200/50';
+            }
+        }
+
+        // Highlight selected if matches filter (only if single day selected)
+        const startFilterEl = document.getElementById('dateStart');
+        const endFilterEl = document.getElementById('dateEnd');
+        const startFilter = startFilterEl ? startFilterEl.value : '';
+        const endFilter = endFilterEl ? endFilterEl.value : '';
+
+        // Only highlight if start == end (Single Day View)
+        if (startFilter && startFilter === endFilter && startFilter === dateStr) {
+            colorClass += ' ring-2 ring-blue-600 ring-offset-1';
+        }
+
+        grid.innerHTML += `
+            <button onclick="selectCalendarDate('${dateStr}')" class="w-full aspect-square flex items-center justify-center rounded-lg text-xs transition-all relative ${colorClass}">
+                ${i}
+                ${dateStr === todayStr ? '<span class="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-current rounded-full"></span>' : ''}
+            </button>
+        `;
+    }
+}
+
+async function fetchCalendarCounts() {
+    try {
+        const monthStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+        const res = await fetch(`${window.APP_CONFIG.API_CALENDAR_COUNTS}?month=${monthStr}`); // New API
+        const data = await res.json();
+
+        // Map data { "2026-02-10": { count: 3 } } -> Simple Key Bool or Count
+        calendarCounts = {};
+        for (const [date, info] of Object.entries(data)) {
+            if (info.count > 0) calendarCounts[date] = true;
+        }
+        renderCalendar(); // Re-render with colors
+
+    } catch (e) {
+        console.error("Error fetching calendar counts", e);
+    }
+}
+
+function selectCalendarDate(dateStr) {
+    const startEl = document.getElementById('dateStart');
+    const endEl = document.getElementById('dateEnd');
+
+    if (startEl) startEl.value = dateStr;
+    if (endEl) endEl.value = dateStr; // Single day filter
+
+    // Force 'Ver Todas' (All Statuses) when selecting a calendar day
+    // This decouples the calendar selection from existing status filters
+    filterCitas('all');
+    renderCalendar();
+}
+
+function clearDateFilters() {
+    const startEl = document.getElementById('dateStart');
+    const endEl = document.getElementById('dateEnd');
+
+    if (startEl) startEl.value = '';
+    if (endEl) endEl.value = '';
+
+    loadCitas();
+    renderCalendar();
+}
 
 // ===== MANUAL CREATE MODAL LOGIC =====
 function openManualCitaModal() {
@@ -40,6 +206,27 @@ function openManualCitaModal() {
     // Default Date Today
     const dateInput = document.getElementById('inputFecha');
     if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
+
+    // Reset Vehicle UI to Default State (Hidden New Form)
+    const vehSelectContainer = document.getElementById('vehiculoSelectContainer');
+    const vehNewContainer = document.getElementById('vehiculoNewContainer');
+    const btnToggle = document.getElementById('btnToggleNewVehicle');
+    const vehSelect = document.getElementById('vehiculoSelect');
+
+    if (vehSelectContainer) vehSelectContainer.classList.remove('hidden');
+    if (vehNewContainer) vehNewContainer.classList.add('hidden');
+
+    if (btnToggle) {
+        btnToggle.innerHTML = '<i class="fas fa-plus"></i> Nuevo Vehículo';
+        btnToggle.classList.remove('text-red-500');
+        btnToggle.classList.add('text-blue-600');
+        btnToggle.classList.add('hidden'); // Hide until client selected
+    }
+
+    if (vehSelect) {
+        vehSelect.value = '';
+        if (vehSelect.dataset) vehSelect.dataset.previousValue = '';
+    }
 
     modal.classList.remove('hidden');
     setTimeout(() => {
@@ -67,7 +254,8 @@ function closeManualCitaModal() {
     setTimeout(() => modal.classList.add('hidden'), 300);
 
     // Reset Form
-    document.getElementById('crearCitaForm').reset();
+    const formEl = document.getElementById('crearCitaForm');
+    if (formEl) formEl.reset();
     clearSelectedClient();
 }
 
@@ -301,14 +489,13 @@ window.checkVersionManual = function (select) {
     }
 }
 
-// Client Search Logic...
+// Client Search Logic
 let searchTimeout;
 function debounceSearchClient() {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(searchClient, 300);
 }
 
-// ... (searchClient and selectClient remain same) ...
 async function searchClient() {
     const term = document.getElementById('searchClientInput').value;
     const resultsContainer = document.getElementById('clientSearchResults');
@@ -368,12 +555,16 @@ function clearSelectedClient() {
 
     // Reset Vehicles
     const select = document.getElementById('vehiculoSelect');
-    select.innerHTML = '<option value="">Primero selecciona un cliente...</option>';
-    select.disabled = true;
+    if (select) {
+        select.innerHTML = '<option value="">Primero selecciona un cliente...</option>';
+        select.disabled = true;
+    }
 }
 
 async function loadClientVehicles(clienteId) {
     const select = document.getElementById('vehiculoSelect');
+    if (!select) return;
+
     select.disabled = true;
     select.innerHTML = '<option>Cargando vehículos...</option>';
 
@@ -392,13 +583,70 @@ async function loadClientVehicles(clienteId) {
                 opt.textContent = v.texto;
                 select.appendChild(opt);
             });
-            select.disabled = false;
         }
+
+        // Add hidden option for triggering new mode logic
+        const newOpt = document.createElement('option');
+        newOpt.value = 'new_vehicle';
+        newOpt.textContent = 'NUEVO';
+        newOpt.hidden = true;
+        select.appendChild(newOpt);
+
+        select.disabled = false;
+
+        // Show the toggle button
+        const btnToggle = document.getElementById('btnToggleNewVehicle');
+        if (btnToggle) btnToggle.classList.remove('hidden');
 
     } catch (e) {
         select.innerHTML = '<option>Error al cargar</option>';
     }
 }
+
+// TOGGLE NEW VEHICLE MODE
+function toggleNewVehicleMode() {
+    const selectContainer = document.getElementById('vehiculoSelectContainer');
+    const newContainer = document.getElementById('vehiculoNewContainer');
+    const btn = document.getElementById('btnToggleNewVehicle');
+    const select = document.getElementById('vehiculoSelect');
+
+    const isShowingSelect = !selectContainer.classList.contains('hidden');
+
+    if (isShowingSelect) {
+        // Save current selection before switching
+        select.dataset.previousValue = select.value;
+
+        // Switch to NEW Mode
+        selectContainer.classList.add('hidden');
+        newContainer.classList.remove('hidden');
+
+        btn.innerHTML = '<i class="fas fa-undo"></i> Cancelar / Seleccionar Existente';
+        btn.classList.add('text-red-500');
+        btn.classList.remove('text-blue-600');
+
+        // Set specific value to trigger backend logic
+        select.value = 'new_vehicle';
+        loadBrands();
+
+    } else {
+        // Switch back to SELECT Mode
+        selectContainer.classList.remove('hidden');
+        newContainer.classList.add('hidden');
+
+        btn.innerHTML = '<i class="fas fa-plus"></i> Nuevo Vehículo';
+        btn.classList.remove('text-red-500');
+        btn.classList.add('text-blue-600');
+
+        // Restore previous selection if it wasn't 'new_vehicle'
+        const prev = select.dataset.previousValue;
+        if (prev && prev !== 'new_vehicle') {
+            select.value = prev;
+        } else {
+            select.value = ''; // Reset if no valid previous
+        }
+    }
+}
+window.toggleNewVehicleMode = toggleNewVehicleMode;
 
 // Store Function
 async function storeCita(e) {
@@ -411,17 +659,66 @@ async function storeCita(e) {
     // Validation
     if (modo === 'buscar') {
         if (!data.cliente_id) {
-            Swal.fire('Error', 'Debes seleccionar un cliente de la lista.', 'warning');
+            Swal.fire({
+                title: 'Error',
+                text: 'Debes seleccionar un cliente de la lista.',
+                icon: 'warning',
+                showConfirmButton: true,
+                confirmButtonText: 'Entendido',
+                buttonsStyling: false,
+                customClass: {
+                    confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 transition-colors'
+                }
+            });
             return;
         }
-        if (!data.vehiculo_id) {
-            Swal.fire('Error', 'Debes seleccionar un vehículo.', 'warning');
+
+        // Validation for new vehicle mode
+        if (data.vehiculo_id === 'new_vehicle') {
+            if (!data.marca_nuevo) {
+                Swal.fire({
+                    title: 'Atención',
+                    text: 'Debes ingresar la marca del nuevo vehículo.',
+                    icon: 'warning',
+                    showConfirmButton: true,
+                    confirmButtonText: 'Entendido',
+                    buttonsStyling: false,
+                    customClass: {
+                        confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 transition-colors'
+                    }
+                });
+                return;
+            }
+        }
+        // Standard Validation
+        else if (!data.vehiculo_id) {
+            Swal.fire({
+                title: 'Error',
+                text: 'Debes seleccionar un vehículo.',
+                icon: 'warning',
+                showConfirmButton: true,
+                confirmButtonText: 'Entendido',
+                buttonsStyling: false,
+                customClass: {
+                    confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 transition-colors'
+                }
+            });
             return;
         }
     } else {
-        // Validación Nuevo
-        if (!data.nombre_nuevo || !data.telefono_nuevo || !data.placa_nuevo || !data.marca_nuevo) {
-            Swal.fire('Atención', 'Por favor completa al menos Nombre, Teléfono, Placa y Marca.', 'warning');
+        // Validación Nuevo (Placa y Año ahora opcionales)
+        if (!data.nombre_nuevo || !data.telefono_nuevo || !data.marca_nuevo) {
+            Swal.fire({
+                title: 'Atención',
+                text: 'Por favor completa al menos Nombre, Teléfono y Marca.',
+                icon: 'warning',
+                showConfirmButton: true,
+                confirmButtonText: 'Entendido',
+                buttonsStyling: false,
+                customClass: {
+                    confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 transition-colors'
+                }
+            });
             return;
         }
     }
@@ -465,9 +762,17 @@ async function storeCita(e) {
     }
 }
 
+// IMPORTANT: Updated loadCitas
 async function loadCitas() {
     const container = document.getElementById('citasContainer');
-    const dateFilter = document.getElementById('dateFilter').value;
+    if (!container) return; // Exit if container doesn't exist
+
+    const startEl = document.getElementById('dateStart');
+    const endEl = document.getElementById('dateEnd');
+
+    // Safely get values
+    const start = startEl ? startEl.value : '';
+    const end = endEl ? endEl.value : '';
 
     // UI Loading
     container.innerHTML = `
@@ -478,25 +783,34 @@ async function loadCitas() {
     `;
 
     try {
-        let url = `${window.APP_CONFIG.API_CITAS}?estado=${currentFilter === 'all' ? '' : currentFilter}`;
+        let url = `${window.APP_CONFIG.API_CITAS}?estado=${currentFilter}`;
 
-        // Si hay filtro de fecha, usarlo
-        if (dateFilter) {
-            // Un truco simple para filtrar por día es mandar start y end como el mismo día (inicio y fin)
-            url += `&start=${dateFilter} 00:00:00&end=${dateFilter} 23:59:59`;
+        if (start) url += `&start=${start}`;
+        if (end) url += `&end=${end}`;
 
-            // Para evitar problemas de zona horaria al mostrar el título de la agenda
-            const [y, m, d] = dateFilter.split('-');
-            const displayDate = new Date(y, m - 1, d);
-            document.getElementById('agendaTitle').textContent = `Agenda del ${displayDate.toLocaleDateString()}`;
-        } else {
-            document.getElementById('agendaTitle').textContent = 'Agenda General';
+        // Set Agenda Title
+        const titleEl = document.getElementById('agendaTitle');
+        if (titleEl) {
+            if (start && start === end) {
+                const [y, m, d] = start.split('-');
+                const displayDate = new Date(y, m - 1, d);
+                titleEl.textContent = `Agenda: ${displayDate.toLocaleDateString()}`;
+            } else if (start && end) {
+                titleEl.textContent = `Agenda: ${start} al ${end}`;
+            } else {
+                titleEl.textContent = 'Agenda General';
+            }
         }
 
         const response = await fetch(url);
-        const citas = await response.json();
+        const data = await response.json();
 
-        updateCounters(citas);
+        // Handle new response structure { citas: [], counts: {}, count_today: 5 }
+        const citas = data.citas || [];
+        const counts = data.counts || {};
+        const countToday = data.count_today || 0;
+
+        updateCounters(counts, countToday);
         renderCitas(citas);
 
     } catch (error) {
@@ -747,23 +1061,21 @@ function filterCitas(status) {
 
 
 // ===== HELPERS =====
-function updateCounters(citas) {
-    // Calcular en frontend para rapidez
-    const today = new Date().toISOString().split('T')[0];
+function updateCounters(counts, todayCount) {
+    const todayCardEl = document.getElementById('countToday');
+    if (todayCardEl) {
+        todayCardEl.innerText = todayCount;
+    }
 
-    // Count Today Pendientes
-    const todayCount = citas.filter(c => c.start.startsWith(today) && c.estado !== 'cancelada').length;
-    document.getElementById('countToday').innerText = todayCount;
+    const badgePendiente = document.getElementById('badge-pendiente');
+    const badgeConfirmada = document.getElementById('badge-confirmada');
+    const badgeConcretada = document.getElementById('badge-concretada');
+    const badgeNoAsistio = document.getElementById('badge-no_asistio');
 
-    // Badges Sidebar
-    const counts = citas.reduce((acc, curr) => {
-        acc[curr.estado] = (acc[curr.estado] || 0) + 1;
-        return acc;
-    }, {});
-
-    if (document.getElementById('badge-pendiente')) document.getElementById('badge-pendiente').innerText = counts['pendiente'] || 0;
-    if (document.getElementById('badge-confirmada')) document.getElementById('badge-confirmada').innerText = counts['confirmada'] || 0;
-    if (document.getElementById('badge-concretada')) document.getElementById('badge-concretada').innerText = counts['concretada'] || 0;
+    if (badgePendiente) badgePendiente.innerText = counts['pendiente'] || 0;
+    if (badgeConfirmada) badgeConfirmada.innerText = counts['confirmada'] || 0;
+    if (badgeConcretada) badgeConcretada.innerText = counts['concretada'] || 0;
+    if (badgeNoAsistio) badgeNoAsistio.innerText = counts['no_asistio'] || 0;
 }
 
 function groupByDate(citas) {

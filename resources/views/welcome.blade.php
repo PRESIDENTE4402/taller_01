@@ -45,7 +45,7 @@
             <div class="navbar-nav">
                 @auth
                     <div class="dropdown">
-                        <button class="btn btn-secondary dropdown-toggle">Hola, {{ Auth::user()->name }}</button>
+                        <button class="btn btn-secondary dropdown-toggle">Hola, {{ auth()->user()->name }}</button>
                         <div class="dropdown-menu">
                             <form action="{{ route('logout') }}" method="POST">
                                 @csrf

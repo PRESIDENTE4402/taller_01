@@ -55,6 +55,7 @@ Route::middleware('auth')->group(function () {
                 Route::get('/api/search-clients', [App\Http\Controllers\Panel\CitaController::class, 'searchClients'])->name('searchClients');
                 Route::get('/api/get-client-vehicles/{clienteId}', [App\Http\Controllers\Panel\CitaController::class, 'getClientVehicles'])->name('getClientVehicles');
                 Route::get('/api/get-brands', [App\Http\Controllers\Panel\CitaController::class, 'getBrands'])->name('getBrands');
+                Route::get('/api/calendar-counts', [App\Http\Controllers\Panel\CitaController::class, 'getCalendarCounts'])->name('getCalendarCounts'); // New
              });
 
             // Órdenes de Trabajo (New)

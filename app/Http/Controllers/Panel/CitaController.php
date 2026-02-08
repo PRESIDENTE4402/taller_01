@@ -24,25 +24,60 @@ class CitaController extends Controller
     public function list(Request $request)
     {
         // Filtros
-        $start = $request->get('start'); // Para FullCalendar si lo usamos después
+        $start = $request->get('start'); 
         $end = $request->get('end');
         $estado = $request->get('estado');
 
         $query = Cita::with(['cliente', 'vehiculo.marca', 'vehiculo.modelo'])
             ->orderBy('fecha_programada', 'asc');
 
-        if ($estado) {
-            $query->where('estado', $estado);
-        } else {
-            // Por defecto no mostrar canceladas viejas en la vista inicial si no se pide
-             // $query->where('estado', '!=', 'cancelada');
-        }
-        
-        // Si hay rango de fechas (útil para agenda)
-        if ($start && $end) {
-            $query->whereBetween('fecha_programada', [$start, $end]);
+        // Si hay filtro de fecha exacto o rango
+        if ($start) {
+            // Si viene fullcalendar o rango manual
+            $endDate = $end ?? $start; // Si no hay end, es un solo dia
+            
+            // Ajustar el fin del día si es fecha simple Y-m-d
+            if (strlen($endDate) <= 10) {
+                 $endDate .= ' 23:59:59';
+            }
+            if (strlen($start) <= 10) {
+                 $start .= ' 00:00:00';
+            }
+
+            $query->whereBetween('fecha_programada', [$start, $endDate]);
         }
 
+        if ($estado && $estado !== 'all') {
+            $query->where('estado', $estado);
+        } else if ($estado === 'all') {
+            // "cuando le de a ver todas que muestre el de todos los estados"
+            // No filter applied, show all statuses.
+        } else {
+            // Default (Initial Load): "por default muestre las citas de la semana" (controller defines status, js defines date)
+            // Implicitly we usually show active work.
+            $query->whereIn('estado', ['pendiente', 'confirmada']);
+        }
+
+        // 1. Calculate Counts (Respect Date, Ignore Status)
+        $countsQuery = Cita::query();
+        if ($start) {
+            $endDateForCounts = $end ?? $start;
+            if (strlen($endDateForCounts) <= 10) $endDateForCounts .= ' 23:59:59';
+            if (strlen($start) <= 10) $startClone = $start . ' 00:00:00'; // Avoid overwrite
+            else $startClone = $start;
+
+            $countsQuery->whereBetween('fecha_programada', [$startClone, $endDateForCounts]);
+        }
+        $counts = $countsQuery->select('estado', DB::raw('count(*) as total'))
+            ->groupBy('estado')
+            ->pluck('total', 'estado');
+
+        // 2. Count Today (Independent of filters)
+        $countToday = Cita::whereDate('fecha_programada', now()->toDateString())
+            ->whereNotIn('estado', ['cancelada', 'no_asistio']) // Only active work
+            ->count();
+
+        // 3. Get Citas (Respect Date AND Status)
         $citas = $query->get()->map(function($cita) {
             $clienteNombre = $cita->cliente?->nombre_completo ?? 'Cliente Desconocido';
             $vehiculoTexto = 'Vehículo Desconocido';
@@ -67,7 +102,33 @@ class CitaController extends Controller
             ];
         });
 
-        return response()->json($citas);
+        return response()->json([
+            'citas' => $citas,
+            'counts' => $counts,
+            'count_today' => $countToday
+        ]);
+    }
+    
+    // API para el Calendario (Puntos Verdes/Rojos)
+    public function getCalendarCounts(Request $request) {
+        $month = $request->get('month'); // "2026-02"
+        
+        if (!$month) return response()->json([]);
+
+        $startOfMonth = Carbon::parse($month . '-01')->startOfMonth();
+        $endOfMonth = Carbon::parse($month . '-01')->endOfMonth();
+
+        // Contar citas por día
+        // "que las citas que ya estan aceptadas y que ya estan en taller ya no se muestren"
+        // Excluir 'concretada' y 'cancelada'/'no_asistio'
+        $counts = Cita::select(DB::raw('DATE(fecha_programada) as date'), DB::raw('count(*) as count'))
+            ->whereBetween('fecha_programada', [$startOfMonth, $endOfMonth])
+            ->whereIn('estado', ['pendiente', 'confirmada']) // Only active pending/confirmed
+            ->groupBy('date')
+            ->get()
+            ->keyBy('date'); // Indexar por fecha
+
+        return response()->json($counts);
     }
 
     public function store(Request $request)
@@ -84,24 +145,30 @@ class CitaController extends Controller
                 $request->validate([
                     'nombre_nuevo' => 'required|string',
                     'telefono_nuevo' => 'required|string',
-                    'placa_nuevo' => 'required|string',
+                    'placa_nuevo' => 'nullable|string', // AHORA ES OPCIONAL
                     'marca_nuevo' => 'required|string',
                     'fecha' => 'required|date',
                     'hora' => 'required'
                 ]);
 
                 // 2. Cliente (Buscar por email/teléfono o Crear)
-                // Intentamos buscar si ya existe un "casi duplicado" para no ensuciar la BD, 
-                // pero si el usuario explícitamente pide nuevo, priorizamos creación o actualización.
-                $cliente = Cliente::firstOrCreate(
-                    ['telefono' => $request->telefono_nuevo], // Búsqueda simple
-                    [
-                        'nombre_completo' => $request->nombre_nuevo,
-                        'email' => $request->email_nuevo // Opcional
-                    ]
-                );
+                // Si el cliente ya existe por teléfono, actualizamos sus datos con los nuevos ingresados.
+                $telefono = trim($request->telefono_nuevo);
+                $cliente = Cliente::where('telefono', $telefono)->first();
+
+                if (!$cliente) {
+                    $cliente = new Cliente();
+                    $cliente->telefono = $telefono;
+                }
+
+                $cliente->nombre_completo = trim($request->nombre_nuevo);
                 
-                // Si ya existía pero con otro nombre, podríamos actualizarlo, pero mejor lo dejamos así por seguridad.
+                // Handle Email: Empty string should be NULL to avoid Unique constraint checks on empty strings
+                $email = trim($request->email_nuevo);
+                $cliente->email = $email === '' ? null : $email;
+                
+                $cliente->save();
+                
                 $clienteId = $cliente->id;
 
                 // 3. Vehiculo / Marca / Modelo / Version
@@ -120,8 +187,13 @@ class CitaController extends Controller
                     $versionId = $version->id;
                 }
 
-                $placa = strtoupper(str_replace([' ', '-'], '', $request->placa_nuevo));
-                
+                $placaRaw = $request->placa_nuevo;
+                if (!$placaRaw) {
+                    $placa = 'S/P-' . time() . '-' . rand(100,999);
+                } else {
+                    $placa = strtoupper(str_replace([' ', '-'], '', $placaRaw));
+                }
+
                 $vehiculo = Vehiculo::firstOrCreate(
                     ['placa' => $placa],
                     [
@@ -141,14 +213,74 @@ class CitaController extends Controller
                 $vehiculoId = $vehiculo->id;
 
             } else {
-                // CASO 2: Cliente Existente (Validación Estándar)
-                $request->validate([
-                    'cliente_id' => 'required|exists:clientes,id',
-                    'vehiculo_id' => 'required|exists:vehiculos,id',
-                    'fecha' => 'required|date',
-                    'hora' => 'required',
-                    'motivo' => 'required|string',
-                ]);
+                // CASO 2: Cliente Existente
+                // 2.1 check if creating NEW vehicle for existing client
+                if ($request->vehiculo_id === 'new_vehicle') {
+                     $request->validate([
+                        'cliente_id' => 'required|exists:clientes,id',
+                        'marca_nuevo' => 'required|string',
+                        'fecha' => 'required|date',
+                        'hora' => 'required',
+                        'motivo' => 'required|string',
+                    ]);
+
+                    $clienteId = $request->cliente_id;
+                    
+                    // Logic Identical to Case 1
+                    $nombreMarca = trim(strtoupper($request->marca_nuevo));
+                    $nombreModelo = $request->modelo_nuevo ? trim(strtoupper($request->modelo_nuevo)) : 'MODELO BASE';
+                    $nombreVersion = $request->version_nuevo ? trim(strtoupper($request->version_nuevo)) : null;
+
+                    $marca = MarcaVehiculo::firstOrCreate(['nombre' => $nombreMarca]);
+                    $modelo = ModeloVehiculo::firstOrCreate(['marca_id' => $marca->id, 'nombre' => $nombreModelo]);
+                    
+                    $versionId = null;
+                    if ($nombreVersion) {
+                        $version = VersionVehiculo::firstOrCreate(
+                            ['modelo_id' => $modelo->id, 'nombre' => $nombreVersion]
+                        );
+                        $versionId = $version->id;
+                    }
+
+                    $placaRaw = $request->placa_nuevo;
+                    if (!$placaRaw) {
+                        $placa = 'S/P-' . time() . '-' . rand(100,999);
+                    } else {
+                        $placa = strtoupper(str_replace([' ', '-'], '', $placaRaw));
+                    }
+
+                    $vehiculo = Vehiculo::firstOrCreate(
+                        ['placa' => $placa],
+                        [
+                            'cliente_id' => $clienteId,
+                            'marca_id' => $marca->id,
+                            'modelo_id' => $modelo->id,
+                            'version_id' => $versionId,
+                            'anio' => $request->anio_nuevo ?? date('Y'),
+                            'color' => $request->color_nuevo ?? 'No especificado'
+                        ]
+                    );
+
+                    // Ensure ownership
+                    if($vehiculo->cliente_id != $clienteId) {
+                         // Optional: Handle if vehicle already exists but belongs to someone else?
+                         // For now, assuming standard logic or update owner
+                         $vehiculo->update(['cliente_id' => $clienteId]);
+                    }
+
+                    $vehiculoId = $vehiculo->id;
+                    // End of Vehicle Creation
+
+                } else {
+                    // Standard Existing Vehicle
+                    $request->validate([
+                        'cliente_id' => 'required|exists:clientes,id',
+                        'vehiculo_id' => 'required|exists:vehiculos,id',
+                        'fecha' => 'required|date',
+                        'hora' => 'required',
+                        'motivo' => 'required|string',
+                    ]);
+                }
             }
 
             // Crear la Cita
