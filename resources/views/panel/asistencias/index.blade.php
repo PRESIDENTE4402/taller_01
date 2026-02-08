@@ -102,61 +102,90 @@
                 @endcan
             </div>
 
-            <!-- Last Scan Status Card (Keep As Is) -->
-            <div id="status-card"
-                class="bg-[#1A1B1E] rounded-xl border border-gray-800 p-6 flex-1 flex flex-col items-center justify-center text-center relative opacity-50 pointer-events-none transition-all duration-300">
-                <div class="avatar placeholder mb-4">
-                    <div
-                        class="bg-gray-800 text-gray-500 rounded-full w-24 h-24 ring ring-gray-700 ring-offset-base-100 ring-offset-2">
-                        <span class="text-3xl"><i class="fas fa-user"></i></span>
+            <!-- Buscador y Filtros -->
+            <div class="bg-[#1A1B1E] rounded-xl border border-gray-800 p-6 flex-1 flex flex-col gap-4">
+                <h3 class="text-white font-bold text-lg flex items-center gap-2">
+                    <i class="fas fa-filter text-[#1C69D4]"></i> Buscar Asistencia
+                </h3>
+
+                <div class="space-y-4">
+                    <!-- Filtro por Fecha -->
+                    <div class="form-control">
+                        <label class="label pt-0 pb-1">
+                            <span class="label-text text-gray-400 text-[10px] font-bold uppercase">Filtrar por Fecha</span>
+                        </label>
+                        <input type="date" id="filter-date" value="{{ date('Y-m-d') }}"
+                            class="input input-sm bg-[#2C2E33] border-gray-700 text-white focus:border-blue-500 w-full">
+                    </div>
+
+                    <!-- Filtro por Persona -->
+                    <div class="form-control">
+                        <label class="label pt-0 pb-1">
+                            <span class="label-text text-gray-400 text-[10px] font-bold uppercase">Busqueda por
+                                Nombre</span>
+                        </label>
+                        <div class="relative">
+                            <input type="text" id="filter-name" placeholder="Escriba un nombre..."
+                                class="input input-sm bg-[#2C2E33] border-gray-700 text-white focus:border-blue-500 w-full pr-10">
+                            <i class="fas fa-search absolute right-3 top-2.5 text-gray-500 text-xs"></i>
+                        </div>
+                    </div>
+
+                    <div class="pt-2 border-t border-gray-800 mt-2">
+                        <div class="flex items-center justify-between text-[11px] text-gray-500 uppercase font-bold px-1">
+                            <span>Estado del Sistema</span>
+                            <span class="text-green-500 flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                                En Línea
+                            </span>
+                        </div>
                     </div>
                 </div>
-
-                <h2 id="scanned-name" class="text-2xl font-bold text-white mb-1">Esperando...</h2>
-                <p id="scanned-id" class="text-sm text-gray-500 font-mono mb-4">ID: --</p>
-
-                <div id="scan-result-badge" class="badge badge-lg p-4 font-bold uppercase tracking-wider mb-4 hidden">
-                    --
-                </div>
-
-                <div id="scan-time" class="text-4xl font-mono text-white font-bold tracking-widest text-[#1C69D4]">
-                    --:--
-                </div>
             </div>
+
 
         </div>
 
         <!-- Sección Derecha: Historial del Día -->
         <div class="lg:col-span-2 bg-[#1A1B1E] rounded-xl border border-gray-800 shadow-xl flex flex-col overflow-hidden">
             <div class="p-4 border-b border-gray-800 flex justify-between items-center bg-[#25262B]">
-                <h3 class="text-white font-bold flex items-center gap-2">
-                    <i class="fas fa-clipboard-list text-gray-400"></i> Registros de Hoy
+                <h3 class="text-white font-extrabold text-sm uppercase tracking-tighter flex items-center gap-2">
+                    <i class="fas fa-list-ul text-[#1C69D4]"></i> Reporte de Asistencia Diaria
                 </h3>
-                <div class="text-sm font-mono text-[#1C69D4]" id="live-clock">--:--:--</div>
+                <div class="text-sm font-mono text-[#1C69D4] font-bold" id="live-clock">--:--:--</div>
             </div>
 
-            <div class="flex-1 overflow-auto p-0">
-                <table class="table table-zebra w-full text-left">
-                    <thead
-                        class="bg-[#2C2E33] text-white uppercase text-xs sticky top-0 z-10 font-bold border-b border-gray-600">
-                        <tr>
-                            <th class="py-3 px-4 text-white">Fecha</th>
-                            <th class="py-3 px-4 text-white">Entrada</th>
-                            <th class="py-3 px-4 text-white">Salida</th>
-                            <th class="py-3 px-4 text-white">Empleado</th>
-                            <th class="py-3 px-4 text-white">Tipo</th>
-                            <th class="py-3 px-4 text-white">Estado</th>
-                            <th class="py-3 px-4 text-white">Obs</th>
-                            <th class="py-3 px-4 text-center text-white">Acciones</th>
+            <div class="flex-1 overflow-auto p-0 scrollbar-thin scrollbar-thumb-gray-800">
+                <table class="table w-full border-separate border-spacing-0">
+                    <thead>
+                        <tr class="bg-[#2C2E33]/50">
+                            <th
+                                class="py-4 px-6 text-gray-400 font-bold uppercase text-[10px] tracking-widest border-b border-gray-800 text-left">
+                                Empleado / Sucursal</th>
+                            <th
+                                class="py-4 px-4 text-gray-400 font-bold uppercase text-[10px] tracking-widest border-b border-gray-800 text-center w-24">
+                                Entrada</th>
+                            <th
+                                class="py-4 px-4 text-gray-400 font-bold uppercase text-[10px] tracking-widest border-b border-gray-800 text-center w-24">
+                                Salida</th>
+                            <th
+                                class="py-4 px-4 text-gray-400 font-bold uppercase text-[10px] tracking-widest border-b border-gray-800 text-center w-32">
+                                Estado</th>
+                            <th
+                                class="py-4 px-4 text-gray-400 font-bold uppercase text-[10px] tracking-widest border-b border-gray-800 text-center w-40">
+                                Obs</th>
+                            <th
+                                class="py-4 px-4 text-gray-400 font-bold uppercase text-[10px] tracking-widest border-b border-gray-800 text-center w-24">
+                                Acciones</th>
                         </tr>
                     </thead>
-                    <tbody id="live-table-body" class="text-sm text-gray-300 divide-y divide-gray-800">
+                    <tbody id="live-table-body" class="divide-y divide-gray-800/50">
                         <!-- JS fills this -->
                     </tbody>
                 </table>
-                <div id="empty-state" class="flex flex-col items-center justify-center h-full py-20 text-gray-600">
-                    <i class="fas fa-inbox text-4xl mb-3 opacity-50"></i>
-                    <p>Sin registros hoy</p>
+                <div id="empty-state" class="flex flex-col items-center justify-center h-full py-20 text-gray-600 hidden">
+                    <i class="fas fa-search text-5xl mb-4 opacity-20"></i>
+                    <p class="font-bold uppercase text-xs tracking-widest">No se encontraron registros</p>
                 </div>
             </div>
         </div>

@@ -26,23 +26,54 @@ class AsistenciaController extends Controller
      */
     public function list(Request $request)
     {
-        // Filtros básicos
-        $query = Asistencia::with(['user:id,name', 'sucursal:id,nombre'])
-            ->orderBy('fecha', 'desc')
-            ->orderBy('created_at', 'desc');
+        $fecha = $request->get('fecha', Carbon::today()->format('Y-m-d'));
+        $term = $request->get('term');
 
-        if ($request->has('fecha_inicio') && $request->has('fecha_fin')) {
-            $query->whereBetween('fecha', [$request->fecha_inicio, $request->fecha_fin]);
-        } else {
-            // Por defecto mostrar el mes actual
-            $query->whereMonth('fecha', Carbon::now()->month);
+        // Obtenemos todos los usuarios (o filtrados por nombre)
+        $usersQuery = User::with(['persona', 'sucursales']);
+
+        // --- VALIDACIÓN DE SUCURSAL PARA SECRETARIOS ---
+        $currentUser = auth()->user();
+        if ($currentUser->hasRole('secretario') && !$currentUser->hasRole('admin')) {
+            $mySucursalIds = $currentUser->sucursales->pluck('id');
+            $usersQuery->whereHas('sucursales', function ($q) use ($mySucursalIds) {
+                $q->whereIn('sucursales.id', $mySucursalIds);
+            });
         }
 
-        if ($request->has('user_id')) {
-            $query->where('user_id', $request->user_id);
+        if ($term) {
+            $usersQuery->whereHas('persona', function ($q) use ($term) {
+                $q->where('nombres', 'LIKE', "%{$term}%")
+                    ->orWhere('apellidos', 'LIKE', "%{$term}%")
+                    ->orWhereRaw("CONCAT(nombres, ' ', apellidos) LIKE ?", ["%{$term}%"]);
+            })->orWhere('name', 'LIKE', "%{$term}%");
         }
 
-        return response()->json($query->get());
+        $users = $usersQuery->get();
+
+        // Obtenemos las asistencias de esa fecha
+        $asistencias = Asistencia::where('fecha', $fecha)->get()->keyBy('user_id');
+
+        // Mapeamos para que cada usuario tenga su objeto de asistencia (o null)
+        $reporte = $users->map(function ($user) use ($asistencias, $fecha) {
+            $asistencia = $asistencias->get($user->id);
+
+            return [
+                'id' => $asistencia->id ?? null,
+                'user_id' => $user->id,
+                'nombre' => $user->persona ? ($user->persona->nombres . ' ' . $user->persona->apellidos) : $user->name,
+                'fecha' => $fecha,
+                'hora_entrada' => $asistencia->hora_entrada ?? null,
+                'hora_salida' => $asistencia->hora_salida ?? null,
+                'tipo' => $asistencia->tipo ?? 'falta', // Si no hay registro, es falta
+                'estado' => $asistencia->estado ?? 'pendiente',
+                'sucursal' => $user->sucursales->first()->nombre ?? 'N/A',
+                'observaciones' => $asistencia->observaciones ?? '',
+                'registrado' => $asistencia ? true : false
+            ];
+        });
+
+        return response()->json($reporte);
     }
 
     /**
