@@ -92,81 +92,105 @@
                 {{-- Sección Principal --}}
                 <div class="px-3 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Principal</div>
 
-                <a href="{{ route('panel.dashboard') }}"
-                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.dashboard') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
-                    <i class="fas fa-chart-pie w-5 text-center"></i>
-                    Dashboard
-                </a>
-
-                {{-- Sección Operaciones --}}
-                <div class="px-3 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Operaciones</div>
-
-                <a href="{{ route('panel.operaciones.citas.index') }}"
-                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.operaciones.citas.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
-                    <i class="fas fa-calendar-check w-5 text-center"></i>
-                    Gestionar Citas
-                </a>
-
-                <a href="#"
-                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md sidebar-item text-slate-400 transition-colors">
-                    <i class="fas fa-car w-5 text-center"></i>
-                    Recepción Vehículos
-                </a>
-
-                <a href="{{ route('panel.operaciones.ordenes_trabajo.index') }}"
-                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.operaciones.ordenes_trabajo.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
-                    <i class="fas fa-clipboard-list w-5 text-center"></i>
-                    Órdenes de Trabajo
-                </a>
-
-                {{-- Sección Inventario --}}
-                <div class="px-3 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Logística</div>
-
-                <a href="#"
-                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md sidebar-item text-slate-400 transition-colors">
-                    <i class="fas fa-boxes w-5 text-center"></i>
-                    Inventario Repuestos
-                </a>
-
-                {{-- Sección Mantenimientos (CRUDs) --}}
-                <div class="px-3 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Mantenimientos
-                </div>
-
-                <a href="{{ route('panel.mantenimientos.marcas.index') }}"
-                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.mantenimientos.marcas.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
-                    <i class="fas fa-tags w-5 text-center"></i>
-                    Marcas de Vehículos
-                </a>
-
-                <a href="{{ route('panel.mantenimientos.versiones.index') }}"
-                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.mantenimientos.versiones.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
-                    <i class="fas fa-code-branch w-5 text-center"></i>
-                    Versiones de Modelos
-                </a>
-
-                <a href="{{ route('panel.mantenimientos.sucursales.index') }}"
-                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.mantenimientos.sucursales.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
-                    <i class="fas fa-store w-5 text-center"></i>
-                    Sucursales
-                </a>
-
-                {{-- Sección Recursos Humanos --}}
-                <div class="px-3 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Recursos Humanos
-                </div>
-
-                <a href="{{ route('panel.rrhh.asistencias.mi-qr') }}"
-                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.rrhh.asistencias.mi-qr') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
-                    <i class="fas fa-qrcode w-5 text-center"></i>
-                    Mi Credencial QR
-                </a>
-
-                @can('ver_asistencias')
-                    <a href="{{ route('panel.rrhh.asistencias.index') }}"
-                        class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.rrhh.asistencias.index') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
-                        <i class="fas fa-fingerprint w-5 text-center"></i>
-                        Control Asistencias (Admin)
+                @can('ver_dashboard')
+                    <a href="{{ route('panel.dashboard') }}"
+                        class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.dashboard') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                        <i class="fas fa-chart-pie w-5 text-center"></i>
+                        Dashboard
                     </a>
                 @endcan
+
+                {{-- Sección Operaciones --}}
+                @if(Gate::check('gestionar_citas') || Gate::check('gestionar_recepcion') || Gate::check('gestionar_ordenes_trabajo'))
+                    <div class="px-3 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Operaciones</div>
+
+                    @can('gestionar_citas')
+                        <a href="{{ route('panel.operaciones.citas.index') }}"
+                            class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.operaciones.citas.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                            <i class="fas fa-calendar-check w-5 text-center"></i>
+                            Gestionar Citas
+                        </a>
+                    @endcan
+
+                    @can('gestionar_recepcion')
+                        <a href="#"
+                            class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md sidebar-item text-slate-400 transition-colors">
+                            <i class="fas fa-car w-5 text-center"></i>
+                            Recepción Vehículos
+                        </a>
+                    @endcan
+
+                    @can('gestionar_ordenes_trabajo')
+                        <a href="{{ route('panel.operaciones.ordenes_trabajo.index') }}"
+                            class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.operaciones.ordenes_trabajo.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                            <i class="fas fa-clipboard-list w-5 text-center"></i>
+                            Órdenes de Trabajo
+                        </a>
+                    @endcan
+                @endif
+
+                {{-- Sección Inventario --}}
+                @can('gestionar_inventario')
+                    <div class="px-3 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Logística</div>
+
+                    <a href="#"
+                        class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md sidebar-item text-slate-400 transition-colors">
+                        <i class="fas fa-boxes w-5 text-center"></i>
+                        Inventario Repuestos
+                    </a>
+                @endcan
+
+                {{-- Sección Mantenimientos (CRUDs) --}}
+                @if(Gate::check('gestionar_marcas') || Gate::check('gestionar_versiones') || Gate::check('gestionar_sucursales'))
+                    <div class="px-3 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Mantenimientos
+                    </div>
+
+                    @can('gestionar_marcas')
+                        <a href="{{ route('panel.mantenimientos.marcas.index') }}"
+                            class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.mantenimientos.marcas.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                            <i class="fas fa-tags w-5 text-center"></i>
+                            Marcas de Vehículos
+                        </a>
+                    @endcan
+
+                    @can('gestionar_versiones')
+                        <a href="{{ route('panel.mantenimientos.versiones.index') }}"
+                            class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.mantenimientos.versiones.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                            <i class="fas fa-code-branch w-5 text-center"></i>
+                            Versiones de Modelos
+                        </a>
+                    @endcan
+
+                    @can('gestionar_sucursales')
+                        <a href="{{ route('panel.mantenimientos.sucursales.index') }}"
+                            class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.mantenimientos.sucursales.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                            <i class="fas fa-store w-5 text-center"></i>
+                            Sucursales
+                        </a>
+                    @endcan
+                @endif
+
+                {{-- Sección Recursos Humanos --}}
+                @if(Gate::check('ver_mi_qr') || Gate::check('ver_asistencias'))
+                    <div class="px-3 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Recursos Humanos
+                    </div>
+
+                    @can('ver_mi_qr')
+                        <a href="{{ route('panel.rrhh.asistencias.mi-qr') }}"
+                            class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.rrhh.asistencias.mi-qr') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                            <i class="fas fa-qrcode w-5 text-center"></i>
+                            Mi Credencial QR
+                        </a>
+                    @endcan
+
+                    @can('ver_asistencias')
+                        <a href="{{ route('panel.rrhh.asistencias.index') }}"
+                            class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.rrhh.asistencias.index') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                            <i class="fas fa-fingerprint w-5 text-center"></i>
+                            Control Asistencias (Admin)
+                        </a>
+                    @endcan
+                @endif
 
                 {{-- Sección Seguridad --}}
                 @if(Gate::check('gestionar_roles') || Gate::check('gestionar_permisos') || Gate::check('gestionar_usuarios'))
@@ -282,7 +306,7 @@
                 sidebar.classList.add('-translate-x-full');
                 backdrop.classList.add('hidden');
             }
-    }
+        }
     </script>
 </body>
 

@@ -31,6 +31,15 @@ class FixPermissionsSeeder extends Seeder
 
         // 3. Asegurar permisos básicos
         $perms = [
+            ['nombre' => 'Ver Dashboard', 'slug' => 'ver_dashboard'],
+            ['nombre' => 'Gestionar Citas', 'slug' => 'gestionar_citas'],
+            ['nombre' => 'Gestionar Órdenes de Trabajo', 'slug' => 'gestionar_ordenes_trabajo'],
+            ['nombre' => 'Recepción de Vehículos', 'slug' => 'gestionar_recepcion'],
+            ['nombre' => 'Gestionar Inventario', 'slug' => 'gestionar_inventario'],
+            ['nombre' => 'Gestionar Marcas', 'slug' => 'gestionar_marcas'],
+            ['nombre' => 'Gestionar Versiones', 'slug' => 'gestionar_versiones'],
+            ['nombre' => 'Gestionar Sucursales', 'slug' => 'gestionar_sucursales'],
+            ['nombre' => 'Ver Mi QR', 'slug' => 'ver_mi_qr'],
             ['nombre' => 'Ver Asistencias', 'slug' => 'ver_asistencias'],
             ['nombre' => 'Registrar Asistencia', 'slug' => 'registrar_asistencia'],
             ['nombre' => 'Gestionar Roles', 'slug' => 'gestionar_roles'],
@@ -39,7 +48,7 @@ class FixPermissionsSeeder extends Seeder
         ];
 
         foreach ($perms as $p) {
-            Permission::firstOrCreate(['slug' => $p['slug']], $p);
+            Permission::updateOrCreate(['slug' => $p['slug']], $p);
         }
 
         // 4. Asignar TODO al admin

@@ -11,7 +11,6 @@ export default defineConfig({
                 'resources/js/auth/login.js',
                 'resources/js/panel/marcas.js',
                 'resources/js/panel/versiones.js',
-                'resources/js/panel/versiones.js',
                 'resources/js/panel/sucursales.js',
                 'resources/js/panel/roles.js',
                 'resources/js/panel/usuarios.js',
@@ -24,10 +23,6 @@ export default defineConfig({
     server: {
         watch: {
             ignored: ['**/storage/framework/views/**'],
-        },
-        host: '0.0.0.0',
-        hmr: {
-            host: '172.20.10.6', // <--- PON AQUÍ TU IP (la del hotspot o wifi)
         },
     },
 });

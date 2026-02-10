@@ -14,7 +14,7 @@ class AdminBrianSeeder extends Seeder
     {
         // Verificar si el usuario ya existe para evitar duplicados
         $existingUser = User::where('email', 'brianmarin734@gmail.com')->first();
-        
+
         if ($existingUser) {
             $this->command->info('El usuario brianmarin734@gmail.com ya existe.');
             return;
@@ -31,8 +31,8 @@ class AdminBrianSeeder extends Seeder
         $this->command->info('Usuario BRIAN creado correctamente.');
 
         // Asignar Roles (Admin y Dueño)
-        $rolAdmin = DB::table('roles')->where('nombre', 'admin')->first();
-        $rolDueño = DB::table('roles')->where('nombre', 'dueño')->first();
+        $rolAdmin = DB::table('roles')->where('slug', 'admin')->first();
+        $rolDueno = DB::table('roles')->where('slug', 'dueno')->first();
 
         if ($rolAdmin) {
             DB::table('rol_usuario')->insert([
@@ -41,17 +41,17 @@ class AdminBrianSeeder extends Seeder
             ]);
         }
 
-        if ($rolDueño) {
+        if ($rolDueno) {
             DB::table('rol_usuario')->insert([
                 'user_id' => $user->id,
-                'role_id' => $rolDueño->id
+                'role_id' => $rolDueno->id
             ]);
         }
-        
+
         // Asignar a todas las sucursales existentes
         $sucursales = DB::table('sucursales')->pluck('id');
         foreach ($sucursales as $sucursalId) {
-             DB::table('sucursal_usuario')->insert([
+            DB::table('sucursal_usuario')->insert([
                 'user_id' => $user->id,
                 'sucursal_id' => $sucursalId
             ]);
