@@ -61,6 +61,7 @@ Route::middleware('auth')->group(function () {
             // Órdenes de Trabajo (New)
             Route::prefix('ordenes-trabajo')->name('ordenes_trabajo.')->group(function () {
                 Route::get('/', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'index'])->name('index');
+                Route::get('/dashboard', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'dashboard'])->name('dashboard'); // New Dashboard
                 Route::get('/list', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'list'])->name('list');
                 Route::get('/create', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'create'])->name('create');
                 Route::post('/', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'store'])->name('store');
@@ -104,7 +105,6 @@ Route::middleware('auth')->group(function () {
                 Route::put('/{id}', [SucursalController::class, 'update'])->name('update');
                 Route::delete('/{id}', [SucursalController::class, 'destroy'])->name('destroy');
             });
-
         });
 
         // Seguridad (Roles y Usuarios)
@@ -138,7 +138,6 @@ Route::middleware('auth')->group(function () {
                 Route::post('/{id}/assign-role', [UsuarioController::class, 'assignRole'])->name('assignRole');
                 Route::put('/{id}', [UsuarioController::class, 'update'])->name('update');
             });
-
         });
 
         // Recursos Humanos (Asistencias)

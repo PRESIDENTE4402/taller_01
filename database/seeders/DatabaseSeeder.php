@@ -17,6 +17,9 @@ class DatabaseSeeder extends Seeder
         $this->call([
             SistemaSeeder::class,
             PermissionsSeeder::class,
+            RepuestosSeeder::class,
+            StaffSeeder::class,
+            // DailyActivitySeeder::class, // Run manually: php artisan db:seed --class=DailyActivitySeeder
         ]);
     }
 }
