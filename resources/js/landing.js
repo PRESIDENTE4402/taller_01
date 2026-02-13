@@ -7,13 +7,13 @@ document.addEventListener('DOMContentLoaded', () => {
     initScrollAnimations();
     initNavbarTransition();
     initVideoPlayer();
-    initVehicleSelectors();
+    if (window.initVehicleSelectors) window.initVehicleSelectors();
 });
 
 const API_CONFIG = {
-    GET_BRANDS: '/panel/operaciones/citas/api/get-brands',
-    GET_MODELS: '/panel/mantenimientos/modelos/by-marca',
-    GET_VERSIONS: '/panel/mantenimientos/versiones/by-modelo'
+    GET_BRANDS: '/api/landing/brands',
+    GET_MODELS: '/api/landing/models',
+    GET_VERSIONS: '/api/landing/versions'
 };
 
 // ===== AUTH MODAL LOGIC =====
@@ -223,6 +223,22 @@ function initAuth() {
         const modeloSelect = document.getElementById('vehiculoModeloSelect');
         const versionSelect = document.getElementById('vehiculoVersionSelect');
 
+        function toggleManualMode(type, isManual) {
+            const input = document.getElementById(`vehiculo${type}`);
+            const select = document.getElementById(`vehiculo${type}Select`);
+            if (!input || !select) return;
+
+            if (isManual) {
+                select.classList.add('hidden');
+                input.classList.remove('hidden');
+                input.value = '';
+                // If it's the target of the manual switch, maybe focus?
+            } else {
+                select.classList.remove('hidden');
+                input.classList.add('hidden');
+            }
+        }
+
         if (marcaSelect) {
             marcaSelect.addEventListener('change', (e) => {
                 const input = document.getElementById('vehiculoMarca');
@@ -231,13 +247,18 @@ function initAuth() {
                     input.classList.remove('hidden');
                     input.value = '';
                     input.focus();
-                    resetSelect(modeloSelect, 'Escriba Modelo...');
-                    resetSelect(versionSelect, 'Escriba Versión...');
+                    // Cascade: Model and Version become manual
+                    toggleManualMode('Modelo', true);
+                    toggleManualMode('Version', true);
                 } else {
                     input.classList.add('hidden');
                     input.value = e.target.options[e.target.selectedIndex].text;
-                    if (val) loadModels(val);
-                    else resetSelect(modeloSelect, 'Seleccione Marca...');
+                    // Reset Cascade
+                    toggleManualMode('Modelo', false);
+                    toggleManualMode('Version', false);
+                    loadModels(val);
+                    resetSelect(modeloSelect, 'Cargando...');
+                    resetSelect(versionSelect, 'Seleccione Modelo...');
                 }
             });
         }
@@ -250,12 +271,14 @@ function initAuth() {
                     input.classList.remove('hidden');
                     input.value = '';
                     input.focus();
-                    resetSelect(versionSelect, 'Escriba Versión...');
+                    // Cascade: Version becomes manual
+                    toggleManualMode('Version', true);
                 } else {
                     input.classList.add('hidden');
                     input.value = e.target.options[e.target.selectedIndex].text;
-                    if (val) loadVersions(val);
-                    else resetSelect(versionSelect, 'Seleccione Modelo...');
+                    toggleManualMode('Version', false);
+                    loadVersions(val);
+                    resetSelect(versionSelect, 'Cargando...');
                 }
             });
         }
@@ -327,6 +350,7 @@ function initAuth() {
         select.innerHTML = `<option value="">${text}</option>`;
         select.disabled = true;
     }
+    window.initVehicleSelectors = initVehicleSelectors;
 }
 
 // ===== CAROUSEL LOGIC =====

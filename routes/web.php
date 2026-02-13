@@ -55,8 +55,11 @@ Route::middleware('auth')->group(function () {
                 Route::get('/api/search-clients', [App\Http\Controllers\Panel\CitaController::class, 'searchClients'])->name('searchClients');
                 Route::get('/api/get-client-vehicles/{clienteId}', [App\Http\Controllers\Panel\CitaController::class, 'getClientVehicles'])->name('getClientVehicles');
                 Route::get('/api/get-brands', [App\Http\Controllers\Panel\CitaController::class, 'getBrands'])->name('getBrands');
-             });
-             // Órdenes de Trabajo
+
+                Route::get('/api/calendar-counts', [App\Http\Controllers\Panel\CitaController::class, 'getCalendarCounts'])->name('getCalendarCounts'); // New
+            });
+
+
             Route::prefix('ordenes-trabajo')->name('ordenes_trabajo.')->group(function () {
                 Route::get('/', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'index'])->name('index');
                 Route::get('/list', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'list'])->name('list');
@@ -109,7 +112,7 @@ Route::middleware('auth')->group(function () {
         Route::prefix('seguridad')->name('seguridad.')->group(function () {
 
             // Roles
-            Route::middleware('can_do:gestionar_roles')->prefix('roles')->name('roles.')->group(function () {
+            Route::prefix('roles')->name('roles.')->group(function () {
                 Route::get('/', [RoleController::class, 'index'])->name('index');
                 Route::get('/list', [RoleController::class, 'list'])->name('list');
                 Route::post('/', [RoleController::class, 'store'])->name('store');
@@ -118,7 +121,7 @@ Route::middleware('auth')->group(function () {
             });
 
             // Permisos
-            Route::middleware('can_do:gestionar_permisos')->prefix('permisos')->name('permisos.')->group(function () {
+            Route::prefix('permisos')->name('permisos.')->group(function () {
                 Route::get('/', [\App\Http\Controllers\Panel\PermissionController::class, 'index'])->name('index');
                 Route::get('/list', [\App\Http\Controllers\Panel\PermissionController::class, 'list'])->name('list');
                 Route::post('/', [\App\Http\Controllers\Panel\PermissionController::class, 'store'])->name('store');
@@ -127,7 +130,7 @@ Route::middleware('auth')->group(function () {
             });
 
             // Usuarios (Asignación Roles)
-            Route::middleware('can_do:gestionar_usuarios')->prefix('usuarios')->name('usuarios.')->group(function () {
+            Route::prefix('usuarios')->name('usuarios.')->group(function () {
                 Route::get('/', [UsuarioController::class, 'index'])->name('index');
                 Route::get('/list', [UsuarioController::class, 'list'])->name('list');
                 Route::get('/sucursales-list', [UsuarioController::class, 'listSucursales'])->name('listSucursales');

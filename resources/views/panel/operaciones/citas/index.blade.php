@@ -8,21 +8,37 @@
     
     <!-- Sidebar de Filtros y Resumen -->
     <div class="lg:col-span-1 flex flex-col gap-6">
-        <!-- Tarjeta Hoy -->
-        <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-blue-600">
-            <h3 class="text-gray-500 text-sm font-bold uppercase tracking-wider mb-1">Citas para Hoy</h3>
-            <div class="flex items-end gap-2">
-                <span class="text-4xl font-black text-gray-800" id="countToday">0</span>
-                <span class="text-sm text-gray-400 mb-2 font-medium">pendientes</span>
-            </div>
-        </div>
 
         <!-- Filtros Rapidos -->
         <div class="bg-white rounded-xl shadow-sm p-4">
-            <h4 class="font-bold text-gray-700 mb-4">Filtrar Estado</h4>
+            <h4 class="font-bold text-gray-700 mb-4 flex justify-between items-center">
+                <span>Rango de Fechas</span>
+                <button onclick="clearDateFilters()" class="text-xs text-red-400 hover:text-red-600 font-medium" title="Limpiar"><i class="fas fa-times"></i> Limpiar</button>
+            </h4>
+            <div class="grid grid-cols-2 gap-2 mb-4">
+                 <div>
+                    <label class="text-[10px] uppercase font-bold text-gray-400 mb-1 block">Desde</label>
+                    <input type="date" id="dateStart" class="w-full text-xs border border-gray-200 rounded-lg py-1.5 px-2 text-gray-600 font-medium focus:ring-1 focus:ring-blue-500 outline-none" onchange="loadCitas()">
+                 </div>
+                 <div>
+                    <label class="text-[10px] uppercase font-bold text-gray-400 mb-1 block">Hasta</label>
+                    <input type="date" id="dateEnd" class="w-full text-xs border border-gray-200 rounded-lg py-1.5 px-2 text-gray-600 font-medium focus:ring-1 focus:ring-blue-500 outline-none" onchange="loadCitas()">
+                 </div>
+            </div>
+            
+            <div class="flex gap-2 mb-6">
+                <button onclick="setDateFilter('today')" class="flex-1 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-xs font-bold text-gray-600 transition-colors">
+                    Hoy
+                </button>
+                <button onclick="setDateFilter('tomorrow')" class="flex-1 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-xs font-bold text-blue-600 transition-colors border border-blue-100">
+                    <i class="fas fa-bell mr-1"></i> Mañana
+                </button>
+            </div>
+
+            <h4 class="font-bold text-gray-700 mb-4 border-t border-gray-100 pt-4">Filtrar Estado</h4>
             <div class="space-y-2">
                 <button onclick="filterCitas('pendiente')" class="w-full text-left px-4 py-2 rounded-lg hover:bg-gray-50 text-sm font-medium text-gray-600 flex justify-between items-center group transition-colors filter-btn" data-status="pendiente">
-                    <span><i class="fas fa-circle text-xs text-yellow-400 mr-2"></i>Pendientes (Web)</span>
+                    <span><i class="fas fa-circle text-xs text-yellow-400 mr-2"></i>Pendientes de Confirmar (Web)</span>
                     <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs group-hover:bg-yellow-100 group-hover:text-yellow-700 transition-colors" id="badge-pendiente">-</span>
                 </button>
                 <button onclick="filterCitas('confirmada')" class="w-full text-left px-4 py-2 rounded-lg hover:bg-gray-50 text-sm font-medium text-gray-600 flex justify-between items-center group transition-colors filter-btn" data-status="confirmada">
@@ -33,6 +49,10 @@
                     <span><i class="fas fa-circle text-xs text-green-500 mr-2"></i>Concretadas</span>
                     <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs group-hover:bg-green-100 group-hover:text-green-700 transition-colors" id="badge-concretada">-</span>
                 </button>
+                <button onclick="filterCitas('no_asistio')" class="w-full text-left px-4 py-2 rounded-lg hover:bg-gray-50 text-sm font-medium text-gray-600 flex justify-between items-center group transition-colors filter-btn" data-status="no_asistio">
+                    <span><i class="fas fa-circle text-xs text-red-500 mr-2"></i>No Asistió</span>
+                    <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs group-hover:bg-red-100 group-hover:text-red-700 transition-colors" id="badge-no_asistio">-</span>
+                </button>
                 <button onclick="filterCitas('all')" class="w-full text-left px-4 py-2 rounded-lg bg-blue-50 text-blue-700 text-sm font-bold flex justify-between items-center ring-1 ring-blue-200 mt-4 filter-btn active" data-status="all">
                     <span>Ver Todas</span>
                 </button>
@@ -42,18 +62,48 @@
         <button onclick="openManualCitaModal()" class="btn btn-primary w-full gap-2 shadow-lg shadow-blue-500/30">
             <i class="fas fa-plus"></i> Nueva Cita Manual
         </button>
+
+        <!-- Mini Calendario -->
+        <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+            <h4 class="font-bold text-gray-700 mb-3 text-sm flex justify-between items-center">
+                <span id="miniCalendarTitle">Febrero 2026</span>
+                <div class="flex gap-1">
+                    <button onclick="prevMonth()" class="text-gray-400 hover:text-blue-600"><i class="fas fa-chevron-left"></i></button>
+                    <button onclick="nextMonth()" class="text-gray-400 hover:text-blue-600"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </h4>
+            <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-gray-400 mb-2">
+                <div>DO</div><div>LU</div><div>MA</div><div>MI</div><div>JU</div><div>VI</div><div>SA</div>
+            </div>
+            <div class="grid grid-cols-7 gap-1 text-center" id="miniCalendarGrid">
+                <!-- Days injected via JS -->
+            </div>
+            <div class="mt-3 flex items-center justify-center gap-4 text-[10px] text-gray-500">
+                <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-500"></span> Con Citas</div>
+                <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-100"></span> Sin Citas</div>
+            </div>
+        </div>
     </div>
 
     <!-- Lista de Citas (Agenda) -->
     <div class="lg:col-span-3 bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col h-[calc(100vh-140px)]">
         <!-- Header Tabla -->
-        <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 rounded-t-xl">
-            <h2 class="font-bold text-gray-800 text-lg flex items-center gap-2">
-                <i class="fas fa-calendar-alt text-blue-500"></i>
-                <span id="agendaTitle">Agenda General</span>
-            </h2>
-            <div class="flex gap-2">
-                 <input type="date" id="dateFilter" class="input input-sm border-gray-300 rounded-lg focus:ring-blue-500" onchange="loadCitas()">
+        <div class="p-5 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center bg-gray-50/50 rounded-t-xl gap-4">
+            <div class="flex items-center gap-4">
+                <h2 class="font-bold text-gray-800 text-lg flex items-center gap-2">
+                    <i class="fas fa-calendar-alt text-blue-500"></i>
+                    <span id="agendaTitle">Agenda General</span>
+                </h2>
+            </div>
+            
+            <!-- Resumen Hoy (Movido aquí) -->
+            <div class="flex items-center gap-3 bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200">
+                <div class="text-right">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Hoy</p>
+                    <p class="text-xs text-gray-500 font-medium">Pendientes de recibir</p>
+                </div>
+                <div class="h-8 w-px bg-gray-200"></div>
+                <span class="text-3xl font-black text-blue-600 leading-none" id="countToday">-</span>
             </div>
         </div>
 
@@ -69,21 +119,27 @@
 </div>
 
 <!-- Modal Detalle Cita -->
-<div id="citaModal" class="fixed inset-0 bg-black/50 z-50 hidden backdrop-blur-sm transition-opacity opacity-0 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg transform scale-95 transition-transform duration-300" id="citaModalContent">
-        <div class="p-6">
-            <div class="flex justify-between items-start mb-6">
-                <div>
-                     <span class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide mb-2" id="modalStatusBadge">PENDIENTE</span>
-                     <h3 class="text-2xl font-black text-gray-800 leading-none" id="modalClienteName">Cliente</h3>
-                     <p class="text-gray-500 text-sm mt-1" id="modalVehiculoInfo">Vehículo</p>
+<div id="citaModal" class="fixed inset-0 bg-black/60 z-50 hidden backdrop-blur-sm transition-opacity opacity-0 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md transform scale-95 transition-transform duration-300 overflow-hidden relative" id="citaModalContent">
+        
+        <!-- Header Decorativo -->
+        <div class="h-24 bg-gradient-to-br from-gray-900 to-gray-800 relative">
+            <button onclick="closeCitaModal()" class="absolute top-4 right-4 text-white/70 hover:text-white transition-colors">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+
+        <div class="px-6 pb-6 -mt-12 relative z-10">
+            <!-- Tarjeta Principal -->
+            <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-5 text-center mb-6">
+                <div class="flex justify-center -mt-8 mb-3">
+                    <span id="modalStatusBadge" class="shadow-md">PENDIENTE</span>
                 </div>
-                <button onclick="closeCitaModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
-                    <i class="fas fa-times text-xl"></i>
-                </button>
+                <h3 class="text-xl font-black text-gray-800 leading-tight mb-1" id="modalClienteName">Cliente</h3>
+                <p class="text-sm font-medium text-gray-500 bg-gray-50 inline-block px-3 py-1 rounded-full border border-gray-100" id="modalVehiculoInfo">Vehículo</p>
             </div>
 
-            <div class="space-y-4 mb-8">
+            <div class="space-y-3 mb-6">
                 <div class="flex items-center gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
                     <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 flex-shrink-0">
                         <i class="far fa-clock"></i>
@@ -104,14 +160,34 @@
                     </div>
                 </div>
                 
-                 <div class="flex items-center gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                <div class="flex items-center gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
                     <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 flex-shrink-0">
+                        <i class="fas fa-envelope"></i> <!-- Changed icon to represent contact general or keep phone -->
+                        <!-- Actually keep phone icon or use address-card -->
+                        <i class="fas fa-address-card absolute opacity-0"></i> <!-- Hack -->
                         <i class="fas fa-phone"></i>
                     </div>
-                    <div>
+                    <div class="flex-1 min-w-0"> <!-- Added flex layout -->
                         <p class="text-xs text-gray-500 font-bold uppercase">Contacto</p>
-                        <a href="#" id="modalPhoneLink" class="font-semibold text-blue-600 hover:underline">--</a>
+                        <a href="#" id="modalPhoneLink" class="font-semibold text-blue-600 hover:underline block leading-tight truncate">--</a>
+                        <a href="#" id="modalEmailLink" class="text-xs text-gray-400 block mt-0.5 hover:text-blue-500 truncate" title="Enviar Correo">--</a>
                     </div>
+                </div>
+
+                <!-- Communication Actions -->
+                <div class="grid grid-cols-3 gap-3">
+                    <a href="#" id="btnWhatsApp" target="_blank" class="flex flex-col items-center justify-center p-3 rounded-xl bg-green-50 text-green-600 hover:bg-green-100 hover:text-green-700 transition-colors border border-green-100 group">
+                        <i class="fab fa-whatsapp text-2xl mb-1 group-hover:scale-110 transition-transform"></i>
+                        <span class="text-[10px] font-bold uppercase">WhatsApp</span>
+                    </a>
+                    <button type="button" id="btnReminder" class="flex flex-col items-center justify-center p-3 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 transition-colors border border-blue-100 group w-full">
+                        <i class="fas fa-bell text-2xl mb-1 group-hover:scale-110 transition-transform"></i>
+                        <span class="text-[10px] font-bold uppercase">Recordatorio</span>
+                    </button>
+                     <a href="#" id="btnCall" class="flex flex-col items-center justify-center p-3 rounded-xl bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-800 transition-colors border border-gray-100 group">
+                        <i class="fas fa-phone-alt text-2xl mb-1 group-hover:scale-110 transition-transform"></i>
+                        <span class="text-[10px] font-bold uppercase">Llamar</span>
+                    </a>
                 </div>
             </div>
 
@@ -201,7 +277,12 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <!-- Vehículo -->
                 <div class="col-span-1 md:col-span-2 space-y-3">
-                    <label class="block text-xs font-bold text-gray-500 uppercase">Vehículo</label>
+                    <div class="flex justify-between items-center">
+                        <label class="block text-xs font-bold text-gray-500 uppercase">Vehículo</label>
+                        <button type="button" id="btnToggleNewVehicle" onclick="toggleNewVehicleMode()" class="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors hidden">
+                            <i class="fas fa-plus"></i> Nuevo Vehículo
+                        </button>
+                    </div>
                     
                     <!-- Vehículo SELECT (Modo Buscar) -->
                     <div id="vehiculoSelectContainer">
@@ -293,6 +374,7 @@
         API_GET_BRANDS: "{{ route('panel.operaciones.citas.getBrands') }}",
         API_GET_MODELS: "/panel/mantenimientos/modelos/by-marca",
         API_GET_VERSIONS: "/panel/mantenimientos/versiones/by-modelo",
+        API_CALENDAR_COUNTS: "{{ route('panel.operaciones.citas.getCalendarCounts') }}",
         CSRF_TOKEN: "{{ csrf_token() }}"
     };
 </script>

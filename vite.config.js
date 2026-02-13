@@ -11,7 +11,6 @@ export default defineConfig({
                 'resources/js/auth/login.js',
                 'resources/js/panel/marcas.js',
                 'resources/js/panel/versiones.js',
-                'resources/js/panel/versiones.js',
                 'resources/js/panel/sucursales.js',
                 'resources/js/panel/roles.js',
                 'resources/js/panel/usuarios.js',
@@ -25,9 +24,7 @@ export default defineConfig({
         watch: {
             ignored: ['**/storage/framework/views/**'],
         },
-        host: 'localhost',
-        hmr: {
-            host: 'localhost', 
-        },
+
+
     },
 });

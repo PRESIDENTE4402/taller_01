@@ -11,6 +11,7 @@ use App\Models\MarcaVehiculo;
 use App\Models\ModeloVehiculo;
 use App\Models\VersionVehiculo;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class CitaController extends Controller
 {
@@ -122,5 +123,23 @@ class CitaController extends Controller
                 'message' => 'Error al procesar la cita: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    public function getBrands()
+    {
+        $marcas = MarcaVehiculo::orderBy('nombre', 'asc')->get(['id', 'nombre']);
+        return response()->json($marcas);
+    }
+    
+    public function getModels($marcaId)
+    {
+        $modelos = ModeloVehiculo::where('marca_id', $marcaId)->orderBy('nombre', 'asc')->get(['id', 'nombre']);
+        return response()->json($modelos);
+    }
+
+    public function getVersions($modeloId)
+    {
+        $versiones = VersionVehiculo::where('modelo_id', $modeloId)->orderBy('nombre', 'asc')->get(['id', 'nombre']);
+        return response()->json($versiones);
     }
 }
