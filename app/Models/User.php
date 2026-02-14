@@ -21,6 +21,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'phone',
+        'sucursal_por_defecto_id',
     ];
 
     /**
@@ -73,6 +75,14 @@ class User extends Authenticatable
     public function sucursales()
     {
         return $this->belongsToMany(Sucursal::class, 'sucursal_usuario');
+    }
+
+    /**
+     * Relación: Sucursal por defecto del usuario
+     */
+    public function sucursalPorDefecto()
+    {
+        return $this->belongsTo(Sucursal::class, 'sucursal_por_defecto_id');
     }
 
     /**

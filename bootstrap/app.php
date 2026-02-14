@@ -13,6 +13,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'can_do' => \App\Http\Middleware\CheckPermission::class,
+            'verify_sucursal' => \App\Http\Middleware\VerifySucursalAccess::class,
+            'set_current_sucursal' => \App\Http\Middleware\SetCurrentSucursal::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

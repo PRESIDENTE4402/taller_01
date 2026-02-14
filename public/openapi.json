@@ -1,0 +1,370 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API SaaS Multitenant - Inventario",
+    "description": "Sistema de gestión de inventario con atributos dinámicos, multitenant y reportes",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Tu Empresa",
+      "url": "https://tuempresa.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.tuempresa.com/api",
+      "description": "Servidor de producción"
+    },
+    {
+      "url": "http://localhost:8000/api",
+      "description": "Servidor de desarrollo"
+    }
+  ],
+  "paths": {
+    "/panel/mantenimientos/categorias/list": {
+      "get": {
+        "summary": "Listar categorías de la sucursal actual",
+        "tags": ["Categorías"],
+        "parameters": [
+          {
+            "name": "sucursal_id",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de categorías",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Categoria"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/mantenimientos/repuestos/list": {
+      "get": {
+        "summary": "Listar repuestos de la sucursal actual",
+        "tags": ["Repuestos"],
+        "responses": {
+          "200": {
+            "description": "Lista de repuestos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Repuesto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/mantenimientos/repuestos": {
+      "post": {
+        "summary": "Crear nuevo repuesto con atributos dinámicos",
+        "tags": ["Repuestos"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RepuestoCrear"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Repuesto creado exitosamente"
+          },
+          "422": {
+            "description": "Error de validación"
+          }
+        }
+      }
+    },
+    "/panel/mantenimientos/atributos-dinamicos/categoria/{categoriaId}": {
+      "get": {
+        "summary": "Obtener atributos dinámicos de una categoría",
+        "tags": ["Atributos Dinámicos"],
+        "parameters": [
+          {
+            "name": "categoriaId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de atributos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/DynamicAttribute"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/mantenimientos/atributos-dinamicos": {
+      "post": {
+        "summary": "Crear nuevo atributo dinámico",
+        "tags": ["Atributos Dinámicos"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DynamicAttributeCrear"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Atributo creado exitosamente"
+          },
+          "422": {
+            "description": "Error de validación"
+          }
+        }
+      },
+      "put": {
+        "summary": "Actualizar atributo dinámico",
+        "tags": ["Atributos Dinámicos"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DynamicAttributeCrear"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Atributo actualizado"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Eliminar atributo dinámico",
+        "tags": ["Atributos Dinámicos"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Atributo eliminado"
+          }
+        }
+      }
+    },
+    "/panel/reportes/list": {
+      "get": {
+        "summary": "Listar reportes de la sucursal actual",
+        "tags": ["Reportes"],
+        "responses": {
+          "200": {
+            "description": "Lista de reportes paginada"
+          }
+        }
+      }
+    },
+    "/panel/reportes/inventario-general": {
+      "post": {
+        "summary": "Generar reporte de inventario general",
+        "tags": ["Reportes"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "categoria_id": {
+                    "type": "integer",
+                    "description": "ID de categoría (opcional)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reporte generado"
+          }
+        }
+      }
+    },
+    "/panel/reportes/bajo-stock": {
+      "post": {
+        "summary": "Generar reporte de productos con bajo stock",
+        "tags": ["Reportes"],
+        "responses": {
+          "200": {
+            "description": "Reporte generado"
+          }
+        }
+      }
+    },
+    "/panel/reportes/por-categoria": {
+      "post": {
+        "summary": "Generar reporte por categoría",
+        "tags": ["Reportes"],
+        "responses": {
+          "200": {
+            "description": "Reporte generado"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Categoria": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "sucursal_id": { "type": "integer" },
+          "nombre": { "type": "string" },
+          "parent_id": { "type": "integer", "nullable": true },
+          "descripcion": { "type": "string", "nullable": true }
+        }
+      },
+      "Repuesto": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "sucursal_id": { "type": "integer" },
+          "categoria_id": { "type": "integer" },
+          "codigo_interno": { "type": "string" },
+          "nombre": { "type": "string" },
+          "marca_repuesto": { "type": "string" },
+          "precio_costo": { "type": "number", "format": "decimal" },
+          "precio_venta": { "type": "number", "format": "decimal" },
+          "stock_actual": { "type": "integer" },
+          "stock_minimo": { "type": "integer" },
+          "atributos": { "type": "object" }
+        }
+      },
+      "RepuestoCrear": {
+        "type": "object",
+        "required": ["sucursal_id", "nombre", "codigo_interno", "precio_costo", "precio_venta", "stock_actual"],
+        "properties": {
+          "sucursal_id": { "type": "integer" },
+          "categoria_id": { "type": "integer" },
+          "codigo_interno": { "type": "string" },
+          "nombre": { "type": "string" },
+          "marca_repuesto": { "type": "string" },
+          "precio_costo": { "type": "number" },
+          "precio_venta": { "type": "number" },
+          "stock_actual": { "type": "integer" },
+          "stock_minimo": { "type": "integer" },
+          "atributos": {
+            "type": "object",
+            "description": "JSON con valores de atributos dinámicos"
+          }
+        }
+      },
+      "DynamicAttribute": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "categoria_id": { "type": "integer" },
+          "attribute_name": { "type": "string" },
+          "data_type": { "type": "string", "enum": ["text", "number", "date", "select", "boolean"] },
+          "is_required": { "type": "boolean" },
+          "is_active": { "type": "boolean" },
+          "options": { "type": "array" },
+          "min_length": { "type": "integer" },
+          "max_length": { "type": "integer" },
+          "min_value": { "type": "number" },
+          "max_value": { "type": "number" },
+          "regex_pattern": { "type": "string" },
+          "help_text": { "type": "string" },
+          "display_order": { "type": "integer" }
+        }
+      },
+      "DynamicAttributeCrear": {
+        "type": "object",
+        "required": ["categoria_id", "attribute_name", "data_type"],
+        "properties": {
+          "categoria_id": { "type": "integer" },
+          "attribute_name": { "type": "string" },
+          "data_type": { "type": "string", "enum": ["text", "number", "date", "select", "boolean"] },
+          "is_required": { "type": "boolean", "default": false },
+          "is_active": { "type": "boolean", "default": true },
+          "options": { "type": "array", "description": "Para tipo 'select'" },
+          "min_length": { "type": "integer" },
+          "max_length": { "type": "integer" },
+          "min_value": { "type": "number" },
+          "max_value": { "type": "number" },
+          "regex_pattern": { "type": "string" },
+          "help_text": { "type": "string" },
+          "display_order": { "type": "integer" },
+          "translations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "locale": { "type": "string", "enum": ["es", "en", "fr", "pt"] },
+                "label": { "type": "string" },
+                "description": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "JWT Token"
+      }
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ]
+}

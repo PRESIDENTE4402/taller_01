@@ -35,7 +35,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     // Rutas del PANEL (Aplicación Interna)
-    Route::prefix('panel')->name('panel.')->group(function () {
+    Route::prefix('panel')->name('panel.')->middleware(['verify_sucursal', 'set_current_sucursal'])->group(function () {
         Route::get('/', function () {
             return view('dashboard');
         })->name('dashboard');
@@ -59,9 +59,10 @@ Route::middleware('auth')->group(function () {
                 Route::get('/api/calendar-counts', [App\Http\Controllers\Panel\CitaController::class, 'getCalendarCounts'])->name('getCalendarCounts'); // New
             });
 
-            // Órdenes de Trabajo (New)
 
             // Órdenes de Trabajo (New)
+
+
             Route::prefix('ordenes-trabajo')->name('ordenes_trabajo.')->group(function () {
                 Route::get('/', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'index'])->name('index');
                 Route::get('/dashboard', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'dashboard'])->name('dashboard'); // New Dashboard
@@ -108,6 +109,48 @@ Route::middleware('auth')->group(function () {
                 Route::post('/', [SucursalController::class, 'store'])->name('store');
                 Route::put('/{id}', [SucursalController::class, 'update'])->name('update');
                 Route::delete('/{id}', [SucursalController::class, 'destroy'])->name('destroy');
+            });
+
+
+            // Categorias (SaaS)
+            Route::prefix('categorias')->name('categorias.')->group(function () {
+                Route::get('/', [\App\Http\Controllers\Panel\CategoriaController::class, 'index'])->name('index');
+                Route::get('/list', [\App\Http\Controllers\Panel\CategoriaController::class, 'list'])->name('list');
+                Route::post('/', [\App\Http\Controllers\Panel\CategoriaController::class, 'store'])->name('store');
+                Route::put('/{id}', [\App\Http\Controllers\Panel\CategoriaController::class, 'update'])->name('update');
+                Route::delete('/{id}', [\App\Http\Controllers\Panel\CategoriaController::class, 'destroy'])->name('destroy');
+            });
+
+            // Atributos Dinámicos (Configuración por Categoría)
+            Route::prefix('atributos-dinamicos')->name('atributos_dinamicos.')->group(function () {
+                Route::get('/categoria/{categoriaId}', [\App\Http\Controllers\Panel\DynamicAttributeSchemaController::class, 'listByCategoria'])->name('listByCategoria');
+                Route::post('/', [\App\Http\Controllers\Panel\DynamicAttributeSchemaController::class, 'store'])->name('store');
+                Route::put('/{id}', [\App\Http\Controllers\Panel\DynamicAttributeSchemaController::class, 'update'])->name('update');
+                Route::delete('/{id}', [\App\Http\Controllers\Panel\DynamicAttributeSchemaController::class, 'destroy'])->name('destroy');
+                Route::post('/reorder', [\App\Http\Controllers\Panel\DynamicAttributeSchemaController::class, 'reorder'])->name('reorder');
+            });
+
+            // Reportes (Análisis y Auditoría)
+            Route::prefix('reportes')->name('reportes.')->group(function () {
+                Route::get('/inventario-por-sucursal', [\App\Http\Controllers\Panel\ReporteController::class, 'inventarioPorSucursal'])->name('inventario-por-sucursal');
+                Route::get('/stock-bajo', [\App\Http\Controllers\Panel\ReporteController::class, 'stockBajo'])->name('stock-bajo');
+                Route::get('/comparativa-precios', [\App\Http\Controllers\Panel\ReporteController::class, 'comparativaPreciosS'])->name('comparativa-precios');
+                Route::get('/audit-atributos', [\App\Http\Controllers\Panel\ReporteController::class, 'auditAtributosdinamicos'])->name('audit-atributos');
+                Route::get('/inventario-pdf', [\App\Http\Controllers\Panel\ReporteController::class, 'exportInventarioPDF'])->name('inventario-pdf');
+            });
+
+            // Configuración de Atributos Dinámicos (Interfaz de Usuario)
+            Route::get('/configurar-atributos', function () {
+                return view('panel.mantenimientos.atributos_dinamicos.index');
+            })->name('configurar-atributos');
+
+            // Repuestos (SaaS)
+            Route::prefix('repuestos')->name('repuestos.')->group(function () {
+                Route::get('/', [\App\Http\Controllers\Panel\RepuestoController::class, 'index'])->name('index');
+                Route::get('/list', [\App\Http\Controllers\Panel\RepuestoController::class, 'list'])->name('list');
+                Route::post('/', [\App\Http\Controllers\Panel\RepuestoController::class, 'store'])->name('store');
+                Route::put('/{id}', [\App\Http\Controllers\Panel\RepuestoController::class, 'update'])->name('update');
+                Route::delete('/{id}', [\App\Http\Controllers\Panel\RepuestoController::class, 'destroy'])->name('destroy');
             });
         });
 
@@ -166,3 +209,6 @@ Route::middleware('auth')->group(function () {
         });
     });
 });
+
+// Test Routes
+require base_path('routes/test.php');

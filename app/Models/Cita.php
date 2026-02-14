@@ -4,23 +4,29 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\BelongsToSucursal;
 
 class Cita extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToSucursal;
 
     protected $table = 'citas';
 
     protected $fillable = [
+        'sucursal_id',
         'cliente_id',
         'vehiculo_id',
-        'sucursal_id',
         'fecha_programada',
         'fecha_realizacion',
         'motivo_cita',
         'origen',
         'estado',
         'notas_secretario'
+    ];
+
+    protected $casts = [
+        'fecha_programada' => 'datetime',
+        'fecha_realizacion' => 'datetime',
     ];
 
     public function cliente()
@@ -31,11 +37,6 @@ class Cita extends Model
     public function vehiculo()
     {
         return $this->belongsTo(Vehiculo::class);
-    }
-
-    public function sucursal()
-    {
-        return $this->belongsTo(Sucursal::class);
     }
 
     public function ordenTrabajo()
