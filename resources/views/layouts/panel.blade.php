@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="user-sucursal-id" content="{{ Auth::user()->sucursales->first()?->id }}">
     <title>{{ config('app.name', 'TallerPro') }} - Gestión</title>
 
     {{-- Tipografía Oficial Inter --}}
@@ -133,10 +134,16 @@
                 @can('gestionar_inventario')
                     <div class="px-3 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Logística</div>
 
-                    <a href="#"
-                        class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md sidebar-item text-slate-400 transition-colors">
+                    <a href="{{ route('panel.mantenimientos.categorias.index') }}"
+                        class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.mantenimientos.categorias.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                        <i class="fas fa-tags w-5 text-center"></i>
+                        Categorías
+                    </a>
+
+                    <a href="{{ route('panel.mantenimientos.repuestos.index') }}"
+                        class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.mantenimientos.repuestos.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
                         <i class="fas fa-boxes w-5 text-center"></i>
-                        Inventario Repuestos
+                        Repuestos (SaaS)
                     </a>
                 @endcan
 
