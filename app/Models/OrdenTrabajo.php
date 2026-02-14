@@ -27,6 +27,7 @@ class OrdenTrabajo extends Model
         'nivel_combustible',
         'inventario_recepcion',
         'danos_reportados',
+        'danos_imagen_url',
         'falla_cliente',
         'diagnostico',
         'diagnostico_final',
@@ -42,6 +43,11 @@ class OrdenTrabajo extends Model
         'inventario_recepcion' => 'array',
         'danos_reportados' => 'array',
     ];
+
+    public function archivos()
+    {
+        return $this->hasMany(OrdenTrabajoArchivo::class);
+    }
 
     public function sucursal()
     {

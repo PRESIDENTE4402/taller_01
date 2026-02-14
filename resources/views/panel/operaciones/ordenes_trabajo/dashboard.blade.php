@@ -8,9 +8,44 @@
 
     <!-- Column 1: Today's Appointments -->
     <div class="lg:col-span-2 space-y-4">
+        <!-- Search & Filter Form -->
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <form action="{{ route('panel.operaciones.ordenes_trabajo.dashboard') }}" method="GET" class="flex flex-col sm:flex-row gap-4 items-end">
+                <div class="w-full sm:w-auto">
+                    <label class="block text-xs font-bold text-gray-500 mb-1">Fecha</label>
+                    <input type="date" name="fecha" value="{{ request('fecha', now()->format('Y-m-d')) }}" class="input input-sm input-bordered w-full">
+                </div>
+                <div class="flex-1 w-full">
+                    <label class="block text-xs font-bold text-gray-500 mb-1">Buscar (Cliente, Placa, Vehículo)</label>
+                    <div class="relative">
+                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Ej: Juan Perez, P-123ABC..." class="input input-sm input-bordered w-full pl-9">
+                    </div>
+                </div>
+                <div class="w-full sm:w-auto">
+                    <button type="submit" class="btn btn-sm btn-primary w-full">
+                        <i class="fas fa-filter"></i> Filtrar
+                    </button>
+                </div>
+                @if(request('search') || request('fecha') != now()->format('Y-m-d'))
+                <div class="w-full sm:w-auto">
+                    <a href="{{ route('panel.operaciones.ordenes_trabajo.dashboard') }}" class="btn btn-sm btn-ghost w-full text-gray-500" title="Limpiar Filtros">
+                        <i class="fas fa-times"></i>
+                    </a>
+                </div>
+                @endif
+            </form>
+        </div>
+
         <div class="flex items-center justify-between">
-            <h2 class="font-bold text-gray-800 text-lg">Citas Programadas para Hoy</h2>
-            <span class="badge badge-primary">{{ $citasHoy->count() }} Pendientes</span>
+            <h2 class="font-bold text-gray-800 text-lg">
+                @if(request('fecha') == now()->format('Y-m-d'))
+                Citas para Hoy
+                @else
+                Citas del {{ \Carbon\Carbon::parse(request('fecha'))->format('d/m/Y') }}
+                @endif
+            </h2>
+            <span class="badge badge-primary">{{ $citasHoy->count() }} Resultados</span>
         </div>
 
         @if($citasHoy->isEmpty())

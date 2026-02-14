@@ -22,8 +22,8 @@ class CitaFactory extends Factory
             'sucursal_id' => 1,
             'fecha_programada' => $this->faker->dateTimeBetween('now', '+1 month'),
             'motivo_cita' => $this->faker->sentence(3),
-            'origen' => $this->faker->randomElement(['web', 'llamada', 'presencial']),
-            'estado' => $this->faker->randomElement(['pendiente', 'confirmada', 'cancelada', 'atendida']),
+            'origen' => $this->faker->randomElement(['web', 'telefono', 'presencial']), // 'llamada' -> 'telefono'
+            'estado' => $this->faker->randomElement(['pendiente', 'confirmada', 'cancelada', 'concretada']), // 'atendida' -> 'concretada'
             'notas_secretario' => $this->faker->optional()->sentence(),
             'created_at' => now(),
             'updated_at' => now(),

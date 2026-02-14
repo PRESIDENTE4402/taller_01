@@ -4,7 +4,7 @@
 @section('subtitle', 'Recepción de Vehículo')
 
 @section('content')
-<form action="{{ route('panel.operaciones.ordenes_trabajo.store') }}" method="POST" id="ordenForm" class="space-y-6">
+<form action="{{ route('panel.operaciones.ordenes_trabajo.store') }}" method="POST" id="ordenForm" class="space-y-6" enctype="multipart/form-data">
     @csrf
 
     <!-- Header: Datos Generales (Card Similar a la Factura) -->
@@ -14,10 +14,34 @@
             <div class="lg:col-span-2 border p-3 rounded-lg bg-gray-50">
                 <h4 class="font-bold text-gray-700 border-b pb-1 mb-2">DATOS DEL CLIENTE</h4>
                 @if(isset($cliente))
-                <div class="grid grid-cols-2 gap-2">
-                    <p><span class="font-bold">Cliente:</span> {{ $cliente->nombre_completo }}</p>
-                    <p><span class="font-bold">Tel:</span> {{ $cliente->telefono }}</p>
-                    <p><span class="font-bold">Email:</span> {{ $cliente->email }}</p>
+                <!-- Smart Edit Controls Client -->
+                <div class="mb-3 bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm">
+                    <p class="font-bold text-amber-800 mb-1"><i class="fas fa-user-edit mr-1"></i> Cliente Pre-cargado</p>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="accion_cliente" value="update" checked class="radio radio-xs radio-warning">
+                            <span>Actualizar (Corregir)</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="accion_cliente" value="create" class="radio radio-xs radio-warning">
+                            <span>Nuevo (Otro)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500">Nombre Completo</label>
+                        <input type="text" name="new_cliente[nombre]" value="{{ $cliente->nombre_completo }}" class="input input-sm input-bordered w-full uppercase" required oninput="this.value = this.value.toUpperCase()">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500">Teléfono</label>
+                        <input type="text" name="new_cliente[telefono]" value="{{ $cliente->telefono }}" class="input input-sm input-bordered w-full" required>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold text-gray-500">Email</label>
+                        <input type="email" name="new_cliente[email]" value="{{ $cliente->email }}" class="input input-sm input-bordered w-full">
+                    </div>
                     <input type="hidden" name="cliente_id" value="{{ $cliente->id }}">
                 </div>
                 @else
@@ -49,52 +73,54 @@
             <!-- Vehiculo -->
             <div class="lg:col-span-2 border p-3 rounded-lg bg-gray-50">
                 <h4 class="font-bold text-gray-700 border-b pb-1 mb-2">DATOS DEL VEHÍCULO</h4>
-                @if(isset($vehiculo))
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    <div class="col-span-2"><span class="font-bold">Marca:</span> {{ $vehiculo->marca->nombre }}</div>
-                    <div class="col-span-2"><span class="font-bold">Línea/Modelo:</span> {{ $vehiculo->modelo->nombre }}</div>
-                    <div><span class="font-bold">Placas:</span> {{ $vehiculo->placa }}</div>
-                    <div><span class="font-bold">Color:</span> <input type="text" name="color" class="w-full border-b border-gray-400 bg-transparent py-0 px-1 focus:outline-none" value="{{ $vehiculo->color }}"></div>
-                    <!-- Campos extra que quizas no estan en DB aun pero pide el form -->
-                    <div><span class="font-bold">Año:</span> {{ $vehiculo->anio }}</div>
-                </div>
-                <input type="hidden" name="vehiculo_id" value="{{ $vehiculo->id }}">
-                @else
-                <!-- Walk-in Vehicle Inputs -->
+                <!-- Vehicle Inputs (Always Editable) -->
                 <div class="space-y-3">
+                    <input type="hidden" name="vehiculo_id" value="{{ isset($vehiculo) ? $vehiculo->id : '' }}">
+
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <div>
                             <label class="block text-xs font-bold text-gray-500">Placa</label>
-                            <input type="text" name="new_vehiculo[placa]" class="input input-sm input-bordered w-full uppercase" placeholder="P-123ABC" required oninput="this.value = this.value.toUpperCase()">
+                            <input type="text" name="new_vehiculo[placa]" class="input input-sm input-bordered w-full uppercase"
+                                value="{{ isset($vehiculo) ? $vehiculo->placa : '' }}"
+                                placeholder="P-123ABC" required oninput="this.value = this.value.toUpperCase()">
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-500">Marca</label>
-                            <input type="text" name="new_vehiculo[marca]" id="inputMarca" list="listMarcas" class="input input-sm input-bordered w-full uppercase" placeholder="TOYOTA, HONDA..." required autocomplete="off" oninput="this.value = this.value.toUpperCase()">
+                            <input type="text" name="new_vehiculo[marca]" id="inputMarca" list="listMarcas" class="input input-sm input-bordered w-full uppercase"
+                                value="{{ isset($vehiculo) ? $vehiculo->marca->nombre : '' }}"
+                                placeholder="TOYOTA, HONDA..." required autocomplete="off" oninput="this.value = this.value.toUpperCase()">
                             <datalist id="listMarcas"></datalist>
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-500">Modelo/Línea</label>
-                            <input type="text" name="new_vehiculo[modelo]" id="inputModelo" list="listModelos" class="input input-sm input-bordered w-full uppercase" placeholder="COROLLA, CIVIC..." required autocomplete="off" oninput="this.value = this.value.toUpperCase()">
+                            <input type="text" name="new_vehiculo[modelo]" id="inputModelo" list="listModelos" class="input input-sm input-bordered w-full uppercase"
+                                value="{{ isset($vehiculo) ? $vehiculo->modelo->nombre : '' }}"
+                                placeholder="COROLLA, CIVIC..." required autocomplete="off" oninput="this.value = this.value.toUpperCase()">
                             <datalist id="listModelos"></datalist>
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-500">Versión (Opcional)</label>
-                            <input type="text" name="new_vehiculo[version]" id="inputVersion" list="listVersiones" class="input input-sm input-bordered w-full uppercase" placeholder="LE, XLE..." autocomplete="off" oninput="this.value = this.value.toUpperCase()">
+                            <input type="text" name="new_vehiculo[version]" id="inputVersion" list="listVersiones" class="input input-sm input-bordered w-full uppercase"
+                                value="{{ isset($vehiculo) && $vehiculo->version ? $vehiculo->version->nombre : '' }}"
+                                placeholder="LE, XLE..." autocomplete="off" oninput="this.value = this.value.toUpperCase()">
                             <datalist id="listVersiones"></datalist>
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs font-bold text-gray-500">Color</label>
-                            <input type="text" name="color" class="input input-sm input-bordered w-full" placeholder="Rojo, Azul..." required>
+                            <input type="text" name="color" class="input input-sm input-bordered w-full"
+                                value="{{ isset($vehiculo) ? $vehiculo->color : '' }}"
+                                placeholder="Rojo, Azul..." required>
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-500">Año</label>
-                            <input type="number" name="new_vehiculo[anio]" class="input input-sm input-bordered w-full" placeholder="2020" required>
+                            <input type="number" name="new_vehiculo[anio]" class="input input-sm input-bordered w-full"
+                                value="{{ isset($vehiculo) ? $vehiculo->anio : '' }}"
+                                placeholder="2020" required>
                         </div>
                     </div>
                 </div>
-                @endif
             </div>
 
             <!-- Datos de Ingreso -->
@@ -147,6 +173,21 @@
         <span><strong>Nota de Cita:</strong> {{ $cita->motivo_cita }}</span>
     </div>
     @endif
+
+    <!-- Fotos de Recepción -->
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <h4 class="font-bold text-gray-700 border-b pb-1 mb-4">FOTOS DE RECEPCIÓN</h4>
+        <div class="space-y-4">
+            <div class="flex items-center gap-4">
+                <input type="file" name="fotos_recepcion[]" id="fotosRecepcion" multiple accept="image/*" class="file-input file-input-bordered w-full max-w-xs" />
+                <span class="text-xs text-gray-500">Seleccione múltiples fotos (Frente, Costados, Trasera, Tablero)</span>
+            </div>
+
+            <div id="previewFotos" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <!-- Previews will be inserted here -->
+            </div>
+        </div>
+    </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
@@ -642,6 +683,35 @@
             if (e.target !== inputClienteNombre && e.target !== listClientes) {
                 listClientes.classList.add('hidden');
             }
+        });
+    }
+
+    // Photo Preview Logic
+    const inputFotos = document.getElementById('fotosRecepcion');
+    const previewContainer = document.getElementById('previewFotos');
+
+    if (inputFotos) {
+        inputFotos.addEventListener('change', function() {
+            previewContainer.innerHTML = '';
+            const files = Array.from(this.files);
+
+            files.forEach(file => {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const div = document.createElement('div');
+                        div.className = "relative group border rounded-lg overflow-hidden h-32 bg-gray-100";
+                        div.innerHTML = `
+                            <img src="${e.target.result}" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-black/40 hidden group-hover:flex items-center justify-center text-white text-xs text-center p-1">
+                                ${file.name}
+                            </div>
+                        `;
+                        previewContainer.appendChild(div);
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
         });
     }
 

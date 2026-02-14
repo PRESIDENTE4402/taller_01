@@ -65,7 +65,7 @@ class DailyActivitySeeder extends Seeder
                     'falla_cliente' => $cita->motivo_cita,
                 ]);
 
-                $cita->update(['estado' => 'atendida']);
+                $cita->update(['estado' => 'concretada']);
             }
         }
     }
