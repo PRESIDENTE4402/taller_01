@@ -4,198 +4,197 @@
 @section('subtitle', 'Escanear QR de empleados')
 
 @section('content')
-    {{-- CRITICAL STYLES: DO NOT REMOVE - Prevents white flash and fixes modal visibility --}}
-    <style>
-        /* Hide modal before JS loads */
-        .hidden {
-            display: none !important;
-        }
+{{-- CRITICAL STYLES: DO NOT REMOVE - Prevents white flash and fixes modal visibility --}}
+<style>
+    /* Hide modal before JS loads */
+    .hidden {
+        display: none !important;
+    }
 
-        /* Force dark background immediately */
-        body {
-            background-color: #141517 !important;
-            color: #e5e7eb;
-        }
+    /* Force dark background immediately */
+    body {
+        background-color: #141517 !important;
+        color: #e5e7eb;
+    }
 
-        /* Force Text Colors for Compatibility */
-        .label-text {
-            color: white !important;
-        }
+    /* Force Text Colors for Compatibility */
+    .label-text {
+        color: white !important;
+    }
 
-        .text-gray-400 {
-            color: #9ca3af !important;
-        }
+    .text-gray-400 {
+        color: #9ca3af !important;
+    }
 
-        /* Inputs */
-        input:not([type="radio"]),
-        select,
-        textarea {
-            background-color: #2C2E33 !important;
-            color: white !important;
-            border-color: #4B5563 !important;
-        }
-    </style>
+    /* Inputs */
+    input:not([type="radio"]),
+    select,
+    textarea {
+        background-color: #2C2E33 !important;
+        color: white !important;
+        border-color: #4B5563 !important;
+    }
+</style>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-140px)]">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-140px)]">
 
-        <!-- Sección Izquierda: Scanner y Estado -->
-        <div class="lg:col-span-1 flex flex-col gap-6">
+    <!-- Sección Izquierda: Scanner y Estado -->
+    <div class="lg:col-span-1 flex flex-col gap-6">
 
-            <!-- Scanner Card -->
-            <div class="bg-[#1A1B1E] rounded-xl border border-gray-800 shadow-2xl p-4 flex flex-col relative group">
-                <div
-                    class="absolute inset-0 bg-blue-500/5 group-hover:bg-blue-500/10 transition duration-500 pointer-events-none">
-                </div>
-
-                <h3 class="text-white font-bold text-lg mb-4 flex items-center gap-2">
-                    <i class="fas fa-qrcode text-[#1C69D4]"></i> Escáner Biométrico
-                </h3>
-
-                @can('registrar_asistencia')
-                    <!-- Viewport del Scanner -->
-                    <div id="reader"
-                        class="w-full bg-black rounded-lg overflow-hidden border-2 border-dashed border-gray-700 relative h-64">
-                        <div class="absolute inset-0 flex items-center justify-center text-gray-500 z-0">
-                            <i class="fas fa-camera text-4xl mb-2"></i>
-                            <p class="text-xs">Esperando cámara...</p>
-                        </div>
-                    </div>
-
-                    <div class="mt-4 flex gap-2">
-                        <button id="btn-start-scanner"
-                            class="btn btn-sm bg-[#1C69D4] hover:bg-blue-700 text-white flex-1 border-none font-bold uppercase tracking-wide">
-                            <i class="fas fa-power-off mr-2"></i> Activar
-                        </button>
-                        <button id="btn-stop-scanner"
-                            class="btn btn-sm bg-red-600 hover:bg-red-700 text-white flex-1 border-none font-bold uppercase tracking-wide hidden">
-                            <i class="fas fa-stop-circle mr-2"></i> Detener
-                        </button>
-                    </div>
-
-                    <!-- Manual Input fallback -->
-                    <div class="mt-4 pt-4 border-t border-gray-800">
-                        <p class="text-xs text-gray-400 mb-2 uppercase tracking-wide font-bold">Registro Manual por Nombre</p>
-                        <div class="relative w-full">
-                            <div class="flex gap-2">
-                                <input type="text" id="manual-user-search" placeholder="Escribe el nombre..." autocomplete="off"
-                                    style="background-color: #1f2937 !important; color: white !important;"
-                                    class="input input-sm input-bordered w-full focus:border-[#1C69D4] placeholder-gray-400 font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500 border-gray-600">
-                                <button id="btn-manual-search-icon"
-                                    class="btn btn-sm btn-square bg-[#1C69D4] text-white border-none cursor-default">
-                                    <i class="fas fa-search"></i>
-                                </button>
-                            </div>
-
-                            <!-- Dropdown de Resultados -->
-                            <ul id="search-results"
-                                class="absolute z-50 left-0 right-0 bottom-full mb-2 bg-[#25262B] border border-gray-700 rounded-lg shadow-2xl max-h-48 overflow-y-auto hidden">
-                                <!-- JS injections -->
-                            </ul>
-                        </div>
-                    </div>
-                @else
-                    <div class="bg-gray-800/50 rounded-lg p-6 text-center border border-gray-700">
-                        <i class="fas fa-lock text-gray-600 text-3xl mb-3"></i>
-                        <p class="text-gray-400 text-sm">No tienes permisos para registrar asistencias.</p>
-                        <p class="text-[10px] text-gray-500 mt-2 uppercase">Requiere: registrar_asistencia</p>
-                    </div>
-                @endcan
+        <!-- Scanner Card -->
+        <div class="bg-[#1A1B1E] rounded-xl border border-gray-800 shadow-2xl p-4 flex flex-col relative group">
+            <div
+                class="absolute inset-0 bg-blue-500/5 group-hover:bg-blue-500/10 transition duration-500 pointer-events-none">
             </div>
 
-            <!-- Buscador y Filtros -->
-            <div class="bg-[#1A1B1E] rounded-xl border border-gray-800 p-6 flex-1 flex flex-col gap-4">
-                <h3 class="text-white font-bold text-lg flex items-center gap-2">
-                    <i class="fas fa-filter text-[#1C69D4]"></i> Buscar Asistencia
-                </h3>
+            <h3 class="text-white font-bold text-lg mb-4 flex items-center gap-2">
+                <i class="fas fa-qrcode text-[#1C69D4]"></i> Escáner Biométrico
+            </h3>
 
-                <div class="space-y-4">
-                    <!-- Filtro por Fecha -->
-                    <div class="form-control">
-                        <label class="label pt-0 pb-1">
-                            <span class="label-text text-gray-400 text-[10px] font-bold uppercase">Filtrar por Fecha</span>
-                        </label>
-                        <input type="date" id="filter-date" value="{{ date('Y-m-d') }}"
-                            class="input input-sm bg-[#2C2E33] border-gray-700 text-white focus:border-blue-500 w-full">
-                    </div>
-
-                    <!-- Filtro por Persona -->
-                    <div class="form-control">
-                        <label class="label pt-0 pb-1">
-                            <span class="label-text text-gray-400 text-[10px] font-bold uppercase">Busqueda por
-                                Nombre</span>
-                        </label>
-                        <div class="relative">
-                            <input type="text" id="filter-name" placeholder="Escriba un nombre..."
-                                class="input input-sm bg-[#2C2E33] border-gray-700 text-white focus:border-blue-500 w-full pr-10">
-                            <i class="fas fa-search absolute right-3 top-2.5 text-gray-500 text-xs"></i>
-                        </div>
-                    </div>
-
-                    <div class="pt-2 border-t border-gray-800 mt-2">
-                        <div class="flex items-center justify-between text-[11px] text-gray-500 uppercase font-bold px-1">
-                            <span>Estado del Sistema</span>
-                            <span class="text-green-500 flex items-center gap-1">
-                                <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                                En Línea
-                            </span>
-                        </div>
-                    </div>
+            @can('registrar_asistencia')
+            <!-- Viewport del Scanner -->
+            <div id="reader"
+                class="w-full bg-black rounded-lg overflow-hidden border-2 border-dashed border-gray-700 relative h-64">
+                <div class="absolute inset-0 flex items-center justify-center text-gray-500 z-0">
+                    <i class="fas fa-camera text-4xl mb-2"></i>
+                    <p class="text-xs">Esperando cámara...</p>
                 </div>
             </div>
 
+            <div class="mt-4 flex gap-2">
+                <button id="btn-start-scanner"
+                    class="btn btn-sm bg-[#1C69D4] hover:bg-blue-700 text-white flex-1 border-none font-bold uppercase tracking-wide">
+                    <i class="fas fa-power-off mr-2"></i> Activar
+                </button>
+                <button id="btn-stop-scanner"
+                    class="btn btn-sm bg-red-600 hover:bg-red-700 text-white flex-1 border-none font-bold uppercase tracking-wide hidden">
+                    <i class="fas fa-stop-circle mr-2"></i> Detener
+                </button>
+            </div>
 
+            <!-- Manual Input fallback -->
+            <div class="mt-4 pt-4 border-t border-gray-800">
+                <p class="text-xs text-gray-400 mb-2 uppercase tracking-wide font-bold">Registro Manual por Nombre</p>
+                <div class="relative w-full">
+                    <div class="flex gap-2">
+                        <input type="text" id="manual-user-search" placeholder="Escribe el nombre..." autocomplete="off"
+                            style="background-color: #1f2937 !important; color: white !important;"
+                            class="input input-sm input-bordered w-full focus:border-[#1C69D4] placeholder-gray-400 font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500 border-gray-600">
+                        <button id="btn-manual-search-icon"
+                            class="btn btn-sm btn-square bg-[#1C69D4] text-white border-none cursor-default">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+
+                    <!-- Dropdown de Resultados -->
+                    <ul id="search-results"
+                        class="absolute z-50 left-0 right-0 bottom-full mb-2 bg-[#25262B] border border-gray-700 rounded-lg shadow-2xl max-h-48 overflow-y-auto hidden">
+                        <!-- JS injections -->
+                    </ul>
+                </div>
+            </div>
+            @else
+            <div class="bg-gray-800/50 rounded-lg p-6 text-center border border-gray-700">
+                <i class="fas fa-lock text-gray-600 text-3xl mb-3"></i>
+                <p class="text-gray-400 text-sm">No tienes permisos para registrar asistencias.</p>
+                <p class="text-[10px] text-gray-500 mt-2 uppercase">Requiere: registrar_asistencia</p>
+            </div>
+            @endcan
         </div>
 
-        <!-- Sección Derecha: Historial del Día -->
-        <div class="lg:col-span-2 bg-[#1A1B1E] rounded-xl border border-gray-800 shadow-xl flex flex-col overflow-hidden">
-            <div class="p-4 border-b border-gray-800 flex justify-between items-center bg-[#25262B]">
-                <h3 class="text-white font-extrabold text-sm uppercase tracking-tighter flex items-center gap-2">
-                    <i class="fas fa-list-ul text-[#1C69D4]"></i> Reporte de Asistencia Diaria
-                </h3>
-                <div class="text-sm font-mono text-[#1C69D4] font-bold" id="live-clock">--:--:--</div>
-            </div>
+        <!-- Buscador y Filtros -->
+        <div class="bg-[#1A1B1E] rounded-xl border border-gray-800 p-6 flex-1 flex flex-col gap-4">
+            <h3 class="text-white font-bold text-lg flex items-center gap-2">
+                <i class="fas fa-filter text-[#1C69D4]"></i> Buscar Asistencia
+            </h3>
 
-            <div class="flex-1 overflow-auto p-0 scrollbar-thin scrollbar-thumb-gray-800">
-                <table class="table w-full border-separate border-spacing-0">
-                    <thead>
-                        <tr class="bg-[#2C2E33]/50">
-                            <th
-                                class="py-4 px-6 text-gray-400 font-bold uppercase text-[10px] tracking-widest border-b border-gray-800 text-left">
-                                Empleado / Sucursal</th>
-                            <th
-                                class="py-4 px-4 text-gray-400 font-bold uppercase text-[10px] tracking-widest border-b border-gray-800 text-center w-24">
-                                Entrada</th>
-                            <th
-                                class="py-4 px-4 text-gray-400 font-bold uppercase text-[10px] tracking-widest border-b border-gray-800 text-center w-24">
-                                Salida</th>
-                            <th
-                                class="py-4 px-4 text-gray-400 font-bold uppercase text-[10px] tracking-widest border-b border-gray-800 text-center w-32">
-                                Estado</th>
-                            <th
-                                class="py-4 px-4 text-gray-400 font-bold uppercase text-[10px] tracking-widest border-b border-gray-800 text-center w-40">
-                                Obs</th>
-                            <th
-                                class="py-4 px-4 text-gray-400 font-bold uppercase text-[10px] tracking-widest border-b border-gray-800 text-center w-24">
-                                Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="live-table-body" class="divide-y divide-gray-800/50">
-                        <!-- JS fills this -->
-                    </tbody>
-                </table>
-                <div id="empty-state" class="flex flex-col items-center justify-center h-full py-20 text-gray-600 hidden">
-                    <i class="fas fa-search text-5xl mb-4 opacity-20"></i>
-                    <p class="font-bold uppercase text-xs tracking-widest">No se encontraron registros</p>
+            <div class="space-y-4">
+                <!-- Filtro por Fecha -->
+                <div class="form-control">
+                    <label class="label pt-0 pb-1">
+                        <span class="label-text text-gray-400 text-[10px] font-bold uppercase">Filtrar por Fecha</span>
+                    </label>
+                    <input type="date" id="filter-date" value="{{ date('Y-m-d') }}"
+                        class="input input-sm bg-[#2C2E33] border-gray-700 text-white focus:border-blue-500 w-full">
+                </div>
+
+                <!-- Filtro por Persona -->
+                <div class="form-control">
+                    <label class="label pt-0 pb-1">
+                        <span class="label-text text-gray-400 text-[10px] font-bold uppercase">Busqueda por
+                            Nombre</span>
+                    </label>
+                    <div class="relative">
+                        <input type="text" id="filter-name" placeholder="Escriba un nombre..."
+                            class="input input-sm bg-[#2C2E33] border-gray-700 text-white focus:border-blue-500 w-full pr-10">
+                        <i class="fas fa-search absolute right-3 top-2.5 text-gray-500 text-xs"></i>
+                    </div>
+                </div>
+
+                <div class="pt-2 border-t border-gray-800 mt-2">
+                    <div class="flex items-center justify-between text-[11px] text-gray-500 uppercase font-bold px-1">
+                        <span>Estado del Sistema</span>
+                        <span class="text-green-500 flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                            En Línea
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
+
 
     </div>
 
-    <!-- Audio para feedback -->
-    <audio id="scan-sound-success"
-        src="https://assets.mixkit.co/sfx/preview/mixkit-software-interface-start-2574.mp3"></audio>
-    <audio id="scan-sound-error" src="https://assets.mixkit.co/sfx/preview/mixkit-simple-game-countdown-921.mp3"></audio>
+    <!-- Sección Derecha: Historial del Día -->
+    <div class="lg:col-span-2 bg-[#1A1B1E] rounded-xl border border-gray-800 shadow-xl flex flex-col overflow-hidden">
+        <div class="p-4 border-b border-gray-800 flex justify-between items-center bg-[#25262B]">
+            <h3 class="text-white font-extrabold text-sm uppercase tracking-tighter flex items-center gap-2">
+                <i class="fas fa-list-ul text-[#1C69D4]"></i> Reporte de Asistencia Diaria
+            </h3>
+            <div class="text-sm font-mono text-[#1C69D4] font-bold" id="live-clock">--:--:--</div>
+        </div>
+
+        <div class="flex-1 overflow-auto p-0 scrollbar-thin scrollbar-thumb-gray-800">
+            <table class="table w-full border-separate border-spacing-0">
+                <thead>
+                    <tr class="bg-[#2C2E33]/50">
+                        <th
+                            class="py-4 px-6 text-gray-400 font-bold uppercase text-[10px] tracking-widest border-b border-gray-800 text-left">
+                            Empleado / Sucursal</th>
+                        <th
+                            class="py-4 px-4 text-gray-400 font-bold uppercase text-[10px] tracking-widest border-b border-gray-800 text-center w-24">
+                            Entrada</th>
+                        <th
+                            class="py-4 px-4 text-gray-400 font-bold uppercase text-[10px] tracking-widest border-b border-gray-800 text-center w-24">
+                            Salida</th>
+                        <th
+                            class="py-4 px-4 text-gray-400 font-bold uppercase text-[10px] tracking-widest border-b border-gray-800 text-center w-32">
+                            Estado</th>
+                        <th
+                            class="py-4 px-4 text-gray-400 font-bold uppercase text-[10px] tracking-widest border-b border-gray-800 text-center w-40">
+                            Obs</th>
+                        <th
+                            class="py-4 px-4 text-gray-400 font-bold uppercase text-[10px] tracking-widest border-b border-gray-800 text-center w-24">
+                            Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="live-table-body" class="divide-y divide-gray-800/50">
+                    <!-- JS fills this -->
+                </tbody>
+            </table>
+            <div id="empty-state" class="flex flex-col items-center justify-center h-full py-20 text-gray-600 hidden">
+                <i class="fas fa-search text-5xl mb-4 opacity-20"></i>
+                <p class="font-bold uppercase text-xs tracking-widest">No se encontraron registros</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Audio para feedback -->
+<audio id="scan-sound-success" src="{{ asset('assets/audio/scan_success.mp3') }}"></audio>
+<audio id="scan-sound-error" src="{{ asset('assets/audio/scan_error.mp3') }}"></audio>
 
 @endsection
 
@@ -330,8 +329,8 @@
 </div>
 
 @push('scripts')
-    {{-- Librarian HTML5-QRCode --}}
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+{{-- Librarian HTML5-QRCode --}}
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
-    @vite(['resources/js/panel/asistencia.js'])
+@vite(['resources/js/panel/asistencia.js'])
 @endpush

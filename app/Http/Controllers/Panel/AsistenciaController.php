@@ -204,14 +204,22 @@ class AsistenciaController extends Controller
         if (!$term || strlen($term) < 2)
             return response()->json([]);
 
-        // Search in Personas table linked to User (Name, Surname, or Full Name)
-        $users = User::whereHas('persona', function ($q) use ($term) {
-            $q->where('nombres', 'LIKE', "%{$term}%")
-                ->orWhere('apellidos', 'LIKE', "%{$term}%")
-                ->orWhereRaw("CONCAT(nombres, ' ', apellidos) LIKE ?", ["%{$term}%"]);
-        })->with('persona')->limit(10)->get();
+        // Search in Personas table linked to User OR directly in Users table
+        $users = User::query()
+            ->where(function ($query) use ($term) {
+                $query->whereHas('persona', function ($q) use ($term) {
+                    $q->where('nombres', 'LIKE', "%{$term}%")
+                        ->orWhere('apellidos', 'LIKE', "%{$term}%")
+                        ->orWhereRaw("CONCAT(nombres, ' ', apellidos) LIKE ?", ["%{$term}%"]);
+                })
+                    ->orWhere('name', 'LIKE', "%{$term}%")
+                    ->orWhere('email', 'LIKE', "%{$term}%");
+            })
+            ->with('persona')
+            ->limit(10)
+            ->get();
 
-        // Map to expected structure, using Persona names
+        // Map to expected structure
         $results = $users->map(function ($user) {
             return [
                 'id' => $user->id,
