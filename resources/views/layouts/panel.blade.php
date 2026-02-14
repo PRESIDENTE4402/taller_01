@@ -134,25 +134,25 @@
                 @can('gestionar_inventario')
                 <div class="px-3 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Logística</div>
 
-<<<<<<< HEAD
+
                 <a href="#"
                     class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md sidebar-item text-slate-400 transition-colors">
                     <i class="fas fa-boxes w-5 text-center"></i>
                     Inventario Repuestos
                 </a>
-=======
-                    <a href="{{ route('panel.mantenimientos.categorias.index') }}"
-                        class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.mantenimientos.categorias.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
-                        <i class="fas fa-tags w-5 text-center"></i>
-                        Categorías
-                    </a>
 
-                    <a href="{{ route('panel.mantenimientos.repuestos.index') }}"
-                        class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.mantenimientos.repuestos.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
-                        <i class="fas fa-boxes w-5 text-center"></i>
-                        Repuestos (SaaS)
-                    </a>
->>>>>>> bf22e4b6393c3a573054eb4688624012fd02f496
+                <a href="{{ route('panel.mantenimientos.categorias.index') }}"
+                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.mantenimientos.categorias.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                    <i class="fas fa-tags w-5 text-center"></i>
+                    Categorías
+                </a>
+
+                <a href="{{ route('panel.mantenimientos.repuestos.index') }}"
+                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.mantenimientos.repuestos.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                    <i class="fas fa-boxes w-5 text-center"></i>
+                    Repuestos (SaaS)
+                </a>
+
                 @endcan
 
                 {{-- Sección Mantenimientos (CRUDs) --}}
