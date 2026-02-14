@@ -22,9 +22,18 @@ class RepuestosSeeder extends Seeder
         ];
 
         foreach ($commonParts as $part) {
+            $catName = $part['categoria'];
+            unset($part['categoria']);
+
+            $categoria = \App\Models\Categoria::firstOrCreate(
+                ['nombre' => $catName],
+                ['sucursal_id' => 1, 'descripcion' => "Categoría para $catName"]
+            );
+
             \App\Models\Repuesto::updateOrCreate(
                 ['codigo_interno' => $part['codigo_interno']],
                 array_merge($part, [
+                    'categoria_id' => $categoria->id,
                     'stock_minimo' => 5,
                     'marca_repuesto' => 'Genérica',
                     'sucursal_id' => 1,

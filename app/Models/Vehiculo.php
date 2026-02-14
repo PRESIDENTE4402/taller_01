@@ -4,16 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Traits\BelongsToSucursal;
+
 
 class Vehiculo extends Model
 {
-    use HasFactory, BelongsToSucursal;
+    use HasFactory;
 
     protected $table = 'vehiculos';
 
     protected $fillable = [
-        'sucursal_id',
         'cliente_id',
         'marca_id',
         'modelo_id',

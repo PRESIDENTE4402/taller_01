@@ -4,16 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Traits\BelongsToSucursal;
+
 
 class Cliente extends Model
 {
-    use HasFactory, BelongsToSucursal;
+    use HasFactory;
 
     protected $table = 'clientes';
 
     protected $fillable = [
-        'sucursal_id',
         'nombre_completo',
         'email',
         'telefono',

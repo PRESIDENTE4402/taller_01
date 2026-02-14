@@ -13,8 +13,8 @@ return new class extends Migration {
         Schema::create('dynamic_attribute_translations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('dynamic_attribute_schema_id')
-                  ->constrained('dynamic_attribute_schemas', 'id')
-                  ->onDelete('cascade');
+                ->constrained('dynamic_attribute_schemas', 'id', 'fk_dyn_attr_trans_schema_id')
+                ->onDelete('cascade');
             $table->string('locale')->default('es'); // es, en, fr, pt, etc.
             $table->string('label'); // Etiqueta en idioma específico (ej: "Viscosidad" vs "Viscosity")
             $table->text('description')->nullable(); // Descripción en idioma específico

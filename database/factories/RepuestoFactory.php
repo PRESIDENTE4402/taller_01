@@ -21,7 +21,7 @@ class RepuestoFactory extends Factory
             'codigo_interno' => strtoupper($this->faker->unique()->bothify('???-#####')),
             'nombre' => $this->faker->words(3, true),
             'marca_repuesto' => $this->faker->word(),
-            'categoria' => $this->faker->randomElement(['Frenos', 'Motor', 'Suspensión', 'Eléctrico', 'Filtros']),
+            'categoria_id' => \App\Models\Categoria::inRandomOrder()->first()->id ?? \App\Models\Categoria::factory(),
             'unidad_medida' => 'unidad',
             'contenido_por_unidad' => 1,
             'precio_costo' => $this->faker->randomFloat(2, 10, 500),
