@@ -73,6 +73,7 @@ Route::middleware('auth')->group(function () {
         });
     });
 
+
     // Módulos de Mantenimiento
     Route::prefix('mantenimientos')->name('mantenimientos.')->group(function () {
 
