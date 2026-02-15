@@ -32,7 +32,7 @@ class OrdenTrabajoFactory extends Factory
             // 'observaciones_recepcion' => ... removed
             'fecha_recepcion' => $this->faker->dateTimeBetween('-1 month', 'now'),
             // 'fecha_promesa' => ... removed
-            'receptor_id' => 1, // User ID (Secretario)
+            'receptor_id' => \App\Models\User::inRandomOrder()->first()->id ?? \App\Models\User::factory(), // User ID (Secretario)
             'total_estimado' => $this->faker->randomFloat(2, 100, 5000),
             'created_at' => now(),
             'updated_at' => now(),

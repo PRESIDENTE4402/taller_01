@@ -29,8 +29,14 @@ class VehiculoFactory extends Factory
             // 'tipo_transmision' => $this->faker->randomElement(['automatica', 'mecanica']), // Not in migration
             // Relationships usually overridden by Seeder or created if not provided
             'cliente_id' => \App\Models\Cliente::factory(),
-            'marca_id' => 1, // Default, override in seeder
-            'modelo_id' => 1, // Default, override in seeder
+            'marca_id' => \App\Models\MarcaVehiculo::inRandomOrder()->first()->id ?? \App\Models\MarcaVehiculo::factory(),
+            'modelo_id' => function (array $attributes) {
+                // If marca_id is newly created or fetched, ensure model belongs to it or create one
+                // But simplified: fetch a model belonging to the marca or create new
+                $marcaId = $attributes['marca_id'];
+                $modelo = \App\Models\ModeloVehiculo::where('marca_id', $marcaId)->inRandomOrder()->first();
+                return $modelo ? $modelo->id : \App\Models\ModeloVehiculo::factory()->create(['marca_id' => $marcaId])->id;
+            },
             'version_id' => null,
             'created_at' => now(),
             'updated_at' => now(),

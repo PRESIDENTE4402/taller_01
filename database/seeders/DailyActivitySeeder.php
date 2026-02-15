@@ -25,7 +25,13 @@ class DailyActivitySeeder extends Seeder
 
         // 3. Create Appointments (Citas) for Today and Tomorrow (3-6)
         $vehiculos = \App\Models\Vehiculo::inRandomOrder()->take(10)->get();
-        if ($vehiculos->isEmpty()) return;
+
+        if ($vehiculos->isEmpty()) {
+            // Create at least one vehicle if none exist to ensure we can create appointments
+            $cliente = \App\Models\Cliente::first() ?? \App\Models\Cliente::factory()->create();
+            $vehiculo = \App\Models\Vehiculo::factory()->create(['cliente_id' => $cliente->id]);
+            $vehiculos = collect([$vehiculo]);
+        }
 
         foreach (range(1, rand(3, 6)) as $i) {
             $vehiculo = $vehiculos->random();

@@ -18,7 +18,9 @@ class CitaFactory extends Factory
     {
         return [
             'cliente_id' => \App\Models\Cliente::factory(),
-            'vehiculo_id' => \App\Models\Vehiculo::factory(),
+            'vehiculo_id' => function (array $attributes) {
+                return \App\Models\Vehiculo::factory()->create(['cliente_id' => $attributes['cliente_id']])->id;
+            },
             'sucursal_id' => 1,
             'fecha_programada' => $this->faker->dateTimeBetween('now', '+1 month'),
             'motivo_cita' => $this->faker->sentence(3),

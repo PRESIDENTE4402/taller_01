@@ -497,8 +497,12 @@ function debounceSearchClient() {
 }
 
 async function searchClient() {
-    const term = document.getElementById('searchClientInput').value;
+    const input = document.getElementById('searchClientInput');
     const resultsContainer = document.getElementById('clientSearchResults');
+
+    if (!input || !resultsContainer) return;
+
+    const term = input.value;
 
     if (term.length < 2) {
         resultsContainer.classList.add('hidden');
@@ -534,24 +538,35 @@ async function searchClient() {
 
 function selectClient(client) {
     // UI Update
-    document.getElementById('searchClientInput').value = '';
-    document.getElementById('clientSearchResults').classList.add('hidden');
-    document.getElementById('searchClientInput').parentElement.classList.add('hidden'); // Hide Search Box
+    const input = document.getElementById('searchClientInput');
+    const resultsContainer = document.getElementById('clientSearchResults');
+    const card = document.getElementById('selectedClientCard');
+    const nameEl = document.getElementById('selectedClientName');
+    const phoneEl = document.getElementById('selectedClientPhone');
+    const idInput = document.getElementById('cliente_id');
 
-    document.getElementById('selectedClientCard').classList.remove('hidden');
-    document.getElementById('selectedClientName').textContent = client.nombre_completo;
-    document.getElementById('selectedClientPhone').textContent = client.telefono;
-    document.getElementById('cliente_id').value = client.id;
+    if (input) input.value = '';
+    if (resultsContainer) resultsContainer.classList.add('hidden');
+    if (input && input.parentElement) input.parentElement.classList.add('hidden'); // Hide Search Box
+
+    if (card) card.classList.remove('hidden');
+    if (nameEl) nameEl.textContent = client.nombre_completo;
+    if (phoneEl) phoneEl.textContent = client.telefono;
+    if (idInput) idInput.value = client.id;
 
     // Load Vehicles
     loadClientVehicles(client.id);
 }
 
 function clearSelectedClient() {
-    document.getElementById('selectedClientCard').classList.add('hidden');
-    document.getElementById('searchClientInput').parentElement.classList.remove('hidden');
-    document.getElementById('searchClientInput').value = '';
-    document.getElementById('cliente_id').value = '';
+    const card = document.getElementById('selectedClientCard');
+    const input = document.getElementById('searchClientInput');
+    const idInput = document.getElementById('cliente_id');
+
+    if (card) card.classList.add('hidden');
+    if (input && input.parentElement) input.parentElement.classList.remove('hidden');
+    if (input) input.value = '';
+    if (idInput) idInput.value = '';
 
     // Reset Vehicles
     const select = document.getElementById('vehiculoSelect');
@@ -609,6 +624,8 @@ function toggleNewVehicleMode() {
     const newContainer = document.getElementById('vehiculoNewContainer');
     const btn = document.getElementById('btnToggleNewVehicle');
     const select = document.getElementById('vehiculoSelect');
+
+    if (!selectContainer || !newContainer || !btn || !select) return;
 
     const isShowingSelect = !selectContainer.classList.contains('hidden');
 
