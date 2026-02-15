@@ -238,7 +238,7 @@ class OrdenTrabajoController extends Controller
             $codigo = 'OT-' . date('Y') . '-' . str_pad($lastId + 1, 4, '0', STR_PAD_LEFT);
 
             $orden = OrdenTrabajo::create([
-                'sucursal_id' => 1, // Hardcoded por ahora o Auth::user()->sucursal_id
+                'sucursal_id' => Auth::user()->sucursales->first()?->id ?? 1,
                 'codigo_orden' => $codigo,
                 'tipo_orden' => $request->tipo_orden ?? 'normal',
                 'vehiculo_id' => $vehiculoId,
@@ -288,7 +288,7 @@ class OrdenTrabajoController extends Controller
             if ($request->has('cita_id') && !empty($request->cita_id)) {
                 $cita = Cita::find($request->cita_id);
                 if ($cita) {
-                    $cita->estado = 'atendida'; // O el estado que uses para cerrar cita
+                    $cita->estado = 'concretada'; // Estado válido
                     $cita->save();
                 }
             }

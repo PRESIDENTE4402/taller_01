@@ -105,6 +105,12 @@
                 @if(Gate::check('gestionar_citas') || Gate::check('gestionar_recepcion') || Gate::check('gestionar_ordenes_trabajo'))
                 <div class="px-3 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Operaciones</div>
 
+                <a href="{{ route('panel.operaciones.clientes.index') }}"
+                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.operaciones.clientes.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                    <i class="fas fa-users w-5 text-center"></i>
+                    Clientes
+                </a>
+
                 @can('gestionar_citas')
                 <a href="{{ route('panel.operaciones.citas.index') }}"
                     class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.operaciones.citas.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">

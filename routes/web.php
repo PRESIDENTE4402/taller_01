@@ -59,6 +59,16 @@ Route::middleware('auth')->group(function () {
                 Route::get('/api/calendar-counts', [App\Http\Controllers\Panel\CitaController::class, 'getCalendarCounts'])->name('getCalendarCounts'); // New
             });
 
+            // Clientes (Nuevo)
+            Route::prefix('clientes')->name('clientes.')->group(function () {
+                Route::get('/', [App\Http\Controllers\Panel\ClienteController::class, 'index'])->name('index');
+                Route::get('/list', [App\Http\Controllers\Panel\ClienteController::class, 'list'])->name('list');
+                Route::post('/', [App\Http\Controllers\Panel\ClienteController::class, 'store'])->name('store');
+                Route::put('/{id}', [App\Http\Controllers\Panel\ClienteController::class, 'update'])->name('update');
+                Route::delete('/{id}', [App\Http\Controllers\Panel\ClienteController::class, 'destroy'])->name('destroy');
+            });
+
+
 
             // Órdenes de Trabajo (New)
 
