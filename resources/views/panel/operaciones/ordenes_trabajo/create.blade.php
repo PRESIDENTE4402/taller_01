@@ -346,6 +346,24 @@
                             </div>
                         </div>
                         @endforeach
+                        <!-- Special Row: Tapicería (3 States) -->
+                        <div class="flex items-center justify-between py-2.5 px-3 border-b border-gray-50 hover:bg-gray-50 rounded-lg transition-colors group">
+                            <span class="text-xs font-bold text-gray-600 group-hover:text-blue-900 transition-colors uppercase">Estado Tapicería</span>
+                            <div class="flex gap-1 bg-gray-100 p-1 rounded-lg">
+                                <label class="flex items-center justify-center p-1.5 cursor-pointer rounded-md transition-all has-[:checked]:bg-emerald-600 has-[:checked]:text-white hover:bg-white border-none shadow-sm">
+                                    <input type="radio" name="inv[tapiceria]" value="buena" class="hidden">
+                                    <span class="text-[9px] font-black px-1">BUENA</span>
+                                </label>
+                                <label class="flex items-center justify-center p-1.5 cursor-pointer rounded-md transition-all has-[:checked]:bg-amber-500 has-[:checked]:text-white hover:bg-white border-none shadow-sm">
+                                    <input type="radio" name="inv[tapiceria]" value="regular" class="hidden" checked>
+                                    <span class="text-[9px] font-black px-1">REGULAR</span>
+                                </label>
+                                <label class="flex items-center justify-center p-1.5 cursor-pointer rounded-md transition-all has-[:checked]:bg-rose-600 has-[:checked]:text-white hover:bg-white border-none shadow-sm">
+                                    <input type="radio" name="inv[tapiceria]" value="mala" class="hidden">
+                                    <span class="text-[9px] font-black px-1">MALA</span>
+                                </label>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Section 2 -->
