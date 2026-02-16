@@ -212,6 +212,7 @@ class OrdenTrabajoController extends Controller
                 // Update Existing Vehicle
                 $vehiculo = Vehiculo::find($vehiculoId);
                 $vehiculo->update([
+                    'cliente_id' => $clienteId, // Update Owner (Transfer)
                     'marca_id' => $marca->id,
                     'modelo_id' => $modelo->id,
                     'version_id' => $versionId,

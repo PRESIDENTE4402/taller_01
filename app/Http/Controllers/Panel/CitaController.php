@@ -24,7 +24,7 @@ class CitaController extends Controller
     public function list(Request $request)
     {
         // Filtros
-        $start = $request->get('start'); 
+        $start = $request->get('start');
         $end = $request->get('end');
         $estado = $request->get('estado');
 
@@ -35,13 +35,13 @@ class CitaController extends Controller
         if ($start) {
             // Si viene fullcalendar o rango manual
             $endDate = $end ?? $start; // Si no hay end, es un solo dia
-            
+
             // Ajustar el fin del día si es fecha simple Y-m-d
             if (strlen($endDate) <= 10) {
-                 $endDate .= ' 23:59:59';
+                $endDate .= ' 23:59:59';
             }
             if (strlen($start) <= 10) {
-                 $start .= ' 00:00:00';
+                $start .= ' 00:00:00';
             }
 
             $query->whereBetween('fecha_programada', [$start, $endDate]);
@@ -78,10 +78,10 @@ class CitaController extends Controller
             ->count();
 
         // 3. Get Citas (Respect Date AND Status)
-        $citas = $query->get()->map(function($cita) {
+        $citas = $query->get()->map(function ($cita) {
             $clienteNombre = $cita->cliente?->nombre_completo ?? 'Cliente Desconocido';
             $vehiculoTexto = 'Vehículo Desconocido';
-            
+
             if ($cita->vehiculo) {
                 $marca = $cita->vehiculo->marca?->nombre ?? '';
                 $modelo = $cita->vehiculo->modelo?->nombre ?? '';
@@ -109,11 +109,12 @@ class CitaController extends Controller
             'count_today' => $countToday
         ]);
     }
-    
+
     // API para el Calendario (Puntos Verdes/Rojos)
-    public function getCalendarCounts(Request $request) {
+    public function getCalendarCounts(Request $request)
+    {
         $month = $request->get('month'); // "2026-02"
-        
+
         if (!$month) return response()->json([]);
 
         $startOfMonth = Carbon::parse($month . '-01')->startOfMonth();
@@ -163,13 +164,13 @@ class CitaController extends Controller
                 }
 
                 $cliente->nombre_completo = trim($request->nombre_nuevo);
-                
+
                 // Handle Email: Empty string should be NULL to avoid Unique constraint checks on empty strings
                 $email = trim($request->email_nuevo);
                 $cliente->email = $email === '' ? null : $email;
-                
+
                 $cliente->save();
-                
+
                 $clienteId = $cliente->id;
 
                 // 3. Vehiculo / Marca / Modelo / Version
@@ -179,7 +180,7 @@ class CitaController extends Controller
 
                 $marca = MarcaVehiculo::firstOrCreate(['nombre' => $nombreMarca]);
                 $modelo = ModeloVehiculo::firstOrCreate(['marca_id' => $marca->id, 'nombre' => $nombreModelo]);
-                
+
                 $versionId = null;
                 if ($nombreVersion) {
                     $version = VersionVehiculo::firstOrCreate(
@@ -190,7 +191,7 @@ class CitaController extends Controller
 
                 $placaRaw = $request->placa_nuevo;
                 if (!$placaRaw) {
-                    $placa = 'S/P-' . time() . '-' . rand(100,999);
+                    $placa = 'S/P-' . time() . '-' . rand(100, 999);
                 } else {
                     $placa = strtoupper(str_replace([' ', '-'], '', $placaRaw));
                 }
@@ -205,19 +206,18 @@ class CitaController extends Controller
                         'anio' => $request->anio_nuevo ?? date('Y')
                     ]
                 );
-                
+
                 // Asegurar pertenencia (simple)
-                if($vehiculo->cliente_id !== $cliente->id) {
+                if ($vehiculo->cliente_id !== $cliente->id) {
                     $vehiculo->update(['cliente_id' => $cliente->id]);
                 }
-                
-                $vehiculoId = $vehiculo->id;
 
+                $vehiculoId = $vehiculo->id;
             } else {
                 // CASO 2: Cliente Existente
                 // 2.1 check if creating NEW vehicle for existing client
                 if ($request->vehiculo_id === 'new_vehicle') {
-                     $request->validate([
+                    $request->validate([
                         'cliente_id' => 'required|exists:clientes,id',
                         'marca_nuevo' => 'required|string',
                         'fecha' => 'required|date',
@@ -226,7 +226,7 @@ class CitaController extends Controller
                     ]);
 
                     $clienteId = $request->cliente_id;
-                    
+
                     // Logic Identical to Case 1
                     $nombreMarca = trim(strtoupper($request->marca_nuevo));
                     $nombreModelo = $request->modelo_nuevo ? trim(strtoupper($request->modelo_nuevo)) : 'MODELO BASE';
@@ -234,7 +234,7 @@ class CitaController extends Controller
 
                     $marca = MarcaVehiculo::firstOrCreate(['nombre' => $nombreMarca]);
                     $modelo = ModeloVehiculo::firstOrCreate(['marca_id' => $marca->id, 'nombre' => $nombreModelo]);
-                    
+
                     $versionId = null;
                     if ($nombreVersion) {
                         $version = VersionVehiculo::firstOrCreate(
@@ -245,7 +245,7 @@ class CitaController extends Controller
 
                     $placaRaw = $request->placa_nuevo;
                     if (!$placaRaw) {
-                        $placa = 'S/P-' . time() . '-' . rand(100,999);
+                        $placa = 'S/P-' . time() . '-' . rand(100, 999);
                     } else {
                         $placa = strtoupper(str_replace([' ', '-'], '', $placaRaw));
                     }
@@ -263,10 +263,10 @@ class CitaController extends Controller
                     );
 
                     // Ensure ownership
-                    if($vehiculo->cliente_id != $clienteId) {
-                         // Optional: Handle if vehicle already exists but belongs to someone else?
-                         // For now, assuming standard logic or update owner
-                         $vehiculo->update(['cliente_id' => $clienteId]);
+                    if ($vehiculo->cliente_id != $clienteId) {
+                        // Optional: Handle if vehicle already exists but belongs to someone else?
+                        // For now, assuming standard logic or update owner
+                        $vehiculo->update(['cliente_id' => $clienteId]);
                     }
 
                     $vehiculoId = $vehiculo->id;
@@ -297,11 +297,10 @@ class CitaController extends Controller
                 'estado' => 'confirmada', // Admin
                 'notas_secretario' => 'Creada manualmente por panel'
             ]);
-            
+
             DB::commit();
 
             return response()->json(['success' => true, 'message' => 'Cita agendada correctamente', 'data' => $cita]);
-
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
@@ -311,14 +310,14 @@ class CitaController extends Controller
     public function update(Request $request, $id)
     {
         $cita = Cita::findOrFail($id);
-        
+
         // Acciones especiales
         if ($request->action === 'cambiar_estado') {
-             $cita->estado = $request->estado;
-             $cita->save();
-             return response()->json(['success' => true, 'message' => 'Estado actualizado']);
+            $cita->estado = $request->estado;
+            $cita->save();
+            return response()->json(['success' => true, 'message' => 'Estado actualizado']);
         }
-        
+
         // Editar normal
         $cita->update($request->all());
         return response()->json(['success' => true, 'message' => 'Cita actualizada']);
@@ -332,32 +331,71 @@ class CitaController extends Controller
     }
 
     // API Auxiliares para el Modal de Creación
-    public function searchClients(Request $request) {
+    public function searchClients(Request $request)
+    {
         $term = $request->term;
         $clientes = Cliente::where('nombre_completo', 'LIKE', "%$term%")
             ->orWhere('telefono', 'LIKE', "%$term%")
             ->orWhere('email', 'LIKE', "%$term%")
             ->take(10)
             ->get(['id', 'nombre_completo', 'telefono', 'email']);
-        
+
         return response()->json($clientes);
     }
 
-    public function getClientVehicles($clienteId) {
+    public function searchVehicles(Request $request)
+    {
+        $term = $request->term;
+        $vehiculos = Vehiculo::with(['cliente', 'marca', 'modelo', 'version'])
+            ->where('placa', 'LIKE', "%$term%")
+            ->take(5)
+            ->get();
+
+        $data = $vehiculos->map(function ($v) {
+            return [
+                'id' => $v->id,
+                'placa' => $v->placa,
+                'marca' => $v->marca?->nombre ?? '',
+                'modelo' => $v->modelo?->nombre ?? '',
+                'version' => $v->version?->nombre ?? '',
+                'color' => $v->color,
+                'anio' => $v->anio,
+                'cliente' => $v->cliente ? [
+                    'id' => $v->cliente->id,
+                    'nombre_completo' => $v->cliente->nombre_completo,
+                    'telefono' => $v->cliente->telefono,
+                    'email' => $v->cliente->email
+                ] : null,
+                'texto' => $v->placa . ' - ' . ($v->marca?->nombre ?? '') . ' ' . ($v->modelo?->nombre ?? '')
+            ];
+        });
+
+        return response()->json($data);
+    }
+
+    public function getClientVehicles($clienteId)
+    {
         $vehiculos = Vehiculo::where('cliente_id', $clienteId)
             ->with(['marca', 'modelo'])
             ->get();
-            
-        $data = $vehiculos->map(function($v) {
+
+        $data = $vehiculos->map(function ($v) {
             return [
                 'id' => $v->id,
+                'placa' => $v->placa,
+                'marca' => $v->marca?->nombre ?? '',
+                'modelo' => $v->modelo?->nombre ?? '',
+                'version' => $v->version?->nombre ?? '',
+                'color' => $v->color,
+                'anio' => $v->anio,
                 'texto' => ($v->marca?->nombre ?? '') . ' ' . ($v->modelo?->nombre ?? '') . ' - ' . $v->placa
             ];
         });
 
         return response()->json($data);
     }
-    public function getBrands() {
+    public function getBrands()
+    {
         return response()->json(MarcaVehiculo::orderBy('nombre')->get(['id', 'nombre']));
     }
 }
