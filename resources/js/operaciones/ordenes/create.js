@@ -642,24 +642,36 @@ document.addEventListener('DOMContentLoaded', function () {
                         const video = document.getElementById('cameraFeed');
                         video.srcObject = stream;
                     },
+                    preConfirm: () => {
+                        const video = document.getElementById('cameraFeed');
+                        const canvas = document.getElementById('snapshotCanvas');
+
+                        if (video.readyState >= 2) {
+                            const width = video.videoWidth || 640;
+                            const height = video.videoHeight || 480;
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(video, 0, 0, width, height);
+                            return canvas.toDataURL('image/jpeg', 0.9);
+                        } else {
+                            Swal.showValidationMessage('La cámara no está lista');
+                            return false;
+                        }
+                    },
                     willClose: () => {
                         stream.getTracks().forEach(track => track.stop());
                     }
                 }).then((result) => {
-                    if (result.isConfirmed) {
-                        const video = document.getElementById('cameraFeed');
-                        const canvas = document.getElementById('snapshotCanvas');
-                        canvas.width = video.videoWidth;
-                        canvas.height = video.videoHeight;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(video, 0, 0);
-
-                        canvas.toBlob((blob) => {
-                            const file = new File([blob], `capture_${Date.now()}.png`, { type: 'image/png' });
-                            handleFiles([file]);
-                            // Ask if want another photo
-                            setTimeout(() => openCameraModal(), 500);
-                        }, 'image/png');
+                    if (result.isConfirmed && result.value) {
+                        fetch(result.value)
+                            .then(res => res.blob())
+                            .then(blob => {
+                                const file = new File([blob], `capture_${Date.now()}.jpg`, { type: 'image/jpeg' });
+                                handleFiles([file]);
+                                // Reopen modal to take another photo
+                                setTimeout(() => openCameraModal(), 400);
+                            });
                     }
                 });
             } catch (err) {

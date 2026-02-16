@@ -8,8 +8,34 @@
     @csrf
 
     <!-- Header: Datos Generales (Card Similar a la Factura) -->
-    <!-- Header: Datos Generales (Diseño Moderno) -->
-    <!-- Header: Datos Generales (Diseño Moderno) -->
+    <!-- Floating Header Actions (Top Sticky) -->
+    <div class="sticky top-0 z-[60] -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 bg-white/90 backdrop-blur-md border-b border-blue-100 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4 mb-6 transition-all duration-300">
+        <div class="flex items-center gap-3 w-full sm:w-auto">
+            <div class="hidden sm:flex h-10 w-10 bg-blue-900 rounded-lg items-center justify-center text-white shadow-lg">
+                <i class="fas fa-file-invoice text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-extrabold text-blue-900 leading-none">Nueva Orden</h1>
+                <p class="text-[10px] text-gray-500 font-medium uppercase tracking-wider mt-1">Recepción de Vehículo</p>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
+            <button type="button" id="btnLimpiar" class="btn btn-ghost hover:bg-red-50 text-gray-400 hover:text-red-500 btn-xs sm:btn-sm flex gap-2">
+                <i class="fas fa-eraser"></i> <span class="hidden lg:inline">Limpiar</span>
+            </button>
+
+            <div class="flex gap-2">
+                <a href="{{ route('panel.operaciones.ordenes_trabajo.index') }}" class="btn btn-sm sm:btn-md bg-white hover:bg-gray-100 text-gray-500 font-bold px-4 sm:px-6 rounded-xl border-gray-200">
+                    Cancelar
+                </a>
+                <button type="submit" class="btn btn-sm sm:btn-md bg-blue-900 hover:bg-blue-800 text-white font-bold px-6 sm:px-10 rounded-xl shadow-lg border-none transform active:scale-95 transition-all">
+                    <i class="fas fa-save mr-2"></i> GENERAR ORDEN
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 pb-20 bg-gradient-to-br from-blue-900 to-slate-900 p-6 rounded-xl">
 
         <!-- Columna Izquierda: Datos (Cliente + Vehículo) -->
@@ -412,22 +438,6 @@
 
     </div>
 
-    <!-- Static Footer (moved from fixed to avoid covering content) -->
-    <div class="mt-8 bg-blue-50/50 border border-blue-100 p-4 rounded-xl shadow-sm flex justify-between items-center gap-4">
-        <div>
-            <button type="button" id="btnLimpiar" class="btn btn-ghost text-gray-500 hover:text-red-500 font-normal btn-sm">
-                <i class="fas fa-eraser mr-2"></i> Limpiar Formulario
-            </button>
-        </div>
-        <div class="flex gap-4">
-            <a href="{{ route('panel.operaciones.ordenes_trabajo.index') }}" class="btn bg-white hover:bg-gray-50 text-gray-600 font-bold px-6 rounded-xl border-gray-200">
-                Cancelar
-            </a>
-            <button type="submit" class="btn bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold px-8 rounded-xl shadow-lg transition-all transform hover:scale-105">
-                <i class="fas fa-check-circle mr-2"></i> Generar Orden
-            </button>
-        </div>
-    </div>
 </form>
 @endsection
 
