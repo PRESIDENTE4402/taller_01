@@ -465,16 +465,50 @@
                     <input type="hidden" name="danos_image" id="danosImageInput">
                 </div>
 
-                <div class="flex items-center justify-between">
-                    <button type="button" id="clearCanvas" class="btn btn-xs btn-ghost text-red-500 hover:bg-red-50 gap-2">
-                        <i class="fas fa-broom"></i> LIMPIAR MARCAS
-                    </button>
-                    <div class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter italic">
-                        <i class="fas fa-info-circle text-blue-600"></i> Clic para marcar daño
+                <div class="flex flex-col gap-2 relative z-20">
+                    <div class="flex items-center justify-between">
+                        <div class="flex gap-1">
+                            <button type="button" id="undoMark" class="btn btn-xs btn-outline border-blue-900 text-blue-900 hover:bg-blue-900 hover:text-white gap-1 tooltip tooltip-top" data-tip="Deshacer último">
+                                <i class="fas fa-undo"></i>
+                            </button>
+                            <button type="button" id="clearCanvas" class="btn btn-xs btn-ghost text-red-500 hover:bg-red-50 gap-2 font-black uppercase tracking-tighter">
+                                <i class="fas fa-broom"></i> LIMPIAR
+                            </button>
+                        </div>
+                        <div class="flex gap-1">
+                            <button type="button" id="btnDeleteDamagePhoto" class="btn btn-xs btn-ghost text-red-600 gap-1 tooltip tooltip-top font-black uppercase tracking-tighter" data-tip="Quitar Foto Actual">
+                                <i class="fas fa-times"></i>
+                            </button>
+                            <button type="button" id="addDamageToGallery" class="btn btn-xs bg-green-600 hover:bg-green-700 text-white border-none gap-1 font-black uppercase tracking-tighter shadow-lg">
+                                <i class="fas fa-plus"></i> AGREGAR DAÑO
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center mt-1">
+                        <div class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter italic">
+                            <i class="fas fa-info-circle text-blue-600"></i> Clic para marcar daño
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Damage Gallery (Multiple Photos) -->
+            <div class="mt-6 border-t border-gray-100 pt-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h4 class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Fotos de Daños Guardadas</h4>
+                    <div id="damageCountBadge" class="badge badge-outline border-gray-300 text-[10px] font-black">0 FOTOS</div>
+                </div>
+
+                <div id="previewDanosGrid" class="grid grid-cols-2 gap-3 min-h-[80px]">
+                    <!-- Damage cards will appear here -->
+                    <div id="emptyDanosMsg" class="col-span-2 flex flex-col items-center justify-center p-6 bg-gray-50 rounded-xl border-2 border-dashed border-gray-100 opacity-60">
+                        <i class="fas fa-images text-2xl text-gray-300 mb-2"></i>
+                        <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest">No hay fotos guardadas</span>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
     </div>
 
 </form>

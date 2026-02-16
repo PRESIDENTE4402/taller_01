@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     let selectedPhotos = [];
+    let selectedDamagePhotos = [];
 
     // --- Fuel Gauge Logic (Segmented) ---
     const fuelRange = document.getElementById('fuelRange');
@@ -104,21 +105,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const clearCanvasBtn = document.getElementById('clearCanvas');
     const danosImageInput = document.getElementById('danosImageInput');
 
-    // Default image if needed, or just transparent
-    // We use a transparent canvas over a background if needed, or just draw on canvas.
-    // The original code tried to load a car image.
-    const defaultImageSrc = "https://st3.depositphotos.com/1092008/13606/v/450/depositphotos_136061320-stock-illustration-car-sedan-top-view-icon.jpg";
-
     if (canvas && container) {
         const ctx = canvas.getContext('2d');
         let currentImage = new Image();
-        currentImage.crossOrigin = "anonymous";
-        currentImage.src = defaultImageSrc;
         let marks = [];
 
-        currentImage.onload = function () {
-            resizeCanvas();
-        };
+        // Call resize once on start
+        resizeCanvas();
+
 
         function resizeCanvas() {
             if (!container) return;
@@ -127,20 +121,23 @@ document.addEventListener('DOMContentLoaded', function () {
             redrawAll();
         }
 
+        function saveCanvas() {
+            if (danosImageInput) danosImageInput.value = canvas.toDataURL();
+        }
+
         function redrawAll() {
-            if (!currentImage.complete) return;
-
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (currentImage && currentImage.complete && currentImage.src) {
+                // Draw Image (Contain)
+                const hRatio = canvas.width / currentImage.width;
+                const vRatio = canvas.height / currentImage.height;
+                const ratio = Math.min(hRatio, vRatio);
+                const centerShift_x = (canvas.width - currentImage.width * ratio) / 2;
+                const centerShift_y = (canvas.height - currentImage.height * ratio) / 2;
 
-            // Draw Image (Contain)
-            const hRatio = canvas.width / currentImage.width;
-            const vRatio = canvas.height / currentImage.height;
-            const ratio = Math.min(hRatio, vRatio);
-            const centerShift_x = (canvas.width - currentImage.width * ratio) / 2;
-            const centerShift_y = (canvas.height - currentImage.height * ratio) / 2;
-
-            ctx.drawImage(currentImage, 0, 0, currentImage.width, currentImage.height,
-                centerShift_x, centerShift_y, currentImage.width * ratio, currentImage.height * ratio);
+                ctx.drawImage(currentImage, 0, 0, currentImage.width, currentImage.height,
+                    centerShift_x, centerShift_y, currentImage.width * ratio, currentImage.height * ratio);
+            }
 
             // Draw Marks
             marks.forEach(mark => {
@@ -192,11 +189,65 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
 
+        const undoMark = document.getElementById('undoMark');
+        if (undoMark) {
+            undoMark.addEventListener('click', () => {
+                marks.pop();
+                redrawAll();
+            });
+        }
+
+        const btnDeleteDamagePhoto = document.getElementById('btnDeleteDamagePhoto');
+        if (btnDeleteDamagePhoto) {
+            btnDeleteDamagePhoto.addEventListener('click', () => {
+                currentImage = new Image();
+                marks = [];
+                if (canvasPlaceholder) canvasPlaceholder.classList.remove('hidden');
+                if (imageUpload) imageUpload.value = '';
+                redrawAll();
+            });
+        }
+
         const canvasPlaceholder = document.getElementById('canvasPlaceholder');
 
-        function saveCanvas() {
-            if (danosImageInput) danosImageInput.value = canvas.toDataURL();
-        }
+        const btnAddDamage = document.getElementById('addDamageToGallery');
+        const previewDanosGrid = document.getElementById('previewDanosGrid');
+        const emptyDanosMsg = document.getElementById('emptyDanosMsg');
+        const damageCountBadge = document.getElementById('damageCountBadge');
+
+        window.renderDamagePhotos = function () {
+            if (!previewDanosGrid) return;
+            previewDanosGrid.querySelectorAll('.damage-card').forEach(el => el.remove());
+
+            if (selectedDamagePhotos.length === 0) {
+                if (emptyDanosMsg) emptyDanosMsg.classList.remove('hidden');
+                if (damageCountBadge) damageCountBadge.textContent = '0 FOTOS';
+            } else {
+                if (emptyDanosMsg) emptyDanosMsg.classList.add('hidden');
+                if (damageCountBadge) damageCountBadge.textContent = `${selectedDamagePhotos.length} FOTOS`;
+
+                selectedDamagePhotos.forEach(photo => {
+                    const card = document.createElement('div');
+                    card.className = "damage-card relative group bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-all flex flex-col h-40";
+                    card.innerHTML = `
+                        <div class="relative h-full w-full bg-gray-100 overflow-hidden cursor-pointer" onclick="viewPhoto('${photo.src}')">
+                            <img src="${photo.src}" class="w-full h-full object-cover">
+                            <div class="absolute top-1 right-1">
+                                <button type="button" onclick="event.stopPropagation(); removeDamagePhoto('${photo.id}')" class="btn btn-xs btn-circle btn-error text-white opacity-80 hover:opacity-100">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    previewDanosGrid.appendChild(card);
+                });
+            }
+        };
+
+        window.removeDamagePhoto = function (id) {
+            selectedDamagePhotos = selectedDamagePhotos.filter(p => p.id !== id);
+            renderDamagePhotos();
+        };
 
         function setDamageImage(src) {
             const img = new Image();
@@ -208,6 +259,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             img.src = src;
         }
+
         const btnDamageCamera = document.getElementById('btnDamageCamera');
         if (btnDamageCamera) {
             btnDamageCamera.addEventListener('click', () => {
@@ -218,7 +270,56 @@ document.addEventListener('DOMContentLoaded', function () {
                 }, false);
             });
         }
+
+        if (btnAddDamage) {
+            btnAddDamage.addEventListener('click', () => {
+                // Modified check: check if currentImage has a valid src
+                if (!currentImage.complete || !currentImage.src || currentImage.src === "" || currentImage.src.includes('blob:')) {
+                    // Blob check might be tricky, let's just check if it's drawn or if marks exist? 
+                    // Actually, if it's from camera it's a dataURL or blob.
+                }
+
+                // If marks is empty, maybe warn?
+                if (marks.length === 0) {
+                    Swal.fire({
+                        title: '¿Guardar sin marcas?',
+                        text: 'No ha marcado ningún daño en la foto.',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonText: 'Sí, guardar así',
+                        cancelButtonText: 'No, marcar daño'
+                    }).then((result) => {
+                        if (result.isConfirmed) saveToDamageGallery();
+                    });
+                } else {
+                    saveToDamageGallery();
+                }
+            });
+        }
+
+        function saveToDamageGallery() {
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+            const uniqueId = Date.now() + Math.random().toString(36).substr(2, 9);
+
+            selectedDamagePhotos.push({
+                id: uniqueId,
+                src: dataUrl
+            });
+
+            if (btnDeleteDamagePhoto) btnDeleteDamagePhoto.click();
+            renderDamagePhotos();
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Foto Guardada',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 1500
+            });
+        }
     }
+
 
     // --- Submit Handler ---
     const ordenForm = document.getElementById('ordenForm');
@@ -243,6 +344,14 @@ document.addEventListener('DOMContentLoaded', function () {
                         formData.append(`fotos_titulos[${index}]`, titleVal);
                     });
                 }
+
+                // --- Append Damage Gallery Photos ---
+                if (selectedDamagePhotos && selectedDamagePhotos.length > 0) {
+                    selectedDamagePhotos.forEach((photo, index) => {
+                        formData.append(`fotos_danos[${index}]`, photo.src);
+                    });
+                }
+
 
                 const response = await fetch(this.action, {
                     method: 'POST',
@@ -821,8 +930,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (walkInClienteId) walkInClienteId.value = '';
                     if (accionClienteInput) accionClienteInput.value = 'create';
 
-                    const clearCanvasBtn = document.getElementById('clearCanvas');
-                    if (clearCanvasBtn) clearCanvasBtn.click();
+                    const btnDeleteDamagePhoto = document.getElementById('btnDeleteDamagePhoto');
+                    if (btnDeleteDamagePhoto) btnDeleteDamagePhoto.click();
+
+                    selectedDamagePhotos = [];
+                    if (window.renderDamagePhotos) window.renderDamagePhotos();
 
                     if (fuelRange) {
                         fuelRange.value = 50;
