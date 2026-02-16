@@ -285,7 +285,7 @@
     @endif
 
     <!-- Fotos de Recepción -->
-    <div class="bg-white p-6 rounded-xl shadow-sm border border-blue-100/50">
+    <div class="bg-white p-8 rounded-2xl shadow-sm border border-blue-100/50">
         <h4 class="font-bold text-gray-700 border-b pb-2 mb-4 flex items-center justify-between">
             <span><i class="fas fa-camera text-blue-900 mr-2"></i>FOTOS DE RECEPCIÓN</span>
             <span class="text-xs font-normal text-gray-500 bg-gray-100 px-2 py-1 rounded">Mínimo sugerido: 4 fotos</span>
@@ -313,19 +313,19 @@
         </div>
 
         <!-- Grid -->
-        <div id="previewFotosGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 min-h-[200px]">
+        <div id="previewFotosGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 min-h-[300px]">
             <!-- Cards injected via JS -->
-            <div id="emptyPhotosMsg" class="col-span-full flex flex-col items-center justify-center text-gray-400 border-2 border-dashed border-blue-100 rounded-xl py-16 bg-blue-50/20">
-                <div class="text-6xl mb-4 text-blue-200"><i class="fas fa-images"></i></div>
-                <p class="text-lg font-medium text-blue-900/40">No hay fotos seleccionadas</p>
-                <p class="text-sm">Use los botones de arriba para capturar o subir imágenes</p>
+            <div id="emptyPhotosMsg" class="col-span-full flex flex-col items-center justify-center text-gray-400 border-2 border-dashed border-blue-100 rounded-2xl py-24 bg-blue-50/20">
+                <div class="text-7xl mb-4 text-blue-200"><i class="fas fa-images"></i></div>
+                <p class="text-xl font-bold text-blue-900/40 tracking-tight">Cero fotos seleccionadas</p>
+                <p class="text-sm font-medium mt-1">Capture o suba imágenes de los 4 ángulos del vehículo</p>
             </div>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 pb-12">
-        <!-- Left: Inventory Detailed (8 cols) -->
-        <div class="lg:col-span-8 space-y-6">
+    <div class="space-y-8 pb-12">
+        <!-- Main Form Sections -->
+        <div class="space-y-8">
             <!-- Inventory Checklist -->
             <div id="section-inventario" class="scroll-mt-24 bg-white p-6 rounded-2xl shadow-sm border border-blue-100 flex flex-col">
                 <div class="flex items-center justify-between border-b border-gray-100 pb-4 mb-6">
@@ -477,7 +477,7 @@
             </div>
 
             <!-- Falla Section -->
-            <div id="section-falla" class="scroll-mt-24 bg-gradient-to-br from-white to-blue-50/30 p-8 rounded-2xl shadow-sm border border-blue-100 flex flex-col gap-4">
+            <div id="section-falla" class="scroll-mt-32 bg-gradient-to-br from-white to-blue-50/30 p-8 rounded-2xl shadow-sm border border-blue-100 flex flex-col gap-4">
                 <div class="flex items-center gap-3">
                     <div class="h-10 w-10 bg-blue-900 rounded-xl flex items-center justify-center text-white shadow-xl">
                         <i class="fas fa-exclamation-triangle"></i>
@@ -489,87 +489,80 @@
                 </div>
                 <textarea name="falla_cliente" rows="4" class="w-full textarea textarea-bordered border-blue-200 focus:border-blue-900 text-lg font-bold text-blue-900 shadow-inner" placeholder="Escriba el motivo aquí..." required>{{ isset($cita) ? $cita->motivo_cita : '' }}</textarea>
             </div>
-        </div>
 
-        <!-- Right: Damage Report (4 cols) -->
-        <div id="section-danos" class="scroll-mt-32 lg:col-span-4 space-y-4 lg:sticky lg:top-24 h-fit">
-            <div class="bg-white p-6 rounded-2xl shadow-xl shadow-blue-900/5 border border-blue-100 flex flex-col">
+            <!-- Daños Section -->
+            <div id="section-danos" class="scroll-mt-32 bg-white p-8 rounded-2xl shadow-sm border border-blue-100 flex flex-col">
                 <div class="flex items-center justify-between mb-6">
                     <div>
-                        <h3 class="font-black text-blue-900 tracking-tight leading-none uppercase">Reporte de Daños</h3>
+                        <h3 class="font-black text-blue-900 tracking-tight leading-none uppercase flex items-center gap-2">
+                            <i class="fas fa-car-crash text-blue-600"></i> Reporte de Daños
+                        </h3>
                         <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1">Marque golpes o rayones (X)</p>
                     </div>
-                    <div class="badge badge-error gap-1 text-white text-[9px] font-bold py-3 px-3">
-                        <i class="fas fa-marker"></i> GOLPES
-                    </div>
                 </div>
 
-                <!-- Damage Controls -->
-                <div class="grid grid-cols-2 gap-2 mb-4">
-                    <button type="button" id="btnDamageCamera" class="btn btn-sm bg-blue-900 hover:bg-blue-800 text-white border-none shadow-md gap-2">
-                        <i class="fas fa-camera"></i> CAMARA
-                    </button>
-                    <label for="damageImageUpload" class="btn btn-sm btn-outline border-blue-900 text-blue-900 hover:bg-blue-900 hover:text-white gap-2">
-                        <i class="fas fa-cloud-upload-alt"></i> SUBIR
-                    </label>
-                    <input type="file" id="damageImageUpload" accept="image/*" class="hidden" />
-                </div>
-
-                <div class="relative w-full aspect-[4/3] bg-slate-100 rounded-xl border border-dashed border-slate-300 overflow-hidden group mb-4" id="canvasContainer">
-                    <!-- Overlay Instructions -->
-                    <div id="canvasPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 group-hover:text-blue-600 transition-colors pointer-events-none">
-                        <i class="fas fa-car-side text-5xl mb-3"></i>
-                        <span class="text-[10px] font-black uppercase tracking-widest">Tome foto o suba una</span>
-                    </div>
-
-                    <canvas id="damageCanvas" class="absolute inset-0 w-full h-full cursor-crosshair z-10"></canvas>
-                    <input type="hidden" name="danos_image" id="danosImageInput">
-                </div>
-
-                <div class="flex flex-col gap-2 relative z-20">
-                    <div class="flex items-center justify-between">
-                        <div class="flex gap-1">
-                            <button type="button" id="undoMark" class="btn btn-xs btn-outline border-blue-900 text-blue-900 hover:bg-blue-900 hover:text-white gap-1 tooltip tooltip-top" data-tip="Deshacer último">
-                                <i class="fas fa-undo"></i>
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                    <!-- Left: Canvas (Larger for precision) -->
+                    <div class="lg:col-span-8">
+                        <div class="grid grid-cols-2 gap-3 mb-4">
+                            <button type="button" id="btnDamageCamera" class="btn btn-sm bg-blue-900 hover:bg-blue-800 text-white border-none shadow-md gap-2 py-4 h-auto">
+                                <i class="fas fa-camera"></i> CAMARA DE DAÑOS
                             </button>
-                            <button type="button" id="clearCanvas" class="btn btn-xs btn-ghost text-red-500 hover:bg-red-50 gap-2 font-black uppercase tracking-tighter">
-                                <i class="fas fa-broom"></i> LIMPIAR
-                            </button>
+                            <label for="damageImageUpload" class="btn btn-sm btn-outline border-blue-900 text-blue-900 hover:bg-blue-900 hover:text-white gap-2 py-4 h-auto">
+                                <i class="fas fa-cloud-upload-alt"></i> SUBIR REPORTE
+                            </label>
+                            <input type="file" id="damageImageUpload" accept="image/*" class="hidden" />
                         </div>
-                        <div class="flex gap-1">
-                            <button type="button" id="btnDeleteDamagePhoto" class="btn btn-xs btn-ghost text-red-600 gap-1 tooltip tooltip-top font-black uppercase tracking-tighter" data-tip="Quitar Foto Actual">
-                                <i class="fas fa-times"></i>
-                            </button>
-                            <button type="button" id="addDamageToGallery" class="btn btn-xs bg-green-600 hover:bg-green-700 text-white border-none gap-1 font-black uppercase tracking-tighter shadow-lg">
-                                <i class="fas fa-plus"></i> AGREGAR DAÑO
-                            </button>
+
+                        <div class="relative w-full aspect-video bg-slate-100 rounded-2xl border-2 border-dashed border-slate-300 overflow-hidden group mb-6 shadow-inner" id="canvasContainer">
+                            <div id="canvasPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-300 group-hover:text-blue-500 transition-colors pointer-events-none">
+                                <i class="fas fa-car-side text-7xl mb-4 opacity-20"></i>
+                                <span class="text-xs font-black uppercase tracking-widest">Toque para marcar daños sobre la foto</span>
+                            </div>
+                            <canvas id="damageCanvas" class="absolute inset-0 w-full h-full cursor-crosshair z-10"></canvas>
+                            <input type="hidden" name="danos_image" id="danosImageInput">
                         </div>
-                    </div>
-                    <div class="flex justify-between items-center mt-1">
-                        <div class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter italic">
-                            <i class="fas fa-info-circle text-blue-600"></i> Clic para marcar daño
+
+                        <div class="flex flex-col gap-3 relative z-20 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                            <div class="flex items-center justify-between">
+                                <div class="flex gap-2">
+                                    <button type="button" id="undoMark" class="btn btn-sm btn-outline border-blue-900 text-blue-900 hover:bg-blue-900 hover:text-white gap-2 px-4 shadow-sm">
+                                        <i class="fas fa-undo"></i> DESHACER
+                                    </button>
+                                    <button type="button" id="clearCanvas" class="btn btn-sm btn-ghost text-red-500 hover:bg-red-50 gap-2 font-black uppercase tracking-tighter">
+                                        <i class="fas fa-broom"></i> LIMPIAR TODO
+                                    </button>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button type="button" id="btnDeleteDamagePhoto" class="btn btn-sm btn-ghost text-red-600 gap-2 font-black uppercase tracking-tighter" title="Eliminar foto actual">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                    <button type="button" id="addDamageToGallery" class="btn btn-sm bg-green-600 hover:bg-green-700 text-white border-none gap-2 px-6 font-black uppercase tracking-tighter shadow-lg transform hover:scale-105 active:scale-95 transition-all">
+                                        <i class="fas fa-plus-circle"></i> GUARDAR DAÑO
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- Damage Gallery (Multiple Photos) -->
-            <div class="mt-6 border-t border-gray-100 pt-6">
-                <div class="flex items-center justify-between mb-4">
-                    <h4 class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Fotos de Daños Guardadas</h4>
-                    <div id="damageCountBadge" class="badge badge-outline border-gray-300 text-[10px] font-black">0 FOTOS</div>
-                </div>
-
-                <div id="previewDanosGrid" class="grid grid-cols-2 gap-3 min-h-[80px]">
-                    <!-- Damage cards will appear here -->
-                    <div id="emptyDanosMsg" class="col-span-2 flex flex-col items-center justify-center p-6 bg-gray-50 rounded-xl border-2 border-dashed border-gray-100 opacity-60">
-                        <i class="fas fa-images text-2xl text-gray-300 mb-2"></i>
-                        <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest">No hay fotos guardadas</span>
+                    <!-- Right: Gallery (Compact beside canvas) -->
+                    <div class="lg:col-span-4 border-l border-gray-100 lg:pl-8">
+                        <div class="flex items-center justify-between mb-6">
+                            <h4 class="text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                <i class="fas fa-images text-blue-600"></i> Galería de Daños
+                            </h4>
+                            <div id="damageCountBadge" class="badge bg-blue-900 text-white border-none text-[10px] font-black px-3 py-3">0 FOTOS</div>
+                        </div>
+                        <div id="previewDanosGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 min-h-[300px]">
+                            <div id="emptyDanosMsg" class="col-span-full flex flex-col items-center justify-center p-12 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 opacity-60">
+                                <i class="fas fa-camera-retro text-4xl text-gray-300 mb-3"></i>
+                                <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Las fotos marcadas aparecerán aquí</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
     </div>
 
 </form>

@@ -945,11 +945,12 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     }
-    // --- Navigation Stepper Logic (Scroll Spy) ---
+    // --- Lógica del Navegador por Pasos (Scroll Spy) ---
     const stepNavs = document.querySelectorAll('.step-nav');
     const sections = ['section-datos', 'section-recepcion', 'section-inventario', 'section-falla', 'section-danos'];
 
-    // Smooth Scroll
+    // Desplazamiento Suave (Smooth Scroll)
+    // Escucha el clic en los iconos de navegación y hace scroll suave hasta la sección
     stepNavs.forEach(nav => {
         nav.addEventListener('click', function (e) {
             e.preventDefault();
@@ -961,27 +962,31 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Scroll Spy
+    // Configuración del Observador (Scroll Spy)
+    // Detecta automáticamente en qué sección se encuentra el usuario al hacer scroll
     const observerOptions = {
         root: null,
-        rootMargin: '-10% 0px -80% 0px', // Trigger when section is in the top 20%
+        rootMargin: '-10% 0px -80% 0px', // Define el área de activación (zona superior de la pantalla)
         threshold: 0
     };
 
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
+                // Obtiene el nombre del paso (ej: 'datos') eliminando el prefijo 'section-'
                 const step = entry.target.id.replace('section-', '');
                 updateStepper(step);
             }
         });
     }, observerOptions);
 
+    // Registra cada sección en el observador
     sections.forEach(id => {
         const el = document.getElementById(id);
         if (el) observer.observe(el);
     });
 
+    // Función para actualizar visualmente los iconos del stepper (activo vs inactivo)
     function updateStepper(activeStep) {
         stepNavs.forEach(nav => {
             const stepName = nav.getAttribute('data-step');
@@ -990,9 +995,11 @@ document.addEventListener('DOMContentLoaded', function () {
             const isActive = stepName === activeStep;
 
             if (isActive) {
+                // Estilo Activo: Azul Navy con relieve y escala aumentada
                 iconCircle.className = "w-8 h-8 rounded-full border-2 border-blue-900 flex items-center justify-center bg-blue-900 text-white transition-all scale-110 shadow-md shadow-blue-900/20";
                 label.className = "text-[9px] font-black uppercase text-blue-900 tracking-tighter";
             } else {
+                // Estilo Inactivo: Gris neutro y fondo blanco
                 iconCircle.className = "w-8 h-8 rounded-full border-2 border-gray-200 flex items-center justify-center bg-white text-gray-400 transition-all shadow-sm";
                 label.className = "text-[9px] font-black uppercase text-gray-400 tracking-tighter";
             }
