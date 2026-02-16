@@ -271,171 +271,210 @@
         </div>
 
         <!-- Grid -->
-        <div id="previewFotosGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 min-h-[120px]">
+        <div id="previewFotosGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 min-h-[200px]">
             <!-- Cards injected via JS -->
-            <div id="emptyPhotosMsg" class="col-span-full flex flex-col items-center justify-center text-gray-400 border-2 border-dashed border-gray-200 rounded-xl py-8 bg-gray-50/50">
-                <div class="text-4xl mb-2 text-gray-300"><i class="fas fa-images"></i></div>
-                <p class="text-sm">No hay fotos seleccionadas</p>
-                <p class="text-xs">Haga clic en "Agregar Foto" para comenzar</p>
+            <div id="emptyPhotosMsg" class="col-span-full flex flex-col items-center justify-center text-gray-400 border-2 border-dashed border-blue-100 rounded-xl py-16 bg-blue-50/20">
+                <div class="text-6xl mb-4 text-blue-200"><i class="fas fa-images"></i></div>
+                <p class="text-lg font-medium text-blue-900/40">No hay fotos seleccionadas</p>
+                <p class="text-sm">Use los botones de arriba para capturar o subir imágenes</p>
             </div>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        <!-- Left: Checklist Detailed -->
-        <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <h3 class="font-bold text-gray-800 mb-4 border-b pb-2">Inventario de Recepción</h3>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-sm">
-                <!-- Column 1 -->
-                <div>
-                    <!-- Documentos -->
-                    <div class="flex items-center justify-between py-2 border-b border-gray-100 group hover:bg-gray-50">
-                        <span class="text-gray-600">Documentos</span>
-                        <div class="flex gap-2">
-                            <label class="inline-flex items-center"><input type="checkbox" name="inv[documentos][original]" class="checkbox checkbox-xs rounded border-gray-400"> <span class="ml-1 text-xs">Or</span></label>
-                            <label class="inline-flex items-center"><input type="checkbox" name="inv[documentos][copia]" class="checkbox checkbox-xs rounded border-gray-400"> <span class="ml-1 text-xs">Co</span></label>
-                        </div>
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 pb-12">
+        <!-- Left: Inventory Detailed (8 cols) -->
+        <div class="lg:col-span-8 space-y-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-blue-100 flex flex-col">
+                <div class="flex items-center justify-between border-b border-gray-100 pb-4 mb-6">
+                    <div>
+                        <h3 class="font-black text-blue-900 flex items-center gap-2 tracking-tight">
+                            <i class="fas fa-tasks text-blue-600"></i> INVENTARIO DE RECEPCIÓN
+                        </h3>
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Estado físico y accesorios del vehículo</p>
                     </div>
-
-                    @php
-                    $simpleItems1 = [
-                    'encendedor' => 'Encendedor',
-                    'radio' => 'Radio/Frontal',
-                    'llavero' => 'Llavero',
-                    'control_alarma' => 'Control Alarma',
-                    'bateria' => 'Batería',
-                    'tricket' => 'Tricket (Gato)',
-                    'barilla' => 'Barilla',
-                    'llave_seguridad' => 'Llave Seguridad',
-                    'llave_chuchos' => 'Llave de Chuchos',
-                    ];
-                    @endphp
-
-                    @foreach($simpleItems1 as $key => $label)
-                    <div class="flex items-center justify-between py-2 border-b border-gray-100 hover:bg-gray-50">
-                        <span class="text-gray-600">{{ $label }}</span>
-                        <div class="flex gap-3">
-                            <label class="inline-flex items-center cursor-pointer">
-                                <input type="radio" name="inv[{{$key}}]" value="1" class="radio radio-xs radio-primary"> <span class="ml-1 text-xs">Si</span>
-                            </label>
-                            <label class="inline-flex items-center cursor-pointer">
-                                <input type="radio" name="inv[{{$key}}]" value="0" class="radio radio-xs bg-gray-200" checked> <span class="ml-1 text-xs">No</span>
-                            </label>
-                        </div>
-                    </div>
-                    @endforeach
                 </div>
 
-                <!-- Column 2 -->
-                <div>
-                    @php
-                    $simpleItems2 = [
-                    'llanta_repuesto' => 'Llanta Repuesto',
-                    'herramientas' => 'Herramientas',
-                    'extinguidor' => 'Extinguidor',
-                    'cables' => 'Cables Corriente',
-                    'antena' => 'Antena',
-                    'tapon_tanque' => 'Tapón Tanque',
-                    'chibola' => 'Chibola Palanca',
-                    'jalador' => 'Jalador',
-                    ];
-                    $qtyItems = [
-                    'tapones_ruedas' => 'Tapones Ruedas',
-                    'chuchos' => 'Chuchos (Tuercas)',
-                    'plumillas' => 'Plumillas',
-                    'alfombras' => 'Alfombras',
-                    'retrovisores' => 'Retrovisores',
-                    'triangulos' => 'Triangulos',
-                    'valvulas' => 'Válvulas',
-                    ]
-                    @endphp
-
-                    @foreach($simpleItems2 as $key => $label)
-                    <div class="flex items-center justify-between py-2 border-b border-gray-100 hover:bg-gray-50">
-                        <span class="text-gray-600">{{ $label }}</span>
-                        <div class="flex gap-3">
-                            <label class="inline-flex items-center cursor-pointer">
-                                <input type="radio" name="inv[{{$key}}]" value="1" class="radio radio-xs radio-primary"> <span class="ml-1 text-xs">Si</span>
-                            </label>
-                            <label class="inline-flex items-center cursor-pointer">
-                                <input type="radio" name="inv[{{$key}}]" value="0" class="radio radio-xs bg-gray-200" checked> <span class="ml-1 text-xs">No</span>
-                            </label>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-1">
+                    <!-- Section 1 -->
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2 mb-3 bg-blue-50 py-1 px-3 rounded-lg w-fit">
+                            <i class="fas fa-file-invoice text-blue-600 text-[10px]"></i>
+                            <span class="text-[10px] font-black text-blue-900 uppercase">Documentos y Accesorios</span>
                         </div>
-                    </div>
-                    @endforeach
 
-                    <!-- Quantity Items -->
-                    @foreach($qtyItems as $key => $label)
-                    <div class="flex items-center justify-between py-2 border-b border-gray-100 hover:bg-gray-50">
-                        <span class="text-gray-600">{{ $label }}</span>
-                        <div class="flex items-center gap-2">
-                            <label class="inline-flex items-center cursor-pointer">
-                                <input type="checkbox" name="inv[{{$key}}][check]" value="1" class="checkbox checkbox-xs rounded border-gray-400 toggle-qty" data-target="qty-{{$key}}">
-                                <span class="ml-1 text-xs">Si</span>
-                            </label>
-                            <input type="number" id="qty-{{$key}}" name="inv[{{$key}}][cant]" class="input input-xs input-bordered w-12 text-center hidden" placeholder="#">
+                        <!-- Documents Special -->
+                        <div class="flex items-center justify-between py-2.5 px-3 border-b border-gray-50 hover:bg-gray-50 transition-colors group">
+                            <span class="text-xs font-bold text-gray-600 group-hover:text-blue-900 transition-colors uppercase">Documentos</span>
+                            <div class="flex gap-4">
+                                <label class="flex items-center gap-2 cursor-pointer group/sub">
+                                    <input type="checkbox" name="inv[documentos][original]" class="checkbox checkbox-xs rounded border-gray-300 checkbox-primary">
+                                    <span class="text-[10px] font-black text-gray-400 group-hover/sub:text-blue-900 mt-0.5">ORIGINAL</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer group/sub">
+                                    <input type="checkbox" name="inv[documentos][copia]" class="checkbox checkbox-xs rounded border-gray-300 checkbox-primary">
+                                    <span class="text-[10px] font-black text-gray-400 group-hover/sub:text-blue-900 mt-0.5">COPIA</span>
+                                </label>
+                            </div>
                         </div>
-                    </div>
-                    @endforeach
 
-                    <!-- Tapiceria Special Case -->
-                    <div class="flex items-center justify-between py-2 border-b border-gray-100 hover:bg-gray-50">
-                        <span class="text-gray-600">Tapicería</span>
-                        <div class="flex gap-2">
-                            <label class="inline-flex items-center cursor-pointer" title="Mala">
-                                <input type="radio" name="inv[tapiceria]" value="M" class="radio radio-xs radio-error"> <span class="ml-1 text-xs">M</span>
-                            </label>
-                            <label class="inline-flex items-center cursor-pointer" title="Regular">
-                                <input type="radio" name="inv[tapiceria]" value="R" class="radio radio-xs radio-warning"> <span class="ml-1 text-xs">R</span>
-                            </label>
-                            <label class="inline-flex items-center cursor-pointer" title="Buena">
-                                <input type="radio" name="inv[tapiceria]" value="B" class="radio radio-xs radio-success" checked> <span class="ml-1 text-xs">B</span>
-                            </label>
+                        @php
+                        $items1 = [
+                        'encendedor' => 'Encendedor',
+                        'radio' => 'Radio / Frontal',
+                        'llavero' => 'Llavero',
+                        'control_alarma' => 'Control Alarma',
+                        'bateria' => 'Batería',
+                        'tricket' => 'Tricket (Gato)',
+                        'barilla' => 'Barilla de Gato',
+                        'llave_seguridad' => 'Llave Seguridad',
+                        'llave_chuchos' => 'Llave de Chuchos',
+                        ];
+                        @endphp
+
+                        @foreach($items1 as $key => $label)
+                        <div class="flex items-center justify-between py-2 px-3 border-b border-gray-50 hover:bg-gray-50 rounded-lg transition-colors group">
+                            <span class="text-xs font-bold text-gray-600 group-hover:text-blue-900 transition-colors uppercase">{{ $label }}</span>
+                            <div class="flex gap-1 bg-gray-100 p-1 rounded-lg">
+                                <label class="flex items-center justify-center p-1.5 cursor-pointer rounded-md transition-all has-[:checked]:bg-blue-900 has-[:checked]:text-white hover:bg-white border-none">
+                                    <input type="radio" name="inv[{{$key}}]" value="1" class="hidden">
+                                    <span class="text-[10px] font-black px-2">SÍ</span>
+                                </label>
+                                <label class="flex items-center justify-center p-1.5 cursor-pointer rounded-md transition-all has-[:checked]:bg-gray-400 has-[:checked]:text-white hover:bg-white border-none">
+                                    <input type="radio" name="inv[{{$key}}]" value="0" class="hidden" checked>
+                                    <span class="text-[10px] font-black px-2">NO</span>
+                                </label>
+                            </div>
                         </div>
+                        @endforeach
                     </div>
 
+                    <!-- Section 2 -->
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2 mb-3 bg-amber-50 py-1 px-3 rounded-lg w-fit">
+                            <i class="fas fa-tools text-amber-600 text-[10px]"></i>
+                            <span class="text-[10px] font-black text-amber-900 uppercase">Herramientas y Exterior</span>
+                        </div>
+
+                        @php
+                        $items2 = [
+                        'llanta_repuesto' => 'Llanta Repuesto',
+                        'herramientas' => 'Estuche Herram.',
+                        'extinguidor' => 'Extinguidor',
+                        'cables' => 'Cables Corriente',
+                        'antena' => 'Antena',
+                        'tapon_tanque' => 'Tapón Tanque',
+                        'chibola' => 'Chibola Palanca',
+                        ];
+                        $qtyItems = [
+                        'tapones_ruedas' => 'Tapones Ruedas',
+                        'chuchos' => 'Chuchos (Tuercas)',
+                        'plumillas' => 'Plumillas',
+                        'alfombras' => 'Alfombras',
+                        'retrovisores' => 'Retrovisores',
+                        'triangulos' => 'Triangulos',
+                        ]
+                        @endphp
+
+                        @foreach($items2 as $key => $label)
+                        <div class="flex items-center justify-between py-2 px-3 border-b border-gray-50 hover:bg-gray-50 rounded-lg transition-colors group">
+                            <span class="text-xs font-bold text-gray-600 group-hover:text-blue-900 transition-colors uppercase">{{ $label }}</span>
+                            <div class="flex gap-1 bg-gray-100 p-1 rounded-lg">
+                                <label class="flex items-center justify-center p-1.5 cursor-pointer rounded-md transition-all has-[:checked]:bg-blue-900 has-[:checked]:text-white hover:bg-white border-none">
+                                    <input type="radio" name="inv[{{$key}}]" value="1" class="hidden">
+                                    <span class="text-[10px] font-black px-2 text-center">SÍ</span>
+                                </label>
+                                <label class="flex items-center justify-center p-1.5 cursor-pointer rounded-md transition-all has-[:checked]:bg-gray-400 has-[:checked]:text-white hover:bg-white border-none">
+                                    <input type="radio" name="inv[{{$key}}]" value="0" class="hidden" checked>
+                                    <span class="text-[10px] font-black px-2 text-center">NO</span>
+                                </label>
+                            </div>
+                        </div>
+                        @endforeach
+
+                        @foreach($qtyItems as $key => $label)
+                        <div class="flex items-center justify-between py-3 px-3 border-b border-gray-50 hover:bg-gray-50 rounded-lg transition-colors group">
+                            <span class="text-xs font-bold text-gray-600 group-hover:text-amber-900 transition-colors uppercase">{{ $label }}</span>
+                            <div class="flex items-center gap-3">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" name="inv[{{$key}}][check]" value="1" class="checkbox checkbox-xs rounded border-gray-300 checkbox-warning toggle-qty" data-target="qty-{{$key}}">
+                                    <span class="text-[10px] font-black text-gray-400 mt-0.5">¿TRAE?</span>
+                                </label>
+                                <input type="number" id="qty-{{$key}}" name="inv[{{$key}}][cant]" class="input input-xs input-bordered w-12 text-center hidden font-black text-blue-900 border-amber-200 bg-amber-50" value="0">
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <!-- Observations -->
+                <div class="mt-8 bg-slate-50 p-5 rounded-2xl border border-dashed border-slate-200">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 mb-3">
+                        <i class="fas fa-comment-alt"></i> Observaciones de Inventario
+                    </label>
+                    <textarea name="inventario_observaciones" rows="2" class="w-full textarea textarea-sm bg-white border-slate-200 focus:border-blue-900 focus:outline-none text-gray-800 placeholder-slate-300 font-medium" placeholder="Escriba detalles como rayones en el tablero, tapicería manchada, etc."></textarea>
                 </div>
             </div>
 
-            <div class="mt-4">
-                <label class="font-bold text-gray-700 text-sm">Observaciones Generales</label>
-                <textarea name="descripcion" rows="3" class="w-full border-gray-300 rounded-lg focus:ring-blue-500 mt-1" placeholder="Ej: Cliente no deja llave de chuchos. Trae golpe en puerta derecha..."></textarea>
-            </div>
-
-            <div class="mt-4">
-                <label class="font-bold text-gray-700 text-sm">Falla / Servicio Solicitado</label>
-                <textarea name="falla_cliente" rows="3" class="w-full textarea textarea-bordered focus:border-blue-500 mt-1 bg-yellow-50 text-gray-900" placeholder="Describa el trabajo a realizar..." required>{{ isset($cita) ? $cita->motivo_cita : '' }}</textarea>
+            <!-- Falla Section -->
+            <div class="bg-gradient-to-br from-white to-blue-50/30 p-8 rounded-2xl shadow-sm border border-blue-100 flex flex-col gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="h-10 w-10 bg-blue-900 rounded-xl flex items-center justify-center text-white shadow-xl">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-black text-blue-900 leading-none">FALLA O MOTIVO DE INGRESO</h3>
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Describa detalladamente el servicio solicitado</p>
+                    </div>
+                </div>
+                <textarea name="falla_cliente" rows="4" class="w-full textarea textarea-bordered border-blue-200 focus:border-blue-900 text-lg font-bold text-blue-900 shadow-inner" placeholder="Escriba el motivo aquí..." required>{{ isset($cita) ? $cita->motivo_cita : '' }}</textarea>
             </div>
         </div>
 
-        <!-- Right: Damage Canvas -->
-        <div class="lg:col-span-1 space-y-4 lg:sticky lg:top-24 h-fit">
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col">
-                <h3 class="font-bold text-gray-800 mb-2 border-b pb-2">Daños Reportados</h3>
-                <div class="mb-2">
-                    <label class="block text-xs text-gray-500 mb-1">1. Subir Foto del Vehículo (Opcional)</label>
-                    <input type="file" id="damageImageUpload" accept="image/*" class="file-input file-input-bordered file-input-xs w-full max-w-xs" />
+        <!-- Right: Damage Report (4 cols) -->
+        <div class="lg:col-span-4 space-y-4 lg:sticky lg:top-24 h-fit">
+            <div class="bg-white p-6 rounded-2xl shadow-xl shadow-blue-900/5 border border-blue-100 flex flex-col">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h3 class="font-black text-blue-900 tracking-tight leading-none uppercase">Reporte de Daños</h3>
+                        <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1">Marque golpes o rayones (X)</p>
+                    </div>
+                    <div class="badge badge-error gap-1 text-white text-[9px] font-bold py-3 px-3">
+                        <i class="fas fa-marker"></i> GOLPES
+                    </div>
                 </div>
-                <p class="text-xs text-gray-500 mb-2">2. Haga clic en la imagen para marcar daños (X).</p>
 
-                <div class="relative flex-grow flex items-center justify-center bg-gray-50 border rounded-lg overflow-hidden" id="canvasContainer">
-                    <!-- Placeholder Car Image - You would replace this with your actual image path -->
-                    <!-- Drawing Canvas Overlay -->
-                    <canvas id="damageCanvas" class="absolute top-0 left-0 w-full h-full cursor-crosshair z-10"></canvas>
-                    <!-- Background Image -->
-                    <!-- Background Image (Removed static img, handled by Canvas now) -->
-                    <!-- <img src="..." ...> Removed to allow dynamic canvas background -->
+                <!-- Damage Controls -->
+                <div class="grid grid-cols-2 gap-2 mb-4">
+                    <button type="button" id="btnDamageCamera" class="btn btn-sm bg-blue-900 hover:bg-blue-800 text-white border-none shadow-md gap-2">
+                        <i class="fas fa-camera"></i> CAMARA
+                    </button>
+                    <label for="damageImageUpload" class="btn btn-sm btn-outline border-blue-900 text-blue-900 hover:bg-blue-900 hover:text-white gap-2">
+                        <i class="fas fa-cloud-upload-alt"></i> SUBIR
+                    </label>
+                    <input type="file" id="damageImageUpload" accept="image/*" class="hidden" />
+                </div>
+
+                <div class="relative w-full aspect-[4/3] bg-slate-100 rounded-xl border border-dashed border-slate-300 overflow-hidden group mb-4" id="canvasContainer">
+                    <!-- Overlay Instructions -->
+                    <div id="canvasPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 group-hover:text-blue-600 transition-colors pointer-events-none">
+                        <i class="fas fa-car-side text-5xl mb-3"></i>
+                        <span class="text-[10px] font-black uppercase tracking-widest">Tome foto o suba una</span>
+                    </div>
+
+                    <canvas id="damageCanvas" class="absolute inset-0 w-full h-full cursor-crosshair z-10"></canvas>
                     <input type="hidden" name="danos_image" id="danosImageInput">
                 </div>
-                <div class="flex justify-between mt-2">
-                    <button type="button" id="clearCanvas" class="btn btn-xs btn-outline btn-error">Limpiar</button>
-                    <span class="text-xs text-gray-400">Clic para marcar daño</span>
+
+                <div class="flex items-center justify-between">
+                    <button type="button" id="clearCanvas" class="btn btn-xs btn-ghost text-red-500 hover:bg-red-50 gap-2">
+                        <i class="fas fa-broom"></i> LIMPIAR MARCAS
+                    </button>
+                    <div class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter italic">
+                        <i class="fas fa-info-circle text-blue-600"></i> Clic para marcar daño
+                    </div>
                 </div>
             </div>
         </div>
-
     </div>
 
 </form>

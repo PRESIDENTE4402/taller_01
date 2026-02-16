@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
+    let selectedPhotos = [];
 
     // --- Fuel Gauge Logic (Segmented) ---
     const fuelRange = document.getElementById('fuelRange');
@@ -166,13 +167,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (this.files && this.files[0]) {
                     const reader = new FileReader();
                     reader.onload = function (evt) {
-                        const img = new Image();
-                        img.onload = function () {
-                            currentImage = img;
-                            marks = [];
-                            redrawAll();
-                        }
-                        img.src = evt.target.result;
+                        setDamageImage(evt.target.result);
                     };
                     reader.readAsDataURL(this.files[0]);
                 }
@@ -197,8 +192,31 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
 
+        const canvasPlaceholder = document.getElementById('canvasPlaceholder');
+
         function saveCanvas() {
             if (danosImageInput) danosImageInput.value = canvas.toDataURL();
+        }
+
+        function setDamageImage(src) {
+            const img = new Image();
+            img.onload = function () {
+                currentImage = img;
+                marks = [];
+                if (canvasPlaceholder) canvasPlaceholder.classList.add('hidden');
+                redrawAll();
+            }
+            img.src = src;
+        }
+        const btnDamageCamera = document.getElementById('btnDamageCamera');
+        if (btnDamageCamera) {
+            btnDamageCamera.addEventListener('click', () => {
+                openCameraModal((file) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => setDamageImage(e.target.result);
+                    reader.readAsDataURL(file);
+                }, false);
+            });
         }
     }
 
@@ -217,14 +235,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 const formData = new FormData(this);
 
                 // --- Append Manual Photos ---
-                // Remove existing inputs if any (clean start)
-                formData.delete('fotos_recepcion[]');
-                formData.delete('fotos_titulos[]'); // Just in case
-
                 if (typeof selectedPhotos !== 'undefined' && selectedPhotos.length > 0) {
                     selectedPhotos.forEach((photoObj, index) => {
                         formData.append(`fotos_recepcion[${index}]`, photoObj.file);
-                        // Get the current title value from the DOM input
                         const titleInput = document.getElementById(`title-${photoObj.id}`);
                         const titleVal = titleInput ? titleInput.value : photoObj.title;
                         formData.append(`fotos_titulos[${index}]`, titleVal);
@@ -596,111 +609,114 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // --- Advanced Photo Logic ---
+    // --- PC Camera API Modal (Generic) ---
+    async function openCameraModal(onCapture, autoReopen = true) {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+
+            Swal.fire({
+                title: 'Capturar Fotografía',
+                html: `
+                    <div class="relative rounded-lg overflow-hidden bg-black aspect-video flex items-center justify-center">
+                        <video id="cameraFeed" autoplay playsinline class="w-full h-full object-cover"></video>
+                        <canvas id="snapshotCanvas" class="hidden"></canvas>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: '<i class="fas fa-camera mr-2"></i> Capturar',
+                cancelButtonText: 'Cerrar',
+                buttonsStyling: false,
+                customClass: {
+                    confirmButton: 'btn bg-blue-900 border-blue-900 text-white px-8 mx-2',
+                    cancelButton: 'btn btn-ghost mx-2'
+                },
+                didOpen: () => {
+                    const video = document.getElementById('cameraFeed');
+                    if (video) video.srcObject = stream;
+                },
+                preConfirm: () => {
+                    const video = document.getElementById('cameraFeed');
+                    const canvas = document.getElementById('snapshotCanvas');
+
+                    if (video && video.readyState >= 2) {
+                        const width = video.videoWidth || 640;
+                        const height = video.videoHeight || 480;
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(video, 0, 0, width, height);
+                        return canvas.toDataURL('image/jpeg', 0.9);
+                    } else {
+                        Swal.showValidationMessage('La cámara no está lista');
+                        return false;
+                    }
+                },
+                willClose: () => {
+                    stream.getTracks().forEach(track => track.stop());
+                }
+            }).then((result) => {
+                if (result.isConfirmed && result.value) {
+                    fetch(result.value)
+                        .then(res => res.blob())
+                        .then(blob => {
+                            const file = new File([blob], `capture_${Date.now()}.jpg`, { type: 'image/jpeg' });
+                            if (onCapture) onCapture(file);
+
+                            if (autoReopen) {
+                                setTimeout(() => openCameraModal(onCapture, autoReopen), 400);
+                            }
+                        });
+                }
+            });
+        } catch (err) {
+            console.error("Camera error:", err);
+            Swal.fire('Error', 'No se pudo acceder a la cámara.', 'error');
+        }
+    }
+
+    // --- Photo Selection Handler ---
+    function handleFiles(files) {
+        if (files && files.length > 0) {
+            Array.from(files).forEach(file => {
+                if (!file.type.startsWith('image/')) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const uniqueId = Date.now() + Math.random().toString(36).substr(2, 9);
+                    selectedPhotos.push({
+                        id: uniqueId,
+                        file: file,
+                        src: e.target.result,
+                        title: ''
+                    });
+                    renderPhotos();
+                };
+                reader.readAsDataURL(file);
+            });
+            const inputGallery = document.getElementById('inputGallery');
+            if (inputGallery) inputGallery.value = '';
+        }
+    }
+
+    // --- Advanced Photo Logic (Reception Gallery) ---
     const btnCamera = document.getElementById('btnCamera');
     const btnGallery = document.getElementById('btnGallery');
     const inputGallery = document.getElementById('inputGallery');
     const previewGrid = document.getElementById('previewFotosGrid');
     const emptyMsg = document.getElementById('emptyPhotosMsg');
 
-    let selectedPhotos = [];
-
     if (previewGrid) {
 
         // 1. Trigger Inputs
         if (btnCamera) {
-            btnCamera.addEventListener('click', () => openCameraModal());
+            btnCamera.addEventListener('click', () => {
+                openCameraModal((file) => handleFiles([file]), true); // true = auto-reopen for multi-photo
+            });
         }
 
         if (btnGallery && inputGallery) {
             btnGallery.addEventListener('click', () => inputGallery.click());
             inputGallery.addEventListener('change', (e) => handleFiles(e.target.files));
-        }
-
-        // 2. PC Camera API Modal
-        async function openCameraModal() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-
-                Swal.fire({
-                    title: 'Capturar Fotografía',
-                    html: `
-                        <div class="relative rounded-lg overflow-hidden bg-black aspect-video flex items-center justify-center">
-                            <video id="cameraFeed" autoplay playsinline class="w-full h-full object-cover"></video>
-                            <canvas id="snapshotCanvas" class="hidden"></canvas>
-                        </div>
-                    `,
-                    showCancelButton: true,
-                    confirmButtonText: '<i class="fas fa-camera mr-2"></i> Capturar',
-                    cancelButtonText: 'Cerrar',
-                    buttonsStyling: false,
-                    customClass: {
-                        confirmButton: 'btn bg-blue-900 border-blue-900 text-white px-8 mx-2',
-                        cancelButton: 'btn btn-ghost mx-2'
-                    },
-                    didOpen: () => {
-                        const video = document.getElementById('cameraFeed');
-                        video.srcObject = stream;
-                    },
-                    preConfirm: () => {
-                        const video = document.getElementById('cameraFeed');
-                        const canvas = document.getElementById('snapshotCanvas');
-
-                        if (video.readyState >= 2) {
-                            const width = video.videoWidth || 640;
-                            const height = video.videoHeight || 480;
-                            canvas.width = width;
-                            canvas.height = height;
-                            const ctx = canvas.getContext('2d');
-                            ctx.drawImage(video, 0, 0, width, height);
-                            return canvas.toDataURL('image/jpeg', 0.9);
-                        } else {
-                            Swal.showValidationMessage('La cámara no está lista');
-                            return false;
-                        }
-                    },
-                    willClose: () => {
-                        stream.getTracks().forEach(track => track.stop());
-                    }
-                }).then((result) => {
-                    if (result.isConfirmed && result.value) {
-                        fetch(result.value)
-                            .then(res => res.blob())
-                            .then(blob => {
-                                const file = new File([blob], `capture_${Date.now()}.jpg`, { type: 'image/jpeg' });
-                                handleFiles([file]);
-                                // Reopen modal to take another photo
-                                setTimeout(() => openCameraModal(), 400);
-                            });
-                    }
-                });
-            } catch (err) {
-                console.error("Camera error:", err);
-                Swal.fire('Error', 'No se pudo acceder a la cámara. Verifique los permisos o use la galería.', 'error');
-            }
-        }
-
-        // 3. Handle Selection (Common)
-        function handleFiles(files) {
-            if (files && files.length > 0) {
-                Array.from(files).forEach(file => {
-                    if (!file.type.startsWith('image/')) return;
-
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const uniqueId = Date.now() + Math.random().toString(36).substr(2, 9);
-                        selectedPhotos.push({
-                            id: uniqueId,
-                            file: file,
-                            src: e.target.result,
-                            title: ''
-                        });
-                        renderPhotos();
-                    };
-                    reader.readAsDataURL(file);
-                });
-                if (inputGallery) inputGallery.value = '';
-            }
         }
 
         // 3. Render Function
@@ -713,27 +729,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (selectedPhotos.length === 0) {
                 if (emptyMsg) emptyMsg.classList.remove('hidden');
-                previewGrid.classList.remove('grid-cols-2', 'md:grid-cols-3'); // logic handled by css grid
+                // logic handled by css grid
             } else {
                 if (emptyMsg) emptyMsg.classList.add('hidden');
 
                 selectedPhotos.forEach(photo => {
                     const card = document.createElement('div');
-                    card.className = "photo-card relative group bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-all flex flex-col";
+                    card.className = "photo-card relative group bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all flex flex-col transform hover:-translate-y-1";
                     card.innerHTML = `
-                        <div class="relative h-32 w-full bg-gray-100 overflow-hidden cursor-pointer" onclick="viewPhoto('${photo.src}')">
-                            <img src="${photo.src}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                        <div class="relative h-48 sm:h-64 w-full bg-gray-100 overflow-hidden cursor-pointer" onclick="viewPhoto('${photo.src}')">
+                            <img src="${photo.src}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
                             <!-- Overlay Actions -->
-                            <div class="absolute top-1 right-1 flex gap-1">
-                                <button type="button" onclick="event.stopPropagation(); removePhoto('${photo.id}')" class="btn btn-xs btn-circle btn-error text-white shadow-sm opacity-90 hover:opacity-100">
+                            <div class="absolute top-2 right-2 flex gap-1">
+                                <button type="button" onclick="event.stopPropagation(); removePhoto('${photo.id}')" class="btn btn-sm btn-circle btn-error text-white shadow-lg opacity-90 hover:opacity-100">
                                     <i class="fas fa-times"></i>
                                 </button>
                             </div>
                         </div>
-                        <div class="p-2 border-t border-gray-100 bg-gray-50">
+                        <div class="p-3 border-t border-gray-100 bg-white">
                             <input type="text" id="title-${photo.id}" 
-                                class="input input-xs w-full input-bordered focus:input-primary text-center font-bold text-gray-600 placeholder-gray-400" 
-                                placeholder="Título (Ej: Frente)" 
+                                class="input input-sm w-full input-bordered focus:input-primary text-center font-bold text-gray-700 placeholder-gray-400 bg-gray-50 border-gray-200" 
+                                placeholder="Descripción (Ej: Frente)" 
                                 value="${photo.title}"
                                 oninput="updatePhotoTitle('${photo.id}', this.value)"
                             >
@@ -762,9 +778,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 showConfirmButton: false,
                 showCloseButton: true,
                 background: 'transparent',
-                backdrop: 'rgba(0,0,0,0.8)',
+                backdrop: 'rgba(0,0,0,0.92)', // Darker background for focus
+                width: '95%', // Take most of the width
+                padding: '0',
+                showClass: {
+                    popup: 'animate__animated animate__zoomIn animate__faster'
+                },
+                hideClass: {
+                    popup: 'animate__animated animate__zoomOut animate__faster'
+                },
                 customClass: {
-                    popup: 'no-padding-swal'
+                    popup: 'bg-transparent shadow-none border-none',
+                    image: 'rounded-xl shadow-2xl max-h-[90vh] object-contain' // Big image, keeps aspect ratio
                 }
             });
         };
@@ -776,9 +801,9 @@ document.addEventListener('DOMContentLoaded', function () {
             Swal.fire({
                 title: '¿Limpiar Formulario?',
                 html: `<div class="p-2 text-center">
-                    <i class="fas fa-trash-alt text-4xl text-red-500 mb-2"></i>
-                    <p>Se borrarán todos los datos ingresados en el formulario.</p>
-                </div>`,
+                <i class="fas fa-trash-alt text-4xl text-red-500 mb-2"></i>
+                <p>Se borrarán todos los datos ingresados en el formulario.</p>
+            </div>`,
                 showCancelButton: true,
                 confirmButtonText: 'Sí, limpiar todo',
                 cancelButtonText: 'Cancelar',
@@ -789,46 +814,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Reset Form
                     if (ordenForm) ordenForm.reset();
+                    selectedPhotos = [];
+                    if (window.renderPhotos) window.renderPhotos();
 
-                    // Reset Photos
-                    if (typeof selectedPhotos !== 'undefined') {
-                        selectedPhotos = [];
-                        renderPhotos();
-                    }
-
-                    // Reset Custom Inputs
                     if (walkInClienteId) walkInClienteId.value = '';
                     if (accionClienteInput) accionClienteInput.value = 'create';
-                    if (listClientes) listClientes.innerHTML = '';
-                    if (listVehiculos) listVehiculos.innerHTML = '';
 
-                    // Reset Canvas
-                    if (typeof marks !== 'undefined') {
-                        marks = [];
-                        // We need to call redrawAll, but it's inside the scope. 
-                        // We can trigger a change event or just clear the canvas manually if needed, 
-                        // but ideally we should expose the function or trigger the clear btn click.
-                        const clearCanvasBtn = document.getElementById('clearCanvas');
-                        if (clearCanvasBtn) clearCanvasBtn.click();
-                    }
-                    if (danosImageInput) danosImageInput.value = '';
+                    const clearCanvasBtn = document.getElementById('clearCanvas');
+                    if (clearCanvasBtn) clearCanvasBtn.click();
 
-                    // Reset Fuel Gauge
                     if (fuelRange) {
                         fuelRange.value = 50;
                         updateFuel(50);
                     }
-
-                    // Reset Preview Photos
-                    if (previewContainer) previewContainer.innerHTML = '';
-
-                    // Reset Style Classes
-                    document.querySelectorAll('.input-primary, .text-blue-700, .bg-blue-50').forEach(el => {
-                        el.classList.remove('input-primary', 'text-blue-700', 'bg-blue-50');
-                    });
-
                     Swal.fire('Limpio', 'El formulario ha sido reiniciado.', 'success');
                 }
             });
