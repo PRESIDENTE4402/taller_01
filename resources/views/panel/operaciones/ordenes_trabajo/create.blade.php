@@ -8,161 +8,202 @@
     @csrf
 
     <!-- Header: Datos Generales (Card Similar a la Factura) -->
-    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
-            <!-- Cliente -->
-            <div class="lg:col-span-2 border p-3 rounded-lg bg-gray-50">
-                <h4 class="font-bold text-gray-700 border-b pb-1 mb-2">DATOS DEL CLIENTE</h4>
-                @if(isset($cliente))
-                <!-- Smart Edit Controls Client -->
-                <div class="mb-3 bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm">
-                    <p class="font-bold text-amber-800 mb-1"><i class="fas fa-user-edit mr-1"></i> Cliente Pre-cargado</p>
-                    <div class="flex flex-col sm:flex-row gap-4">
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" name="accion_cliente" value="update" checked class="radio radio-xs radio-warning">
-                            <span>Actualizar (Corregir)</span>
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" name="accion_cliente" value="create" class="radio radio-xs radio-warning">
-                            <span>Nuevo (Otro)</span>
-                        </label>
-                    </div>
-                </div>
+    <!-- Header: Datos Generales (Diseño Moderno) -->
+    <!-- Header: Datos Generales (Diseño Moderno) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 pb-20 bg-gradient-to-br from-blue-900 to-slate-900 p-6 rounded-xl">
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500">Nombre Completo</label>
-                        <input type="text" name="new_cliente[nombre]" value="{{ $cliente->nombre_completo }}" class="input input-sm input-bordered w-full uppercase" required oninput="this.value = this.value.toUpperCase()">
+        <!-- Columna Izquierda: Datos (Cliente + Vehículo) -->
+        <div class="lg:col-span-8 space-y-6">
+            <!-- Cliente Card -->
+            <div class="card bg-white shadow-lg shadow-blue-900/10 border border-blue-900/20">
+                <div class="card-body p-5">
+                    <h2 class="card-title text-sm font-bold text-gray-500 border-b pb-2 mb-4">
+                        <i class="fas fa-user-circle text-blue-900"></i> DATOS DEL CLIENTE
+                    </h2>
+
+                    @if(isset($cliente))
+                    <!-- Smart Edit Controls Client -->
+                    <div class="alert alert-warning shadow-sm mb-4 p-3 text-sm">
+                        <i class="fas fa-info-circle"></i>
+                        <div class="flex flex-col sm:flex-row gap-4 w-full justify-between items-center">
+                            <span class="font-bold">Cliente Pre-cargado</span>
+                            <div class="flex gap-4">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="accion_cliente" value="update" checked class="radio radio-xs radio-primary">
+                                    <span>Actualizar Datos</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="accion_cliente" value="create" class="radio radio-xs radio-primary">
+                                    <span>Nuevo Cliente</span>
+                                </label>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500">Teléfono</label>
-                        <input type="text" name="new_cliente[telefono]" value="{{ $cliente->telefono }}" class="input input-sm input-bordered w-full" required>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control w-full">
+                            <label class="label"><span class="label-text font-bold text-blue-900">Nombre Completo</span></label>
+                            <input type="text" name="new_cliente[nombre]" value="{{ $cliente->nombre_completo }}" class="input input-sm input-bordered border-yellow-400 w-full uppercase focus:ring-2 focus:ring-blue-900 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300" required oninput="this.value = this.value.toUpperCase()">
+                        </div>
+                        <div class="form-control w-full">
+                            <label class="label"><span class="label-text font-bold text-blue-900">Teléfono</span></label>
+                            <input type="text" name="new_cliente[telefono]" value="{{ $cliente->telefono }}" class="input input-sm input-bordered border-yellow-400 w-full focus:ring-2 focus:ring-blue-900 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300" required>
+                        </div>
+                        <div class="form-control w-full md:col-span-2">
+                            <label class="label"><span class="label-text font-bold text-blue-900">Email</span></label>
+                            <input type="email" name="new_cliente[email]" value="{{ $cliente->email }}" class="input input-sm input-bordered border-yellow-400 w-full focus:ring-2 focus:ring-blue-900 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
+                        </div>
+                        <input type="hidden" name="cliente_id" value="{{ $cliente->id }}">
                     </div>
-                    <div class="md:col-span-2">
-                        <label class="block text-xs font-bold text-gray-500">Email</label>
-                        <input type="email" name="new_cliente[email]" value="{{ $cliente->email }}" class="input input-sm input-bordered w-full">
-                    </div>
-                    <input type="hidden" name="cliente_id" value="{{ $cliente->id }}">
-                </div>
-                @else
-                <!-- Walk-in Inputs -->
-                <div class="space-y-3 relative">
+                    @else
+                    <!-- Walk-in Inputs -->
                     <input type="hidden" name="cliente_id" id="walkInClienteId">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div class="relative">
-                            <label class="block text-xs font-bold text-gray-500">Nombre Completo</label>
-                            <input type="text" name="new_cliente[nombre]" id="inputClienteNombre" class="input input-sm input-bordered w-full uppercase" placeholder="BUSCAR O INGRESAR NOMBRE" required autocomplete="off" oninput="this.value = this.value.toUpperCase()">
-                            <ul id="listClientes" class="absolute z-50 bg-white border border-gray-200 w-full rounded-md shadow-lg max-h-48 overflow-y-auto hidden"></ul>
+                    <input type="hidden" name="accion_cliente" id="accionClienteInput" value="create">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 relative">
+                        <div class="form-control w-full">
+                            <label class="label"><span class="label-text font-bold text-blue-900">Nombre (Buscar/Nuevo)</span></label>
+                            <div class="relative">
+                                <input type="text" name="new_cliente[nombre]" id="inputClienteNombre" class="input input-sm input-bordered border-yellow-400 w-full uppercase focus:ring-2 focus:ring-blue-900 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300" placeholder="Escriba para buscar..." required autocomplete="off" oninput="this.value = this.value.toUpperCase()">
+                                <ul id="listClientes" class="absolute z-50 bg-white border border-gray-200 w-full rounded-md shadow-xl max-h-48 overflow-y-auto hidden top-full mt-1"></ul>
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500">Teléfono</label>
-                            <input type="text" name="new_cliente[telefono]" id="inputClienteTelefono" class="input input-sm input-bordered w-full" placeholder="5555-5555" required>
+                        <div class="form-control w-full">
+                            <label class="label"><span class="label-text font-bold text-blue-900">Teléfono</span></label>
+                            <input type="text" name="new_cliente[telefono]" id="inputClienteTelefono" class="input input-sm input-bordered border-yellow-400 w-full focus:ring-2 focus:ring-blue-900 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300" placeholder="Ej: 5555-5555" required>
+                        </div>
+                        <div class="form-control w-full">
+                            <label class="label"><span class="label-text font-bold text-blue-900">Email (Opcional)</span></label>
+                            <input type="email" name="new_cliente[email]" id="inputClienteEmail" class="input input-sm input-bordered border-yellow-400 w-full focus:ring-2 focus:ring-blue-900 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300" placeholder="cliente@email.com">
+                        </div>
+                        <div class="flex items-end pb-1">
+                            <p class="text-xs text-gray-500 italic"><i class="fas fa-search"></i> Busque un cliente existente o llene los datos para uno nuevo.</p>
                         </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500">Email (Opcional)</label>
-                        <input type="email" name="new_cliente[email]" id="inputClienteEmail" class="input input-sm input-bordered w-full" placeholder="cliente@email.com">
-                    </div>
-                    <div class="text-xs text-blue-600 italic">
-                        <i class="fas fa-info-circle"></i> Busque un cliente existente o ingrese uno nuevo.
-                    </div>
+                    @endif
                 </div>
-                @endif
             </div>
 
-            <!-- Vehiculo -->
-            <div class="lg:col-span-2 border p-3 rounded-lg bg-gray-50">
-                <h4 class="font-bold text-gray-700 border-b pb-1 mb-2">DATOS DEL VEHÍCULO</h4>
-                <!-- Vehicle Inputs (Always Editable) -->
-                <div class="space-y-3">
+            <!-- Vehiculo Card -->
+            <div class="card bg-white shadow-lg shadow-blue-900/10 border border-blue-900/20">
+                <div class="card-body p-5">
+                    <h2 class="card-title text-sm font-bold text-gray-500 border-b pb-2 mb-4">
+                        <i class="fas fa-car text-blue-900"></i> DATOS DEL VEHÍCULO
+                    </h2>
                     <input type="hidden" name="vehiculo_id" value="{{ isset($vehiculo) ? $vehiculo->id : '' }}">
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500">Placa</label>
-                            <input type="text" name="new_vehiculo[placa]" id="inputPlaca" class="input input-sm input-bordered w-full uppercase"
-                                value="{{ isset($vehiculo) ? $vehiculo->placa : '' }}"
-                                placeholder="P-123ABC" required autocomplete="off" oninput="this.value = this.value.toUpperCase()">
-                            <ul id="listVehiculos" class="absolute z-50 bg-white border border-gray-200 w-full rounded-md shadow-lg max-h-48 overflow-y-auto hidden"></ul>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="form-control w-full">
+                            <label class="label"><span class="label-text font-bold text-blue-900">Placa (Buscador)</span></label>
+                            <div class="relative">
+                                <input type="text" name="new_vehiculo[placa]" id="inputPlaca" class="input input-sm input-bordered border-yellow-400 w-full uppercase font-bold text-blue-900 focus:ring-2 focus:ring-blue-900 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
+                                    value="{{ isset($vehiculo) ? $vehiculo->placa : '' }}"
+                                    placeholder="P-123ABC" required autocomplete="off" oninput="this.value = this.value.toUpperCase()">
+                                <ul id="listVehiculos" class="absolute z-50 bg-white border border-gray-200 w-full rounded-md shadow-xl max-h-48 overflow-y-auto hidden top-full mt-1"></ul>
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500">Marca</label>
-                            <input type="text" name="new_vehiculo[marca]" id="inputMarca" list="listMarcas" class="input input-sm input-bordered w-full uppercase"
+                        <div class="form-control w-full">
+                            <label class="label"><span class="label-text font-bold text-blue-900">Marca</span></label>
+                            <input type="text" name="new_vehiculo[marca]" id="inputMarca" list="listMarcas" class="input input-sm input-bordered border-yellow-400 w-full uppercase focus:ring-2 focus:ring-blue-900 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
                                 value="{{ isset($vehiculo) ? $vehiculo->marca->nombre : '' }}"
-                                placeholder="TOYOTA, HONDA..." required autocomplete="off" oninput="this.value = this.value.toUpperCase()">
+                                placeholder="TOYOTA..." required autocomplete="off" oninput="this.value = this.value.toUpperCase()">
                             <datalist id="listMarcas"></datalist>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500">Modelo/Línea</label>
-                            <input type="text" name="new_vehiculo[modelo]" id="inputModelo" list="listModelos" class="input input-sm input-bordered w-full uppercase"
+                        <div class="form-control w-full">
+                            <label class="label"><span class="label-text font-bold text-blue-900">Modelo</span></label>
+                            <input type="text" name="new_vehiculo[modelo]" id="inputModelo" list="listModelos" class="input input-sm input-bordered border-yellow-400 w-full uppercase focus:ring-2 focus:ring-blue-900 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
                                 value="{{ isset($vehiculo) ? $vehiculo->modelo->nombre : '' }}"
-                                placeholder="COROLLA, CIVIC..." required autocomplete="off" oninput="this.value = this.value.toUpperCase()">
+                                placeholder="COROLLA..." required autocomplete="off" oninput="this.value = this.value.toUpperCase()">
                             <datalist id="listModelos"></datalist>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500">Versión (Opcional)</label>
-                            <input type="text" name="new_vehiculo[version]" id="inputVersion" list="listVersiones" class="input input-sm input-bordered w-full uppercase"
+                        <div class="form-control w-full">
+                            <label class="label"><span class="label-text font-bold text-blue-900">Año</span></label>
+                            <input type="number" name="new_vehiculo[anio]" class="input input-sm input-bordered border-yellow-400 w-full focus:ring-2 focus:ring-blue-900 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
+                                value="{{ isset($vehiculo) ? $vehiculo->anio : '' }}" placeholder="2020" required>
+                        </div>
+                        <div class="form-control w-full">
+                            <label class="label"><span class="label-text font-bold text-blue-900">Color</span></label>
+                            <input type="text" name="color" class="input input-sm input-bordered border-yellow-400 w-full focus:ring-2 focus:ring-blue-900 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
+                                value="{{ isset($vehiculo) ? $vehiculo->color : '' }}" placeholder="Gris, Rojo..." required>
+                        </div>
+                        <div class="form-control w-full">
+                            <label class="label"><span class="label-text font-bold text-blue-900">Versión (Opcional)</span></label>
+                            <input type="text" name="new_vehiculo[version]" id="inputVersion" list="listVersiones" class="input input-sm input-bordered border-yellow-400 w-full uppercase focus:ring-2 focus:ring-blue-900 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
                                 value="{{ isset($vehiculo) && $vehiculo->version ? $vehiculo->version->nombre : '' }}"
                                 placeholder="LE, XLE..." autocomplete="off" oninput="this.value = this.value.toUpperCase()">
                             <datalist id="listVersiones"></datalist>
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500">Color</label>
-                            <input type="text" name="color" class="input input-sm input-bordered w-full"
-                                value="{{ isset($vehiculo) ? $vehiculo->color : '' }}"
-                                placeholder="Rojo, Azul..." required>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500">Año</label>
-                            <input type="number" name="new_vehiculo[anio]" class="input input-sm input-bordered w-full"
-                                value="{{ isset($vehiculo) ? $vehiculo->anio : '' }}"
-                                placeholder="2020" required>
-                        </div>
-                    </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Columna Derecha: Recepción y Combustible -->
+        <div class="lg:col-span-4 space-y-6">
 
             <!-- Datos de Ingreso -->
-            <div class="border p-3 rounded-lg bg-gray-50">
-                <h4 class="font-bold text-gray-700 border-b pb-1 mb-2">RECEPCIÓN</h4>
-                <div class="space-y-2">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500">FECHA</label>
-                        <input type="text" value="{{ now()->format('Y-m-d') }}" readonly class="w-full bg-transparent font-medium">
+            <div class="card bg-white shadow-lg shadow-blue-900/10 border border-blue-900/20">
+                <div class="card-body p-5">
+                    <h2 class="card-title text-sm font-bold text-gray-500 border-b pb-2 mb-4">
+                        <i class="fas fa-clock text-blue-900"></i> DETALLES DE RECEPCIÓN
+                    </h2>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label"><span class="label-text text-xs text-blue-900">FECHA</span></label>
+                            <div class="font-mono text-sm font-bold bg-blue-50/50 p-2 rounded border border-blue-100 text-blue-900">{{ now()->format('Y-m-d') }}</div>
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text text-xs text-blue-900">HORA</span></label>
+                            <div class="font-mono text-sm font-bold bg-blue-50/50 p-2 rounded border border-blue-100 text-blue-900">{{ now()->format('H:i') }}</div>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500">HORA</label>
-                        <input type="text" value="{{ now()->format('H:i') }}" readonly class="w-full bg-transparent font-medium">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500">KILOMETRAJE</label>
-                        <input type="number" name="kilometraje" class="input input-sm input-bordered w-full" required placeholder="Ej: 154000">
+                    <div class="form-control mt-3">
+                        <label class="label"><span class="label-text font-bold text-blue-900">Kilometraje Actual</span></label>
+                        <div class="relative">
+                            <input type="number" name="kilometraje" class="input input-bordered border-yellow-400 w-full font-mono font-bold text-lg text-right pr-8 focus:ring-2 focus:ring-blue-900 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300" required placeholder="0">
+                            <span class="absolute right-3 top-3 text-xs font-bold text-gray-400">KM</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Nivel Combustible (Gauge Visual) -->
-            <div class="border p-3 rounded-lg bg-gray-50 flex flex-col items-center justify-center">
-                <h4 class="font-bold text-gray-700 w-full border-b pb-1 mb-2 text-center">COMBUSTIBLE</h4>
-                <div class="fuel-gauge-container relative w-full max-w-[200px] h-24">
-                    <!-- SVG Gauge -->
-                    <svg viewBox="0 0 200 100" class="w-full h-full">
-                        <path d="M 20 90 A 80 80 0 0 1 180 90" fill="none" stroke="#e5e7eb" stroke-width="15" />
-                        <path id="fuelLevelPath" d="M 20 90 A 80 80 0 0 1 180 90" fill="none" stroke="#3b82f6" stroke-width="15" stroke-dasharray="251.2" stroke-dashoffset="125.6" class="transition-all duration-500 ease-out" />
+            <!-- Nivel Combustible (Nuevo Diseño) -->
+            <div class="card bg-white shadow-lg shadow-blue-900/10 border border-blue-900/20">
+                <div class="card-body p-5 flex flex-col items-center">
+                    <h2 class="card-title text-sm font-bold text-gray-500 w-full border-b pb-2 mb-4 text-center">
+                        <i class="fas fa-gas-pump text-blue-900"></i> NIVEL DE COMBUSTIBLE
+                    </h2>
 
-                        <!-- Ticks -->
-                        <text x="15" y="100" class="text-xs fill-gray-500 font-bold">E</text>
-                        <text x="55" y="45" class="text-xs fill-gray-500 font-bold">1/4</text>
-                        <text x="95" y="20" class="text-xs fill-gray-500 font-bold">1/2</text>
-                        <text x="140" y="45" class="text-xs fill-gray-500 font-bold">3/4</text>
-                        <text x="180" y="100" class="text-xs fill-gray-500 font-bold">F</text>
-                    </svg>
-                    <input type="range" name="nivel_combustible_val" id="fuelRange" min="0" max="100" value="50" class="absolute bottom-0 w-full opacity-0 cursor-pointer h-full">
-                    <input type="hidden" name="nivel_combustible" id="fuelInput" value="1/2">
+                    <div class="w-full max-w-[260px]">
+                        <!-- Labels -->
+                        <div class="flex justify-between text-[10px] font-bold text-gray-400 mb-1 px-1">
+                            <span>E</span>
+                            <span>1/4</span>
+                            <span>1/2</span>
+                            <span>3/4</span>
+                            <span>F</span>
+                        </div>
+
+                        <!-- Segmented Bar Bar -->
+                        <div class="relative w-full h-8 bg-gray-100 rounded-lg overflow-hidden flex border border-gray-300 shadow-inner">
+                            <div id="fuel-seg-1" class="h-full flex-1 border-r border-white/50 bg-gray-200 transition-all duration-300"></div>
+                            <div id="fuel-seg-2" class="h-full flex-1 border-r border-white/50 bg-gray-200 transition-all duration-300"></div>
+                            <div id="fuel-seg-3" class="h-full flex-1 border-r border-white/50 bg-gray-200 transition-all duration-300"></div>
+                            <div id="fuel-seg-4" class="h-full flex-1 border-r border-white/50 bg-gray-200 transition-all duration-300"></div>
+                            <div id="fuel-seg-5" class="h-full flex-1 bg-gray-200 transition-all duration-300"></div>
+                        </div>
+
+                        <!-- Range Input -->
+                        <!-- Using accent-blue-900 to try and force navy color, or text-blue-900 -->
+                        <input type="range" name="nivel_combustible_val" id="fuelRange" min="0" max="100" value="50" step="1"
+                            class="range range-xs range-primary mt-4 w-full text-blue-900" />
+
+                        <input type="hidden" name="nivel_combustible" id="fuelInput" value="1/2">
+
+                        <div class="text-center mt-2">
+                            <p class="font-extrabold text-xl text-blue-900" id="fuelLabel">1/2 Tanque</p>
+                        </div>
+                    </div>
                 </div>
-                <p class="text-center font-bold text-blue-600 mt-[-10px]" id="fuelLabel">1/2 Tank</p>
             </div>
         </div>
     </div>
@@ -176,16 +217,40 @@
     @endif
 
     <!-- Fotos de Recepción -->
-    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-        <h4 class="font-bold text-gray-700 border-b pb-1 mb-4">FOTOS DE RECEPCIÓN</h4>
-        <div class="space-y-4">
-            <div class="flex items-center gap-4">
-                <input type="file" name="fotos_recepcion[]" id="fotosRecepcion" multiple accept="image/*" class="file-input file-input-bordered w-full max-w-xs" />
-                <span class="text-xs text-gray-500">Seleccione múltiples fotos (Frente, Costados, Trasera, Tablero)</span>
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-blue-100/50">
+        <h4 class="font-bold text-gray-700 border-b pb-2 mb-4 flex items-center justify-between">
+            <span><i class="fas fa-camera text-blue-900 mr-2"></i>FOTOS DE RECEPCIÓN</span>
+            <span class="text-xs font-normal text-gray-500 bg-gray-100 px-2 py-1 rounded">Mínimo sugerido: 4 fotos</span>
+        </h4>
+
+        <!-- Controls -->
+        <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center mb-6 bg-blue-50/30 p-4 rounded-lg border border-blue-100/50">
+            <div class="flex gap-2 w-full sm:w-auto">
+                <button type="button" id="btnCamera" class="btn btn-sm gap-2 bg-blue-900 border-blue-900 hover:bg-blue-800 text-white shadow-md hover:shadow-lg transition-all flex-1 sm:flex-none">
+                    <i class="fas fa-camera"></i> TOMAR FOTO
+                </button>
+                <button type="button" id="btnGallery" class="btn btn-sm gap-2 btn-outline border-blue-900 text-blue-900 hover:bg-blue-900 hover:text-white shadow-sm hover:shadow-md transition-all flex-1 sm:flex-none">
+                    <i class="fas fa-images"></i> GALERÍA
+                </button>
             </div>
 
-            <div id="previewFotos" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                <!-- Previews will be inserted here -->
+            <!-- Hidden Inputs -->
+            <input type="file" id="inputCamera" accept="image/*" capture="environment" class="hidden">
+            <input type="file" id="inputGallery" accept="image/*" multiple class="hidden">
+
+            <div class="text-xs text-gray-600 flex flex-col mt-2 sm:mt-0">
+                <span class="font-bold"><i class="fas fa-info-circle text-blue-600"></i> Tip:</span>
+                <span>Use "Tomar Foto" para activar la cámara o "Galería" para seleccionar varias imágenes.</span>
+            </div>
+        </div>
+
+        <!-- Grid -->
+        <div id="previewFotosGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 min-h-[120px]">
+            <!-- Cards injected via JS -->
+            <div id="emptyPhotosMsg" class="col-span-full flex flex-col items-center justify-center text-gray-400 border-2 border-dashed border-gray-200 rounded-xl py-8 bg-gray-50/50">
+                <div class="text-4xl mb-2 text-gray-300"><i class="fas fa-images"></i></div>
+                <p class="text-sm">No hay fotos seleccionadas</p>
+                <p class="text-xs">Haga clic en "Agregar Foto" para comenzar</p>
             </div>
         </div>
     </div>
@@ -348,11 +413,20 @@
     </div>
 
     <!-- Static Footer (moved from fixed to avoid covering content) -->
-    <div class="mt-8 bg-white border border-gray-100 p-4 rounded-xl shadow-sm flex justify-end gap-4">
-        <a href="{{ route('panel.operaciones.ordenes_trabajo.index') }}" class="btn bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold px-6 rounded-xl">Cancelar</a>
-        <button type="submit" class="btn bg-blue-600 text-white font-bold px-8 rounded-xl shadow-lg hover:bg-blue-700 transition-all">
-            <i class="fas fa-check-circle mr-2"></i> Generar Orden
-        </button>
+    <div class="mt-8 bg-blue-50/50 border border-blue-100 p-4 rounded-xl shadow-sm flex justify-between items-center gap-4">
+        <div>
+            <button type="button" id="btnLimpiar" class="btn btn-ghost text-gray-500 hover:text-red-500 font-normal btn-sm">
+                <i class="fas fa-eraser mr-2"></i> Limpiar Formulario
+            </button>
+        </div>
+        <div class="flex gap-4">
+            <a href="{{ route('panel.operaciones.ordenes_trabajo.index') }}" class="btn bg-white hover:bg-gray-50 text-gray-600 font-bold px-6 rounded-xl border-gray-200">
+                Cancelar
+            </a>
+            <button type="submit" class="btn bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold px-8 rounded-xl shadow-lg transition-all transform hover:scale-105">
+                <i class="fas fa-check-circle mr-2"></i> Generar Orden
+            </button>
+        </div>
     </div>
 </form>
 @endsection

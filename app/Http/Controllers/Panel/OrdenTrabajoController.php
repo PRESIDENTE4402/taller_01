@@ -112,8 +112,15 @@ class OrdenTrabajoController extends Controller
                 'color' => 'required|string',
             ];
 
-            // Si NO viene cliente_id, debe venir new_cliente
+            // Si NO viene cliente_id, debe venir new_cliente. También si viene cliente_id pero la acción es 'update'
+            $requireClientData = false;
             if (!$request->has('cliente_id') || empty($request->cliente_id)) {
+                $requireClientData = true;
+            } elseif ($request->input('accion_cliente') == 'update') {
+                $requireClientData = true;
+            }
+
+            if ($requireClientData) {
                 $rules['new_cliente.nombre'] = 'required|string';
                 $rules['new_cliente.telefono'] = 'required|string';
             }
@@ -275,14 +282,21 @@ class OrdenTrabajoController extends Controller
                 }
             }
 
-            // Handle Reception Photos (Multiple)
+            // Handle Reception Photos (Multiple with Titles)
             if ($request->hasFile('fotos_recepcion')) {
-                foreach ($request->file('fotos_recepcion') as $foto) {
+                $titulos = $request->input('fotos_titulos', []);
+
+                foreach ($request->file('fotos_recepcion') as $index => $foto) {
                     $path = $foto->store('ordenes/fotos', 'public');
+
+                    // Get title if exists for this index
+                    $titulo = isset($titulos[$index]) ? $titulos[$index] : null;
+
                     // Create related model
                     $orden->archivos()->create([
                         'url' => 'storage/' . $path,
-                        'tipo' => 'recepcion'
+                        'tipo' => 'recepcion',
+                        'titulo' => $titulo
                     ]);
                 }
             }

@@ -1,44 +1,83 @@
 document.addEventListener('DOMContentLoaded', function () {
 
-    // --- Fuel Gauge Logic ---
+    // --- Fuel Gauge Logic (Segmented) ---
     const fuelRange = document.getElementById('fuelRange');
-    const fuelPath = document.getElementById('fuelLevelPath');
     const fuelLabel = document.getElementById('fuelLabel');
     const fuelInput = document.getElementById('fuelInput');
-    const arcLength = 251.2;
 
-    function updateFuel(val) {
-        if (!fuelPath || !fuelLabel || !fuelInput) return;
+    // Segments
+    const segments = [
+        document.getElementById('fuel-seg-1'),
+        document.getElementById('fuel-seg-2'),
+        document.getElementById('fuel-seg-3'),
+        document.getElementById('fuel-seg-4'),
+        document.getElementById('fuel-seg-5')
+    ];
 
-        const offset = arcLength - ((val / 100) * arcLength);
-        fuelPath.style.strokeDashoffset = offset;
+    function updateFuel(inputVal) {
+        if (!fuelLabel || !fuelInput) return;
+
+        const val = parseInt(inputVal); // Ensure integer
 
         let label = '';
         let dbVal = '';
-        if (val < 10) {
+        let colorClass = 'bg-blue-900'; // Default Navy
+        let textClass = 'text-blue-900'; // Default Navy
+
+        // Determine Label & Base Color
+        if (val < 15) {
             label = 'Reserva (E)';
             dbVal = 'R';
+            colorClass = 'bg-red-600';
+            textClass = 'text-red-600';
         } else if (val < 35) {
             label = '1/4 Tanque';
             dbVal = '1/4';
+            colorClass = 'bg-orange-600';
+            textClass = 'text-orange-600';
         } else if (val < 60) {
             label = '1/2 Tanque';
             dbVal = '1/2';
+            colorClass = 'bg-yellow-500'; // Gold/Amber
+            textClass = 'text-yellow-600';
         } else if (val < 85) {
             label = '3/4 Tanque';
             dbVal = '3/4';
+            colorClass = 'bg-blue-800';
+            textClass = 'text-blue-800';
         } else {
             label = 'Full (F)';
             dbVal = 'F';
+            colorClass = 'bg-blue-950'; // Deep Navy
+            textClass = 'text-blue-950';
         }
 
-        fuelLabel.innerText = label;
-        fuelInput.value = dbVal;
+        if (fuelLabel) fuelLabel.textContent = label;
+        if (fuelInput) fuelInput.value = dbVal;
+
+        // Update Label Color
+        fuelLabel.className = `font-extrabold text-xl ${textClass}`;
+
+        // Update Segments
+        segments.forEach((seg, index) => {
+            if (!seg) return;
+            // Reset base classes
+            seg.className = `h-full flex-1 border-r border-white/50 transition-all duration-300 bg-gray-200`;
+
+            // Thresholds
+            const threshold = (index * 20) + 5;
+
+            if (val >= threshold) {
+                seg.classList.remove('bg-gray-200');
+                seg.classList.add(colorClass);
+            }
+        });
     }
 
     if (fuelRange) {
         fuelRange.addEventListener('input', (e) => updateFuel(e.target.value));
-        setTimeout(() => updateFuel(50), 100);
+        // Force update on load with current value
+        setTimeout(() => updateFuel(fuelRange.value), 200);
     }
 
     // --- Toggle Qty Inputs ---
@@ -176,6 +215,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
             try {
                 const formData = new FormData(this);
+
+                // --- Append Manual Photos ---
+                // Remove existing inputs if any (clean start)
+                formData.delete('fotos_recepcion[]');
+                formData.delete('fotos_titulos[]'); // Just in case
+
+                if (typeof selectedPhotos !== 'undefined' && selectedPhotos.length > 0) {
+                    selectedPhotos.forEach((photoObj, index) => {
+                        formData.append(`fotos_recepcion[${index}]`, photoObj.file);
+                        // Get the current title value from the DOM input
+                        const titleInput = document.getElementById(`title-${photoObj.id}`);
+                        const titleVal = titleInput ? titleInput.value : photoObj.title;
+                        formData.append(`fotos_titulos[${index}]`, titleVal);
+                    });
+                }
+
                 const response = await fetch(this.action, {
                     method: 'POST',
                     body: formData,
@@ -286,13 +341,15 @@ document.addEventListener('DOMContentLoaded', function () {
     const inputClienteEmail = document.getElementById('inputClienteEmail');
     const listClientes = document.getElementById('listClientes');
     const walkInClienteId = document.getElementById('walkInClienteId');
+    const accionClienteInput = document.getElementById('accionClienteInput');
     let debounceTimer;
 
     function fillClientData(client) {
         inputClienteNombre.value = client.nombre_completo.toUpperCase();
         inputClienteTelefono.value = client.telefono;
         inputClienteEmail.value = client.email || '';
-        walkInClienteId.value = client.id;
+        if (walkInClienteId) walkInClienteId.value = client.id;
+        if (accionClienteInput) accionClienteInput.value = 'update';
 
         inputClienteNombre.classList.add('border-green-500', 'bg-green-50');
         setTimeout(() => inputClienteNombre.classList.remove('border-green-500', 'bg-green-50'), 1000);
@@ -312,12 +369,20 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (vehicles.length === 1) {
                         const v = vehicles[0];
                         Swal.fire({
-                            title: 'Vehículo Encontrado',
-                            text: `El cliente tiene registrado: ${v.texto}. ¿Desea cargarlo?`,
-                            icon: 'question',
+                            title: '¡Vehículo Encontrado!',
+                            html: `<div class="p-4 text-center">
+                                <i class="fas fa-car text-5xl text-blue-900 mb-4 animate-bounce"></i>
+                                <p class="text-gray-600">El cliente tiene registrado un <strong>${v.texto}</strong></p>
+                                <p class="text-xs text-gray-400 mt-2">¿Desea cargar los datos automáticamente?</p>
+                            </div>`,
                             showCancelButton: true,
-                            confirmButtonText: 'Sí, cargar',
-                            cancelButtonText: 'No, usar otro'
+                            confirmButtonText: 'Sí, cargar datos',
+                            cancelButtonText: 'No, usar otro',
+                            buttonsStyling: false,
+                            customClass: {
+                                confirmButton: 'btn bg-blue-900 border-blue-900 hover:bg-blue-800 text-white px-8 mx-2',
+                                cancelButton: 'btn btn-ghost text-gray-400 mx-2'
+                            }
                         }).then((result) => {
                             if (result.isConfirmed) {
                                 fillVehicleData(v);
@@ -334,10 +399,18 @@ document.addEventListener('DOMContentLoaded', function () {
                             text: 'El cliente tiene varios vehículos registrados.',
                             input: 'select',
                             inputOptions: options,
-                            inputPlaceholder: 'Seleccione...',
+                            inputPlaceholder: 'Seleccione el vehículo...',
                             showCancelButton: true,
-                            confirmButtonText: 'Cargar Vehículo',
-                            cancelButtonText: 'Cancelar'
+                            showCloseButton: true,
+                            confirmButtonText: 'Cargar Seleccionado',
+                            cancelButtonText: 'Cancelar',
+                            buttonsStyling: false,
+                            customClass: {
+                                container: 'swal-wide-fix',
+                                confirmButton: 'btn bg-blue-900 border-blue-900 hover:bg-blue-800 text-white px-8 mx-2',
+                                cancelButton: 'btn btn-ghost text-gray-400 mx-2',
+                                input: 'select select-bordered max-w-full'
+                            }
                         }).then((result) => {
                             if (result.isConfirmed && result.value) {
                                 const selected = vehicles.find(v => v.id == result.value);
@@ -391,7 +464,8 @@ document.addEventListener('DOMContentLoaded', function () {
         inputClienteNombre.addEventListener('input', function () {
             const term = this.value;
             clearTimeout(debounceTimer);
-            walkInClienteId.value = '';
+            if (walkInClienteId) walkInClienteId.value = '';
+            if (accionClienteInput) accionClienteInput.value = 'create';
 
             if (term.length < 2) {
                 listClientes.classList.add('hidden');
@@ -468,22 +542,39 @@ document.addEventListener('DOMContentLoaded', function () {
                                     if (v.cliente) {
                                         Swal.fire({
                                             title: 'Vehículo Registrado',
-                                            text: `Pertenece a: ${v.cliente.nombre_completo}. ¿Desea cargar al cliente?`,
-                                            icon: 'info',
+                                            html: `<div class="text-center p-2">
+                                                <i class="fas fa-user-check text-4xl text-blue-900 mb-2"></i>
+                                                <p>Este vehículo pertenece a: <br><strong class="text-lg text-blue-900">${v.cliente.nombre_completo}</strong></p>
+                                                <p class="text-sm text-gray-500 mt-2">¿Desea cargar sus datos como dueño?</p>
+                                            </div>`,
                                             showCancelButton: true,
-                                            confirmButtonText: 'Sí, es el dueño',
-                                            cancelButtonText: 'No, es nuevo dueño'
+                                            showDenyButton: true,
+                                            confirmButtonText: 'Sí, cargar cliente',
+                                            denyButtonText: 'No, es nuevo dueño',
+                                            cancelButtonText: 'Cancelar',
+                                            buttonsStyling: false,
+                                            customClass: {
+                                                confirmButton: 'btn bg-blue-900 border-blue-900 text-white px-4 mx-1 btn-sm',
+                                                denyButton: 'btn btn-outline border-blue-900 text-blue-900 px-4 mx-1 btn-sm',
+                                                cancelButton: 'btn btn-ghost text-gray-400 mx-1 btn-sm'
+                                            }
                                         }).then((result) => {
                                             if (result.isConfirmed) {
                                                 fillClientData(v.cliente);
-                                            } else {
-                                                // New Owner: Confirm we clear client data
-                                                walkInClienteId.value = '';
+                                            } else if (result.isDenied) {
+                                                // NEW OWNER LOGIC (Clear inputs)
+                                                if (walkInClienteId) walkInClienteId.value = '';
+                                                if (accionClienteInput) accionClienteInput.value = 'create';
                                                 inputClienteNombre.value = '';
                                                 inputClienteTelefono.value = '';
                                                 inputClienteEmail.value = '';
                                                 inputClienteNombre.focus();
-                                                Swal.fire('Nuevo Dueño', 'Ingrese los datos del nuevo cliente.', 'info');
+                                                Swal.fire({
+                                                    title: 'Nuevo Dueño',
+                                                    text: 'Ingrese los datos del nuevo cliente.',
+                                                    icon: 'info',
+                                                    confirmButtonColor: '#1e3a8a'
+                                                });
                                             }
                                         });
                                     }
@@ -505,30 +596,228 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // --- Photo Preview Logic ---
-    const inputFotos = document.getElementById('fotosRecepcion');
-    const previewContainer = document.getElementById('previewFotos');
+    // --- Advanced Photo Logic ---
+    const btnCamera = document.getElementById('btnCamera');
+    const btnGallery = document.getElementById('btnGallery');
+    const inputGallery = document.getElementById('inputGallery');
+    const previewGrid = document.getElementById('previewFotosGrid');
+    const emptyMsg = document.getElementById('emptyPhotosMsg');
 
-    if (inputFotos && previewContainer) {
-        inputFotos.addEventListener('change', function () {
-            previewContainer.innerHTML = '';
-            const files = Array.from(this.files);
+    let selectedPhotos = [];
 
-            files.forEach(file => {
-                if (file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        const div = document.createElement('div');
-                        div.className = "relative group border rounded-lg overflow-hidden h-32 bg-gray-100";
-                        div.innerHTML = `
-                            <img src="${e.target.result}" class="w-full h-full object-cover">
-                            <div class="absolute inset-0 bg-black/40 hidden group-hover:flex items-center justify-center text-white text-xs text-center p-1">
-                                ${file.name}
-                            </div>
-                        `;
-                        previewContainer.appendChild(div);
+    if (previewGrid) {
+
+        // 1. Trigger Inputs
+        if (btnCamera) {
+            btnCamera.addEventListener('click', () => openCameraModal());
+        }
+
+        if (btnGallery && inputGallery) {
+            btnGallery.addEventListener('click', () => inputGallery.click());
+            inputGallery.addEventListener('change', (e) => handleFiles(e.target.files));
+        }
+
+        // 2. PC Camera API Modal
+        async function openCameraModal() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+
+                Swal.fire({
+                    title: 'Capturar Fotografía',
+                    html: `
+                        <div class="relative rounded-lg overflow-hidden bg-black aspect-video flex items-center justify-center">
+                            <video id="cameraFeed" autoplay playsinline class="w-full h-full object-cover"></video>
+                            <canvas id="snapshotCanvas" class="hidden"></canvas>
+                        </div>
+                    `,
+                    showCancelButton: true,
+                    confirmButtonText: '<i class="fas fa-camera mr-2"></i> Capturar',
+                    cancelButtonText: 'Cerrar',
+                    buttonsStyling: false,
+                    customClass: {
+                        confirmButton: 'btn bg-blue-900 border-blue-900 text-white px-8 mx-2',
+                        cancelButton: 'btn btn-ghost mx-2'
+                    },
+                    didOpen: () => {
+                        const video = document.getElementById('cameraFeed');
+                        video.srcObject = stream;
+                    },
+                    willClose: () => {
+                        stream.getTracks().forEach(track => track.stop());
                     }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const video = document.getElementById('cameraFeed');
+                        const canvas = document.getElementById('snapshotCanvas');
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(video, 0, 0);
+
+                        canvas.toBlob((blob) => {
+                            const file = new File([blob], `capture_${Date.now()}.png`, { type: 'image/png' });
+                            handleFiles([file]);
+                            // Ask if want another photo
+                            setTimeout(() => openCameraModal(), 500);
+                        }, 'image/png');
+                    }
+                });
+            } catch (err) {
+                console.error("Camera error:", err);
+                Swal.fire('Error', 'No se pudo acceder a la cámara. Verifique los permisos o use la galería.', 'error');
+            }
+        }
+
+        // 3. Handle Selection (Common)
+        function handleFiles(files) {
+            if (files && files.length > 0) {
+                Array.from(files).forEach(file => {
+                    if (!file.type.startsWith('image/')) return;
+
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const uniqueId = Date.now() + Math.random().toString(36).substr(2, 9);
+                        selectedPhotos.push({
+                            id: uniqueId,
+                            file: file,
+                            src: e.target.result,
+                            title: ''
+                        });
+                        renderPhotos();
+                    };
                     reader.readAsDataURL(file);
+                });
+                if (inputGallery) inputGallery.value = '';
+            }
+        }
+
+        // 3. Render Function
+        window.renderPhotos = function () {
+            // Clear current cards BUT keep the "Empty Msg" logic
+            // We'll rebuild the grid content depending on array length
+
+            // Remove all existing photo cards (elements with class 'photo-card')
+            previewGrid.querySelectorAll('.photo-card').forEach(el => el.remove());
+
+            if (selectedPhotos.length === 0) {
+                if (emptyMsg) emptyMsg.classList.remove('hidden');
+                previewGrid.classList.remove('grid-cols-2', 'md:grid-cols-3'); // logic handled by css grid
+            } else {
+                if (emptyMsg) emptyMsg.classList.add('hidden');
+
+                selectedPhotos.forEach(photo => {
+                    const card = document.createElement('div');
+                    card.className = "photo-card relative group bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-all flex flex-col";
+                    card.innerHTML = `
+                        <div class="relative h-32 w-full bg-gray-100 overflow-hidden cursor-pointer" onclick="viewPhoto('${photo.src}')">
+                            <img src="${photo.src}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                            <!-- Overlay Actions -->
+                            <div class="absolute top-1 right-1 flex gap-1">
+                                <button type="button" onclick="event.stopPropagation(); removePhoto('${photo.id}')" class="btn btn-xs btn-circle btn-error text-white shadow-sm opacity-90 hover:opacity-100">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-2 border-t border-gray-100 bg-gray-50">
+                            <input type="text" id="title-${photo.id}" 
+                                class="input input-xs w-full input-bordered focus:input-primary text-center font-bold text-gray-600 placeholder-gray-400" 
+                                placeholder="Título (Ej: Frente)" 
+                                value="${photo.title}"
+                                oninput="updatePhotoTitle('${photo.id}', this.value)"
+                            >
+                        </div>
+                    `;
+                    previewGrid.appendChild(card);
+                });
+            }
+        };
+
+        // 4. Helper Functions (Global for inline onclick)
+        window.removePhoto = function (id) {
+            selectedPhotos = selectedPhotos.filter(p => p.id !== id);
+            renderPhotos();
+        };
+
+        window.updatePhotoTitle = function (id, val) {
+            const photo = selectedPhotos.find(p => p.id === id);
+            if (photo) photo.title = val;
+        };
+
+        window.viewPhoto = function (src) {
+            Swal.fire({
+                imageUrl: src,
+                imageAlt: 'Vista Previa',
+                showConfirmButton: false,
+                showCloseButton: true,
+                background: 'transparent',
+                backdrop: 'rgba(0,0,0,0.8)',
+                customClass: {
+                    popup: 'no-padding-swal'
+                }
+            });
+        };
+    }
+    // --- Clear Button Logic ---
+    const btnLimpiar = document.getElementById('btnLimpiar');
+    if (btnLimpiar) {
+        btnLimpiar.addEventListener('click', function () {
+            Swal.fire({
+                title: '¿Limpiar Formulario?',
+                html: `<div class="p-2 text-center">
+                    <i class="fas fa-trash-alt text-4xl text-red-500 mb-2"></i>
+                    <p>Se borrarán todos los datos ingresados en el formulario.</p>
+                </div>`,
+                showCancelButton: true,
+                confirmButtonText: 'Sí, limpiar todo',
+                cancelButtonText: 'Cancelar',
+                buttonsStyling: false,
+                customClass: {
+                    confirmButton: 'btn btn-error text-white px-8 mx-2',
+                    cancelButton: 'btn btn-ghost mx-2'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Reset Form
+                    if (ordenForm) ordenForm.reset();
+
+                    // Reset Photos
+                    if (typeof selectedPhotos !== 'undefined') {
+                        selectedPhotos = [];
+                        renderPhotos();
+                    }
+
+                    // Reset Custom Inputs
+                    if (walkInClienteId) walkInClienteId.value = '';
+                    if (accionClienteInput) accionClienteInput.value = 'create';
+                    if (listClientes) listClientes.innerHTML = '';
+                    if (listVehiculos) listVehiculos.innerHTML = '';
+
+                    // Reset Canvas
+                    if (typeof marks !== 'undefined') {
+                        marks = [];
+                        // We need to call redrawAll, but it's inside the scope. 
+                        // We can trigger a change event or just clear the canvas manually if needed, 
+                        // but ideally we should expose the function or trigger the clear btn click.
+                        const clearCanvasBtn = document.getElementById('clearCanvas');
+                        if (clearCanvasBtn) clearCanvasBtn.click();
+                    }
+                    if (danosImageInput) danosImageInput.value = '';
+
+                    // Reset Fuel Gauge
+                    if (fuelRange) {
+                        fuelRange.value = 50;
+                        updateFuel(50);
+                    }
+
+                    // Reset Preview Photos
+                    if (previewContainer) previewContainer.innerHTML = '';
+
+                    // Reset Style Classes
+                    document.querySelectorAll('.input-primary, .text-blue-700, .bg-blue-50').forEach(el => {
+                        el.classList.remove('input-primary', 'text-blue-700', 'bg-blue-50');
+                    });
+
+                    Swal.fire('Limpio', 'El formulario ha sido reiniciado.', 'success');
                 }
             });
         });
