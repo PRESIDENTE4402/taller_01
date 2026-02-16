@@ -20,6 +20,48 @@
             </div>
         </div>
 
+        <!-- Progress Stepper -->
+        <div class="hidden md:flex items-center gap-0 flex-1 justify-center max-w-xl px-4">
+            <a href="#section-datos" class="step-nav group flex flex-col items-center gap-1 active" data-step="datos">
+                <div class="w-8 h-8 rounded-full border-2 border-blue-900 flex items-center justify-center bg-blue-900 text-white transition-all group-hover:scale-110 shadow-md shadow-blue-900/20">
+                    <i class="fas fa-user-circle text-xs"></i>
+                </div>
+                <span class="text-[9px] font-black uppercase text-blue-900 tracking-tighter">DATOS</span>
+            </a>
+            <div class="h-[2px] w-8 bg-blue-100 flex-shrink-0 mb-3"></div>
+
+            <a href="#section-recepcion" class="step-nav group flex flex-col items-center gap-1" data-step="recepcion">
+                <div class="w-8 h-8 rounded-full border-2 border-gray-200 flex items-center justify-center bg-white text-gray-400 transition-all group-hover:border-blue-900 group-hover:text-blue-900 shadow-sm">
+                    <i class="fas fa-camera text-xs"></i>
+                </div>
+                <span class="text-[9px] font-black uppercase text-gray-400 tracking-tighter group-hover:text-blue-900">FOTOS</span>
+            </a>
+            <div class="h-[2px] w-8 bg-blue-100 flex-shrink-0 mb-3"></div>
+
+            <a href="#section-inventario" class="step-nav group flex flex-col items-center gap-1" data-step="inventario">
+                <div class="w-8 h-8 rounded-full border-2 border-gray-200 flex items-center justify-center bg-white text-gray-400 transition-all group-hover:border-blue-900 group-hover:text-blue-900 shadow-sm">
+                    <i class="fas fa-clipboard-list text-xs"></i>
+                </div>
+                <span class="text-[9px] font-black uppercase text-gray-400 tracking-tighter group-hover:text-blue-900">INVENTARIO</span>
+            </a>
+            <div class="h-[2px] w-8 bg-blue-100 flex-shrink-0 mb-3"></div>
+
+            <a href="#section-falla" class="step-nav group flex flex-col items-center gap-1" data-step="falla">
+                <div class="w-8 h-8 rounded-full border-2 border-gray-200 flex items-center justify-center bg-white text-gray-400 transition-all group-hover:border-blue-900 group-hover:text-blue-900 shadow-sm">
+                    <i class="fas fa-exclamation-triangle text-xs"></i>
+                </div>
+                <span class="text-[9px] font-black uppercase text-gray-400 tracking-tighter group-hover:text-blue-900">FALLA</span>
+            </a>
+            <div class="h-[2px] w-8 bg-blue-100 flex-shrink-0 mb-3"></div>
+
+            <a href="#section-danos" class="step-nav group flex flex-col items-center gap-1" data-step="danos">
+                <div class="w-8 h-8 rounded-full border-2 border-gray-200 flex items-center justify-center bg-white text-gray-400 transition-all group-hover:border-blue-900 group-hover:text-blue-900 shadow-sm">
+                    <i class="fas fa-car-crash text-xs"></i>
+                </div>
+                <span class="text-[9px] font-black uppercase text-gray-400 tracking-tighter group-hover:text-blue-900">DAÑOS</span>
+            </a>
+        </div>
+
         <div class="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
             <button type="button" id="btnLimpiar" class="btn btn-ghost hover:bg-red-50 text-gray-400 hover:text-red-500 btn-xs sm:btn-sm flex gap-2">
                 <i class="fas fa-eraser"></i> <span class="hidden lg:inline">Limpiar</span>
@@ -41,7 +83,7 @@
         <!-- Columna Izquierda: Datos (Cliente + Vehículo) -->
         <div class="lg:col-span-8 space-y-6">
             <!-- Cliente Card -->
-            <div class="card bg-white shadow-lg shadow-blue-900/10 border border-blue-900/20">
+            <div id="section-datos" class="scroll-mt-24 card bg-white shadow-lg shadow-blue-900/10 border border-blue-900/20">
                 <div class="card-body p-5">
                     <h2 class="card-title text-sm font-bold text-gray-500 border-b pb-2 mb-4">
                         <i class="fas fa-user-circle text-blue-900"></i> DATOS DEL CLIENTE
@@ -164,7 +206,7 @@
         </div>
 
         <!-- Columna Derecha: Recepción y Combustible -->
-        <div class="lg:col-span-4 space-y-6">
+        <div id="section-recepcion" class="scroll-mt-24 lg:col-span-4 space-y-6">
 
             <!-- Datos de Ingreso -->
             <div class="card bg-white shadow-lg shadow-blue-900/10 border border-blue-900/20">
@@ -284,7 +326,8 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 pb-12">
         <!-- Left: Inventory Detailed (8 cols) -->
         <div class="lg:col-span-8 space-y-6">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-blue-100 flex flex-col">
+            <!-- Inventory Checklist -->
+            <div id="section-inventario" class="scroll-mt-24 bg-white p-6 rounded-2xl shadow-sm border border-blue-100 flex flex-col">
                 <div class="flex items-center justify-between border-b border-gray-100 pb-4 mb-6">
                     <div>
                         <h3 class="font-black text-blue-900 flex items-center gap-2 tracking-tight">
@@ -434,7 +477,7 @@
             </div>
 
             <!-- Falla Section -->
-            <div class="bg-gradient-to-br from-white to-blue-50/30 p-8 rounded-2xl shadow-sm border border-blue-100 flex flex-col gap-4">
+            <div id="section-falla" class="scroll-mt-24 bg-gradient-to-br from-white to-blue-50/30 p-8 rounded-2xl shadow-sm border border-blue-100 flex flex-col gap-4">
                 <div class="flex items-center gap-3">
                     <div class="h-10 w-10 bg-blue-900 rounded-xl flex items-center justify-center text-white shadow-xl">
                         <i class="fas fa-exclamation-triangle"></i>
@@ -449,7 +492,7 @@
         </div>
 
         <!-- Right: Damage Report (4 cols) -->
-        <div class="lg:col-span-4 space-y-4 lg:sticky lg:top-24 h-fit">
+        <div id="section-danos" class="scroll-mt-32 lg:col-span-4 space-y-4 lg:sticky lg:top-24 h-fit">
             <div class="bg-white p-6 rounded-2xl shadow-xl shadow-blue-900/5 border border-blue-100 flex flex-col">
                 <div class="flex items-center justify-between mb-6">
                     <div>

@@ -945,4 +945,57 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     }
+    // --- Navigation Stepper Logic (Scroll Spy) ---
+    const stepNavs = document.querySelectorAll('.step-nav');
+    const sections = ['section-datos', 'section-recepcion', 'section-inventario', 'section-falla', 'section-danos'];
+
+    // Smooth Scroll
+    stepNavs.forEach(nav => {
+        nav.addEventListener('click', function (e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href').substring(1);
+            const targetEl = document.getElementById(targetId);
+            if (targetEl) {
+                targetEl.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    });
+
+    // Scroll Spy
+    const observerOptions = {
+        root: null,
+        rootMargin: '-10% 0px -80% 0px', // Trigger when section is in the top 20%
+        threshold: 0
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const step = entry.target.id.replace('section-', '');
+                updateStepper(step);
+            }
+        });
+    }, observerOptions);
+
+    sections.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) observer.observe(el);
+    });
+
+    function updateStepper(activeStep) {
+        stepNavs.forEach(nav => {
+            const stepName = nav.getAttribute('data-step');
+            const iconCircle = nav.querySelector('div');
+            const label = nav.querySelector('span');
+            const isActive = stepName === activeStep;
+
+            if (isActive) {
+                iconCircle.className = "w-8 h-8 rounded-full border-2 border-blue-900 flex items-center justify-center bg-blue-900 text-white transition-all scale-110 shadow-md shadow-blue-900/20";
+                label.className = "text-[9px] font-black uppercase text-blue-900 tracking-tighter";
+            } else {
+                iconCircle.className = "w-8 h-8 rounded-full border-2 border-gray-200 flex items-center justify-center bg-white text-gray-400 transition-all shadow-sm";
+                label.className = "text-[9px] font-black uppercase text-gray-400 tracking-tighter";
+            }
+        });
+    }
 });
