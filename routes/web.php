@@ -11,6 +11,7 @@ use App\Http\Controllers\Panel\ModeloVehiculoController;
 
 
 use App\Http\Controllers\Landing\CitaController;
+use App\Http\Controllers\Panel\VehiculoController; // Import
 
 // Public Routes
 Route::get('/', function () {
@@ -41,6 +42,22 @@ Route::middleware('auth')->group(function () {
         })->name('dashboard');
 
 
+        // Gestión de Clientes (Directorio Principal)
+        Route::prefix('clientes')->name('clientes.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Panel\ClienteController::class, 'index'])->name('index');
+            Route::get('/list', [App\Http\Controllers\Panel\ClienteController::class, 'list'])->name('list');
+            Route::get('/{id}', [App\Http\Controllers\Panel\ClienteController::class, 'show'])->name('show'); // New Profile View
+            Route::post('/', [App\Http\Controllers\Panel\ClienteController::class, 'store'])->name('store');
+            Route::put('/{id}', [App\Http\Controllers\Panel\ClienteController::class, 'update'])->name('update');
+            Route::delete('/{id}', [App\Http\Controllers\Panel\ClienteController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('vehiculos')->name('vehiculos.')->group(function () {
+            Route::post('/', [VehiculoController::class, 'store'])->name('store');
+            Route::put('/{id}', [VehiculoController::class, 'update'])->name('update');
+            Route::delete('/{id}', [VehiculoController::class, 'destroy'])->name('destroy');
+        });
+
         // Módulos de Operaciones (Nuevo Grupo)
         Route::prefix('operaciones')->name('operaciones.')->group(function () {
             // Citas
@@ -59,14 +76,7 @@ Route::middleware('auth')->group(function () {
                 Route::get('/api/calendar-counts', [App\Http\Controllers\Panel\CitaController::class, 'getCalendarCounts'])->name('getCalendarCounts'); // New
             });
 
-            // Clientes (Nuevo)
-            Route::prefix('clientes')->name('clientes.')->group(function () {
-                Route::get('/', [App\Http\Controllers\Panel\ClienteController::class, 'index'])->name('index');
-                Route::get('/list', [App\Http\Controllers\Panel\ClienteController::class, 'list'])->name('list');
-                Route::post('/', [App\Http\Controllers\Panel\ClienteController::class, 'store'])->name('store');
-                Route::put('/{id}', [App\Http\Controllers\Panel\ClienteController::class, 'update'])->name('update');
-                Route::delete('/{id}', [App\Http\Controllers\Panel\ClienteController::class, 'destroy'])->name('destroy');
-            });
+
 
 
 

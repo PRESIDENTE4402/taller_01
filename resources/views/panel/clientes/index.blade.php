@@ -135,7 +135,7 @@
 
     function loadClientes(page = 1) {
         const search = document.getElementById('searchInput').value;
-        const url = `{{ route('panel.operaciones.clientes.list') }}?page=${page}&search=${search}`;
+        const url = `{{ route('panel.clientes.list') }}?page=${page}&search=${search}`;
 
         fetch(url)
             .then(response => response.json())
@@ -151,7 +151,7 @@
                     const row = `
                         <tr>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">${cliente.nombre_completo}</div>
+                                <a href="/panel/clientes/${cliente.id}" class="text-sm font-medium text-blue-600 hover:underline cursor-pointer">${cliente.nombre_completo}</a>
                                 <div class="text-sm text-gray-500">${cliente.es_empresa ? (cliente.empresa || 'Empresa') : 'Particular'}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
@@ -260,7 +260,7 @@
         const id = document.getElementById('clientId').value;
         const isUpdate = id !== '';
 
-        let url = isUpdate ? `{{ url('panel/operaciones/clientes') }}/${id}` : `{{ route('panel.operaciones.clientes.store') }}`;
+        let url = isUpdate ? `{{ url('panel/clientes') }}/${id}` : `{{ route('panel.clientes.store') }}`;
 
         // For PUT/PATCH we typically send POST with _method field which we have
 
@@ -303,7 +303,7 @@
     function deleteClient(id) {
         if (!confirm('¿Está seguro de eliminar este cliente?')) return;
 
-        fetch(`{{ url('panel/operaciones/clientes') }}/${id}`, {
+        fetch(`{{ url('panel/clientes') }}/${id}`, {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,

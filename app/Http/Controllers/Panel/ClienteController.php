@@ -12,7 +12,7 @@ class ClienteController extends Controller
 {
     public function index()
     {
-        return view('panel.operaciones.clientes.index');
+        return view('panel.clientes.index');
     }
 
     public function list(Request $request)
@@ -34,6 +34,18 @@ class ClienteController extends Controller
         $clientes = $query->paginate(15);
 
         return response()->json($clientes);
+    }
+
+    public function show($id)
+    {
+        $cliente = Cliente::with(['vehiculos.marca', 'vehiculos.modelo', 'citas', 'ordenes'])->findOrFail($id);
+
+        // Calcular estadísticas básicas
+        $totalGastado = 0; // Implementar lógica real si hay facturación
+        $visitas = $cliente->citas->where('estado', 'concretada')->count();
+        $vehiculosCount = $cliente->vehiculos->count();
+
+        return view('panel.clientes.show', compact('cliente', 'totalGastado', 'visitas', 'vehiculosCount'));
     }
 
     public function store(Request $request)

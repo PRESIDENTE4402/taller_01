@@ -26,7 +26,7 @@ class ClientManagementTest extends TestCase
 
     public function test_admin_can_view_client_index()
     {
-        $response = $this->actingAs($this->admin)->get(route('panel.operaciones.clientes.index'));
+        $response = $this->actingAs($this->admin)->get(route('panel.clientes.index'));
         $response->assertStatus(200);
         $response->assertViewIs('panel.operaciones.clientes.index');
     }
@@ -35,7 +35,7 @@ class ClientManagementTest extends TestCase
     {
         Cliente::factory()->count(5)->create();
 
-        $response = $this->actingAs($this->admin)->get(route('panel.operaciones.clientes.list'));
+        $response = $this->actingAs($this->admin)->get(route('panel.clientes.list'));
 
         $response->assertStatus(200)
             ->assertJsonStructure(['current_page', 'data']);
@@ -54,7 +54,7 @@ class ClientManagementTest extends TestCase
             'es_empresa' => false
         ];
 
-        $response = $this->actingAs($this->admin)->postJson(route('panel.operaciones.clientes.store'), $data);
+        $response = $this->actingAs($this->admin)->postJson(route('panel.clientes.store'), $data);
 
         $response->assertStatus(200)
             ->assertJson(['success' => true]);
@@ -76,7 +76,7 @@ class ClientManagementTest extends TestCase
             'es_empresa' => false
         ];
 
-        $response = $this->actingAs($this->admin)->putJson(route('panel.operaciones.clientes.update', $cliente->id), $data);
+        $response = $this->actingAs($this->admin)->putJson(route('panel.clientes.update', $cliente->id), $data);
 
         $response->assertStatus(200)
             ->assertJson(['success' => true]);
@@ -105,7 +105,7 @@ class ClientManagementTest extends TestCase
             'anio' => 2020
         ]);
 
-        $response = $this->actingAs($this->admin)->deleteJson(route('panel.operaciones.clientes.destroy', $cliente->id));
+        $response = $this->actingAs($this->admin)->deleteJson(route('panel.clientes.destroy', $cliente->id));
 
         $response->assertStatus(422) // Or 422 as defined in controller
             ->assertJson(['success' => false]);
@@ -121,7 +121,7 @@ class ClientManagementTest extends TestCase
             'es_empresa' => false
         ]);
 
-        $response = $this->actingAs($this->admin)->deleteJson(route('panel.operaciones.clientes.destroy', $cliente->id));
+        $response = $this->actingAs($this->admin)->deleteJson(route('panel.clientes.destroy', $cliente->id));
 
         $response->assertStatus(200)
             ->assertJson(['success' => true]);

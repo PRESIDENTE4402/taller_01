@@ -92,6 +92,8 @@ class OrdenTrabajoController extends Controller
             $cita = Cita::with(['cliente', 'vehiculo.marca', 'vehiculo.modelo', 'vehiculo.version'])->findOrFail($request->cita_id);
             $vehiculo = $cita->vehiculo;
             $cliente = $cita->cliente;
+        } elseif ($request->has('cliente_id')) {
+            $cliente = Cliente::with(['vehiculos.marca', 'vehiculos.modelo'])->findOrFail($request->cliente_id);
         }
 
         return view('panel.operaciones.ordenes_trabajo.create', compact('cita', 'vehiculo', 'cliente'));

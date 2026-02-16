@@ -30,4 +30,14 @@ class Cliente extends Model
     {
         return $this->hasMany(Vehiculo::class);
     }
+
+    public function ordenes()
+    {
+        return $this->hasMany(OrdenTrabajo::class);
+    }
+
+    public function citas()
+    {
+        return $this->hasMany(Cita::class);
+    }
 }
