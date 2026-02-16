@@ -18,6 +18,7 @@ return new class extends Migration {
             $table->foreignId('version_id')->nullable()->constrained('versiones_vehiculos');
             $table->string('placa')->unique();
             $table->integer('anio');
+            $table->string('color')->nullable();
             $table->string('vin')->nullable(); // Chasis
             $table->timestamps();
         });

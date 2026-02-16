@@ -15,30 +15,28 @@
                         <span>{{ substr($cliente->nombre_completo, 0, 1) }}</span>
                     </div>
                 </div>
-                <h2 class="card-title text-slate-800">{{ $cliente->nombre_completo }}</h2>
-                <div class="badge badge-lg {{ $cliente->es_empresa ? 'badge-primary' : 'badge-ghost' }} gap-2">
-                    <i class="fas {{ $cliente->es_empresa ? 'fa-building' : 'fa-user' }}"></i>
-                    {{ $cliente->es_empresa ? 'Corporativo' : 'Particular' }}
+                <h2 id="clientName" class="card-title text-slate-800">{{ $cliente->nombre_completo }}</h2>
+                <div id="clientBadge" class="badge badge-lg {{ $cliente->es_empresa ? 'badge-primary' : 'badge-ghost' }} gap-2">
+                    <i id="clientBadgeIcon" class="fas {{ $cliente->es_empresa ? 'fa-building' : 'fa-user' }}"></i>
+                    <span id="clientBadgeText">{{ $cliente->es_empresa ? 'Corporativo' : 'Particular' }}</span>
                 </div>
 
                 <div class="divider my-2"></div>
 
                 <div class="w-full text-left space-y-3">
-                    @if($cliente->es_empresa)
-                    <div class="flex items-start gap-3">
+                    <div id="infoEmpresaBlock" class="flex items-start gap-3 {{ $cliente->es_empresa ? '' : 'hidden' }}">
                         <i class="fas fa-building mt-1 text-slate-400 w-5"></i>
                         <div>
                             <p class="text-xs text-slate-500 uppercase font-bold">Empresa</p>
-                            <p class="text-sm font-medium">{{ $cliente->empresa }}</p>
+                            <p id="clientEmpresa" class="text-sm font-medium">{{ $cliente->empresa }}</p>
                         </div>
                     </div>
-                    @endif
 
                     <div class="flex items-start gap-3">
                         <i class="fas fa-id-card mt-1 text-slate-400 w-5"></i>
                         <div>
                             <p class="text-xs text-slate-500 uppercase font-bold">NIT / CI</p>
-                            <p class="text-sm font-medium">{{ $cliente->nit ?: 'N/A' }}</p>
+                            <p id="clientNit" class="text-sm font-medium">{{ $cliente->nit ?: 'N/A' }}</p>
                         </div>
                     </div>
 
@@ -46,7 +44,7 @@
                         <i class="fas fa-phone mt-1 text-slate-400 w-5"></i>
                         <div>
                             <p class="text-xs text-slate-500 uppercase font-bold">Teléfono</p>
-                            <p class="text-sm font-medium">{{ $cliente->telefono }}</p>
+                            <p id="clientPhone" class="text-sm font-medium">{{ $cliente->telefono }}</p>
                         </div>
                     </div>
 
@@ -54,7 +52,7 @@
                         <i class="fas fa-envelope mt-1 text-slate-400 w-5"></i>
                         <div>
                             <p class="text-xs text-slate-500 uppercase font-bold">Email</p>
-                            <p class="text-sm font-medium text-blue-600 truncate">{{ $cliente->email ?: 'Sin email' }}</p>
+                            <p id="clientEmail" class="text-sm font-medium text-blue-600 truncate">{{ $cliente->email ?: 'Sin email' }}</p>
                         </div>
                     </div>
 
@@ -62,13 +60,13 @@
                         <i class="fas fa-map-marker-alt mt-1 text-slate-400 w-5"></i>
                         <div>
                             <p class="text-xs text-slate-500 uppercase font-bold">Dirección</p>
-                            <p class="text-sm font-medium text-slate-600">{{ $cliente->direccion ?: 'Sin dirección registrada' }}</p>
+                            <p id="clientAddress" class="text-sm font-medium text-slate-600">{{ $cliente->direccion ?: 'Sin dirección registrada' }}</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="card-actions w-full mt-6">
-                    <button onclick="editCliente({{ $cliente->id }})" class="btn btn-primary btn-block btn-sm">
+                    <button id="btnEditClient" class="btn btn-primary btn-block btn-sm">
                         <i class="fas fa-edit"></i> Editar Datos
                     </button>
                 </div>
@@ -114,13 +112,12 @@
                 <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
                     <i class="fas fa-car text-blue-500"></i> Vehículos
                 </h3>
-                <button onclick="openVehicleModal()" class="btn btn-sm btn-ghost text-blue-600 gap-2 hover:bg-blue-50">
+                <button id="btnAddVehicle" class="btn btn-sm btn-ghost text-blue-600 gap-2 hover:bg-blue-50">
                     <i class="fas fa-plus"></i> Agregar Vehículo
                 </button>
             </div>
             <div class="card-body p-0">
-                @if($cliente->vehiculos->count() > 0)
-                <div class="overflow-x-auto">
+                <div id="vehiclesTableContainer" class="overflow-x-auto {{ $cliente->vehiculos->count() > 0 ? '' : 'hidden' }}">
                     <table class="table table-zebra w-full">
                         <thead>
                             <tr>
@@ -131,9 +128,9 @@
                                 <th class="text-right">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="vehiclesTableBody">
                             @foreach($cliente->vehiculos as $vehiculo)
-                            <tr class="hover">
+                            <tr class="hover" id="vehicle-row-{{ $vehiculo->id }}">
                                 <td>
                                     <div class="flex items-center gap-3">
                                         <div class="avatar placeholder">
@@ -149,25 +146,25 @@
                                 </td>
                                 <td><span class="badge badge-outline font-mono font-bold">{{ $vehiculo->placa }}</span></td>
                                 <td>{{ $vehiculo->anio }}</td>
-                                <td class="text-slate-500 text-sm">-</td> {{-- TODO: Calcular última visita --}}
+                                <td class="text-slate-500 text-sm">
+                                    {{ $vehiculo->latestOrden ? $vehiculo->latestOrden->fecha_recepcion->format('d/m/Y') : '-' }}
+                                </td>
                                 <td class="text-right">
-                                    <button class="btn btn-ghost btn-xs text-blue-600"><i class="fas fa-edit"></i></button>
+                                    <button class="btn btn-ghost btn-xs text-blue-600 btn-edit-vehicle" data-vehicle="{{ json_encode($vehiculo) }}"><i class="fas fa-edit"></i></button>
                                 </td>
                             </tr>
                             @endforeach
                         </tbody>
                     </table>
                 </div>
-                @else
-                <div class="p-8 text-center text-slate-500">
+                <div id="vehiclesEmptyState" class="p-8 text-center text-slate-500 {{ $cliente->vehiculos->count() > 0 ? 'hidden' : '' }}">
                     <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
                         <i class="fas fa-car-side text-2xl text-slate-300"></i>
                     </div>
                     <p class="font-medium">No hay vehículos registrados</p>
                     <p class="text-sm mb-4">Agrega un vehículo para comenzar a crear citas.</p>
-                    <button class="btn btn-sm btn-primary">Registrar Primer Vehículo</button>
+                    <button class="btn btn-sm btn-primary" id="btnRegisterFirstVehicle">Registrar Primer Vehículo</button>
                 </div>
-                @endif
             </div>
         </div>
 
@@ -237,10 +234,10 @@
 <!-- Modal Edit Client -->
 <div id="clientModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeClientModal()"></div>
+        <div id="clientModalBackdrop" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
         <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-            <form id="clientForm" onsubmit="saveClient(event)">
+            <form id="clientForm">
                 @csrf
                 @method('PUT')
                 <input type="hidden" id="clientId" name="id" value="{{ $cliente->id }}">
@@ -250,7 +247,7 @@
 
                     <div class="grid grid-cols-1 gap-4">
                         <div class="flex items-center mb-2">
-                            <input type="checkbox" id="es_empresa" name="es_empresa" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50" onchange="toggleEmpresaFields()">
+                            <input type="checkbox" id="es_empresa" name="es_empresa" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                             <label for="es_empresa" class="ml-2 block text-sm text-gray-900">¿Es Empresa?</label>
                         </div>
 
@@ -298,7 +295,7 @@
                     <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
                         Guardar Cambios
                     </button>
-                    <button type="button" onclick="closeClientModal()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                    <button type="button" id="btnCancelClient" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
                         Cancelar
                     </button>
                 </div>
@@ -310,10 +307,10 @@
 <!-- Modal Create Vehicle -->
 <div id="vehicleModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeVehicleModal()"></div>
+        <div id="vehicleModalBackdrop" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
         <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-            <form id="vehicleForm" onsubmit="saveVehicle(event)">
+            <form id="vehicleForm">
                 @csrf
                 <input type="hidden" name="cliente_id" value="{{ $cliente->id }}">
                 <input type="hidden" id="vehicleId" name="id"> <!-- For edit in future -->
@@ -326,7 +323,7 @@
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Marca *</label>
-                                <select name="marca_id" id="marca_id" required onchange="loadModels(this.value)"
+                                <select name="marca_id" id="marca_id" required
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                     <option value="">Seleccione...</option>
                                     <!-- Loaded via JS -->
@@ -337,6 +334,15 @@
                                 <select name="modelo_id" id="modelo_id" required
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                     {{-- <option value="">Seleccione Marca primero</option> --}}
+                                </select>
+                            </div>
+
+                            <!-- Version Selection -->
+                            <div class="col-span-2">
+                                <label class="block text-sm font-medium text-gray-700">Versión <span class="text-xs text-gray-400">(Opcional)</span></label>
+                                <select name="version_id" id="version_id"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" disabled>
+                                    <option value="">Seleccione Modelo primero</option>
                                 </select>
                             </div>
                         </div>
@@ -373,7 +379,7 @@
                     <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
                         Guardar Vehículo
                     </button>
-                    <button type="button" onclick="closeVehicleModal()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                    <button type="button" id="btnCancelVehicle" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
                         Cancelar
                     </button>
                 </div>
@@ -383,160 +389,17 @@
 </div>
 
 
-<script>
-    // Client Logic
-    function editCliente(id) {
-        document.getElementById('clientModal').classList.remove('hidden');
-        const esEmpresa = {
-            {
-                $cliente - > es_empresa ? 'true' : 'false'
-            }
-        };
-        document.getElementById('es_empresa').checked = esEmpresa;
-        toggleEmpresaFields();
-    }
 
-    function closeClientModal() {
-        document.getElementById('clientModal').classList.add('hidden');
-    }
+<div id="client-data"
+    data-es-empresa="{{ $cliente->es_empresa ? 'true' : 'false' }}"
+    data-client-base="{{ url('panel/clientes') }}"
+    data-vehicle-store="{{ route('panel.vehiculos.store') }}"
+    data-vehicle-base="{{ url('panel/vehiculos') }}"
+    data-get-brands="{{ route('panel.operaciones.citas.getBrands') }}"
+    data-list-models-by-marca="{{ route('panel.mantenimientos.modelos.listByMarca', 'PLACEHOLDER') }}"
+    data-list-versions-by-modelo="{{ route('panel.mantenimientos.versiones.listByModelo', 'PLACEHOLDER') }}"></div>
 
-    function toggleEmpresaFields() {
-        const isEmpresa = document.getElementById('es_empresa').checked;
-        const empresaField = document.getElementById('empresaField');
-        const empresaInput = document.getElementById('empresa');
-
-        if (isEmpresa) {
-            empresaField.classList.remove('hidden');
-            empresaInput.setAttribute('required', 'required');
-        } else {
-            empresaField.classList.add('hidden');
-            empresaInput.removeAttribute('required');
-        }
-    }
-
-    function saveClient(event) {
-        event.preventDefault();
-        const form = event.target;
-        const formData = new FormData(form);
-        const id = document.getElementById('clientId').value;
-        const url = `{{ url('panel/clientes') }}/${id}`;
-
-        fetch(url, {
-                method: 'POST', // Laravel Method Spoofing
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(err => {
-                        throw err;
-                    });
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    location.reload(); // Reload to show new data
-                }
-            })
-            .catch(error => {
-                console.error(error);
-                let msg = 'Error al guardar';
-                if (error.errors) msg = Object.values(error.errors).flat().join('\n');
-                else if (error.message) msg = error.message;
-                alert(msg);
-            });
-    }
-
-    // Vehicle Logic
-    function openVehicleModal() {
-        document.getElementById('vehicleModal').classList.remove('hidden');
-        if (document.getElementById('marca_id').options.length <= 1) {
-            loadBrands();
-        }
-    }
-
-    function closeVehicleModal() {
-        document.getElementById('vehicleModal').classList.add('hidden');
-    }
-
-    function loadBrands() {
-        fetch('{{ route("panel.operaciones.citas.getBrands") }}')
-            .then(response => response.json())
-            .then(data => {
-                const select = document.getElementById('marca_id');
-                select.innerHTML = '<option value="">Seleccione...</option>';
-                data.forEach(marca => {
-                    select.innerHTML += `<option value="${marca.id}">${marca.nombre}</option>`;
-                });
-            });
-    }
-
-    // Models logic needed - reused/adapted from Citas logic
-    function loadModels(marcaId) {
-        if (!marcaId) {
-            document.getElementById('modelo_id').innerHTML = '<option value="">Seleccione Marca primero</option>';
-            return;
-        }
-
-        const url = `{{ route('panel.mantenimientos.modelos.listByMarca', 0) }}`.replace('/0', '/' + marcaId);
-
-        fetch(url)
-            .then(response => response.json())
-            .then(data => {
-                const select = document.getElementById('modelo_id');
-                select.innerHTML = ''; // Clear existing
-                if (data.length === 0) {
-                    select.innerHTML = '<option value="">No hay modelos registrados</option>';
-                    return;
-                }
-
-                data.forEach(modelo => {
-                    select.innerHTML += `<option value="${modelo.id}">${modelo.nombre}</option>`;
-                });
-            })
-            .catch(error => {
-                console.error('Error loading models:', error);
-                document.getElementById('modelo_id').innerHTML = '<option value="">Error al cargar modelos</option>';
-            });
-    }
-
-    function saveVehicle(event) {
-        event.preventDefault();
-        const form = event.target;
-        const formData = new FormData(form);
-
-        fetch('{{ route("panel.vehiculos.store") }}', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(err => {
-                        throw err;
-                    });
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    location.reload();
-                }
-            })
-            .catch(error => {
-                console.error(error);
-                let msg = 'Error al guardar';
-                if (error.errors) msg = Object.values(error.errors).flat().join('\n');
-                else if (error.message) msg = error.message;
-                alert(msg);
-            });
-    }
-</script>
+@push('scripts')
+@vite('resources/js/clientes/show.js')
+@endpush
 @endsection

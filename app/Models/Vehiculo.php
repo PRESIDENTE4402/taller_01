@@ -19,6 +19,7 @@ class Vehiculo extends Model
         'version_id',
         'placa',
         'anio',
+        'color',
         'vin'
     ];
 
@@ -44,5 +45,15 @@ class Vehiculo extends Model
     public function version()
     {
         return $this->belongsTo(VersionVehiculo::class);
+    }
+
+    public function ordenes()
+    {
+        return $this->hasMany(OrdenTrabajo::class);
+    }
+
+    public function latestOrden()
+    {
+        return $this->hasOne(OrdenTrabajo::class)->latestOfMany('fecha_recepcion');
     }
 }

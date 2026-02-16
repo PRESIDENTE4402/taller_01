@@ -38,7 +38,7 @@ class ClienteController extends Controller
 
     public function show($id)
     {
-        $cliente = Cliente::with(['vehiculos.marca', 'vehiculos.modelo', 'citas', 'ordenes'])->findOrFail($id);
+        $cliente = Cliente::with(['vehiculos.marca', 'vehiculos.modelo', 'vehiculos.latestOrden', 'citas', 'ordenes'])->findOrFail($id);
 
         // Calcular estadísticas básicas
         $totalGastado = 0; // Implementar lógica real si hay facturación
