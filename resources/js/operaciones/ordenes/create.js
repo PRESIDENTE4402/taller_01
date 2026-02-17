@@ -3,6 +3,22 @@ document.addEventListener('DOMContentLoaded', function () {
     let selectedPhotos = [];
     let selectedDamagePhotos = [];
 
+    // --- Inicialización de Fecha y Hora Local (Cliente) ---
+    const dateInput = document.querySelector('input[name="fecha_recepcion_date"]');
+    const timeInput = document.querySelector('input[name="fecha_recepcion_time"]');
+
+    if (dateInput && timeInput) {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+
+        dateInput.value = `${year}-${month}-${day}`;
+        timeInput.value = `${hours}:${minutes}`;
+    }
+
     // --- Lógica del Medidor de Combustible (Segmentado) ---
     // Controla la visualización del nivel de gasolina mediante un slider y segmentos visuales
     const fuelRange = document.getElementById('fuelRange');
@@ -392,15 +408,42 @@ document.addEventListener('DOMContentLoaded', function () {
                 const result = await response.json();
 
                 if (result.success) {
-                    Swal.fire('Éxito', result.message, 'success').then(() => window.location.href = result.redirect);
+                    Swal.fire({
+                        title: 'Éxito',
+                        text: result.message,
+                        icon: 'success',
+                        confirmButtonText: 'Aceptar',
+                        customClass: {
+                            confirmButton: 'btn btn-primary bg-blue-900 border-none text-white font-bold py-2 px-6 rounded-xl shadow-lg hover:bg-blue-800'
+                        },
+                        buttonsStyling: false
+                    }).then(() => window.location.href = result.redirect);
                 } else {
-                    Swal.fire('Error', result.message, 'error');
+                    Swal.fire({
+                        title: 'Error',
+                        text: result.message,
+                        icon: 'error',
+                        confirmButtonText: 'Cerrar',
+                        customClass: {
+                            confirmButton: 'btn btn-primary bg-blue-900 border-none text-white font-bold py-2 px-6 rounded-xl shadow-lg hover:bg-blue-800'
+                        },
+                        buttonsStyling: false
+                    });
                     btn.disabled = false;
                     btn.innerHTML = originalBtnContent;
                 }
             } catch (error) {
                 console.error(error);
-                Swal.fire('Error', 'Ocurrió un error inesperado', 'error');
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Ocurrió un error inesperado',
+                    icon: 'error',
+                    confirmButtonText: 'Cerrar',
+                    customClass: {
+                        confirmButton: 'btn btn-primary bg-blue-900 border-none text-white font-bold py-2 px-6 rounded-xl shadow-lg hover:bg-blue-800'
+                    },
+                    buttonsStyling: false
+                });
                 btn.disabled = false;
                 btn.innerHTML = originalBtnContent;
             }
@@ -477,14 +520,35 @@ document.addEventListener('DOMContentLoaded', function () {
     const inputClienteNombre = document.getElementById('inputClienteNombre');
     const inputClienteTelefono = document.getElementById('inputClienteTelefono');
     const inputClienteEmail = document.getElementById('inputClienteEmail');
+    const inputNit = document.getElementById('inputNit');
+    const inputDireccion = document.getElementById('inputDireccion');
+    const checkEsEmpresa = document.getElementById('checkEsEmpresa');
+    const divEmpresa = document.getElementById('divEmpresa');
+    const inputEmpresa = document.getElementById('inputEmpresa');
+
     const listClientes = document.getElementById('listClientes');
     const walkInClienteId = document.getElementById('walkInClienteId');
     const accionClienteInput = document.getElementById('accionClienteInput');
     let debounceTimer;
 
+    // Lógica para mostrar/ocultar campo empresa
+    if (checkEsEmpresa && divEmpresa) {
+        checkEsEmpresa.addEventListener('change', function () {
+            if (this.checked) {
+                divEmpresa.classList.remove('hidden');
+                if (inputEmpresa) inputEmpresa.focus();
+            } else {
+                divEmpresa.classList.add('hidden');
+                if (inputEmpresa) inputEmpresa.value = '';
+            }
+        });
+    }
+
     // Variables para rastrear si los datos actuales provienen de una selección
     let lastSelectedClientName = '';
     let lastSelectedClientPhone = '';
+    let lastSelectedClientEmail = '';
+    let lastSelectedClientNit = '';
 
     /**
      * Llena los inputs con la información de un cliente seleccionado
@@ -492,10 +556,28 @@ document.addEventListener('DOMContentLoaded', function () {
     function fillClientData(client) {
         lastSelectedClientName = client.nombre_completo.toUpperCase();
         lastSelectedClientPhone = client.telefono;
+        lastSelectedClientEmail = client.email || '';
+        lastSelectedClientNit = client.nit || '';
 
         inputClienteNombre.value = lastSelectedClientName;
         inputClienteTelefono.value = lastSelectedClientPhone;
-        inputClienteEmail.value = client.email || '';
+        inputClienteEmail.value = lastSelectedClientEmail;
+
+        if (inputNit) inputNit.value = lastSelectedClientNit;
+        if (inputDireccion) inputDireccion.value = client.direccion || '';
+
+        if (checkEsEmpresa && divEmpresa) {
+            const isCompany = client.es_empresa == 1 || client.es_empresa === true;
+            checkEsEmpresa.checked = isCompany;
+            if (isCompany) {
+                divEmpresa.classList.remove('hidden');
+                if (inputEmpresa) inputEmpresa.value = client.empresa || '';
+            } else {
+                divEmpresa.classList.add('hidden');
+                if (inputEmpresa) inputEmpresa.value = '';
+            }
+        }
+
         if (walkInClienteId) walkInClienteId.value = client.id;
         if (accionClienteInput) accionClienteInput.value = 'update';
 
@@ -537,7 +619,12 @@ document.addEventListener('DOMContentLoaded', function () {
                             icon: 'question',
                             showCancelButton: true,
                             confirmButtonText: 'Sí, cargar',
-                            confirmButtonColor: '#1e3a8a'
+                            cancelButtonText: 'Cancelar',
+                            customClass: {
+                                confirmButton: 'btn btn-primary bg-blue-900 border-none text-white font-bold py-2 px-6 rounded-xl shadow-lg hover:bg-blue-800',
+                                cancelButton: 'btn btn-ghost text-gray-500 font-bold py-2 px-6 rounded-xl hover:bg-gray-100'
+                            },
+                            buttonsStyling: false
                         }).then(res => { if (res.isConfirmed) fillVehicleData(vehicles[0]); });
                     }
                 }
@@ -545,43 +632,119 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // Función genérica para realizar búsqueda de clientes
+    function searchAndDisplayClients(term) {
+        clearTimeout(debounceTimer);
+        const upperTerm = term.trim().toUpperCase();
+
+        if (upperTerm.length < 2) { listClientes.classList.add('hidden'); return; }
+
+        debounceTimer = setTimeout(() => {
+            fetch(`${window.serverData.routes.searchClients}?term=${upperTerm}`)
+                .then(r => r.json())
+                .then(data => {
+                    listClientes.innerHTML = '';
+                    if (data.length > 0) {
+                        listClientes.classList.remove('hidden');
+                        data.forEach(c => {
+                            const li = document.createElement('li');
+                            li.className = "px-4 py-2 hover:bg-gray-100 cursor-pointer text-xs";
+                            // Highlight matching part logic could be complex, keeping simple for now
+                            li.innerHTML = `<strong>${c.nombre_completo}</strong><br>
+                                            <span class="text-gray-500">Tel: ${c.telefono}</span>
+                                            ${c.email ? `<br><span class="text-gray-400">Email: ${c.email}</span>` : ''}
+                                            ${c.nit ? `<br><span class="text-blue-400">NIT: ${c.nit}</span>` : ''}`;
+                            li.addEventListener('click', () => selectClient(c));
+                            listClientes.appendChild(li);
+                        });
+                    } else {
+                        listClientes.classList.add('hidden');
+                    }
+                });
+        }, 300);
+    }
+
     if (inputClienteNombre && listClientes) {
         inputClienteNombre.addEventListener('input', function () {
-            const term = this.value.trim().toUpperCase();
+            const term = this.value; // Don't upper yet for logic check
+            if (term.toUpperCase() !== lastSelectedClientName) { resetClientSelection(); }
+            searchAndDisplayClients(term);
+        });
 
-            // Si el nombre cambió respecto al seleccionado, reseteamos el ID
-            if (term !== lastSelectedClientName) {
-                resetClientSelection();
+        // Hide list when clicking outside
+        document.addEventListener('click', function (e) {
+            if (!inputClienteNombre.contains(e.target) && !listClientes.contains(e.target) &&
+                !inputClienteTelefono.contains(e.target) && !inputClienteEmail.contains(e.target) && !inputNit.contains(e.target)) {
+                listClientes.classList.add('hidden');
             }
-
-            clearTimeout(debounceTimer);
-            if (term.length < 2) { listClientes.classList.add('hidden'); return; }
-
-            debounceTimer = setTimeout(() => {
-                fetch(`${window.serverData.routes.searchClients}?term=${term}`)
-                    .then(r => r.json())
-                    .then(data => {
-                        listClientes.innerHTML = '';
-                        if (data.length > 0) {
-                            listClientes.classList.remove('hidden');
-                            data.forEach(c => {
-                                const li = document.createElement('li');
-                                li.className = "px-4 py-2 hover:bg-gray-100 cursor-pointer text-xs";
-                                li.innerHTML = `<strong>${c.nombre_completo}</strong><br>${c.telefono}`;
-                                li.addEventListener('click', () => selectClient(c));
-                                listClientes.appendChild(li);
-                            });
-                        }
-                    });
-            }, 300);
         });
     }
 
+    // Attach search to other fields too if desired, or just reset selection
+    // The user asked "que busque tambien por el correo o por el telefono"
+    // So we should attach search logic to them as well.
+
     if (inputClienteTelefono) {
         inputClienteTelefono.addEventListener('input', function () {
-            if (this.value.trim() !== lastSelectedClientPhone) {
+            if (this.value.trim() !== lastSelectedClientPhone) { resetClientSelection(); }
+            searchAndDisplayClients(this.value);
+            // Position list below proper input? currently list is below Name. 
+            // Ideally we might want to just search from name, but if they type phone IN phone field...
+            // JS structure has one listClientes UL under name. We can keep it simple: 
+            // typing in phone searches, but shows results under name? Or maybe we should move list?
+            // For now, let's keep searching from Name field as main search, BUT user said "que busque TAMBIEN por...".
+            // Implementation: The backend already searches all fields. 
+            // If the user meant "type phone in the name box", that works now.
+            // If they mean "type phone in the phone box and see results", we need to show the list.
+            // Since the list is absolutely positioned relative to Name input parent, showing it might look weird if typing in phone.
+            // Let's assume they type in the main "Buscar/Nuevo" (Name) field for searching everything.
+            // BUT if they want to type in specific fields, we can support it.
+            // Let's stick to the Name field being the "Search Bar".
+
+            // Wait, looking at the request: "que buscador del nombre ... funcione asi en el nit, telefono o correo"
+            // This firmly implies searching using the existing search bar (Name input) which is labeled "(Buscar/Nuevo)".
+            // So my backend change already supports this feature (searching all columns by the term sent).
+            // The frontend update above (showing extra details in the list) completes the UX.
+
+            // NO CHANGES NEEDED - Previous step was correct.
+            // Proceeding to verification. attach searchAndDisplayClients to phone/email inputs to avoid UI chaos (list popping up elsewhere).
+            // I will just ensure reset logic triggers.
+        });
+        // Focus listener to show list if it has content?
+        inputClienteNombre.addEventListener('focus', function () {
+            if (this.value.length >= 2) searchAndDisplayClients(this.value);
+        });
+    }
+
+    if (inputClienteEmail) {
+        inputClienteEmail.addEventListener('input', function () {
+            if (this.value.trim() !== (lastSelectedClientEmail || '')) {
                 resetClientSelection();
             }
+            if (this.value.length >= 2) {
+                searchAndDisplayClients(this.value);
+            }
+        });
+
+        // Focus listener to show list if it has content
+        inputClienteEmail.addEventListener('focus', function () {
+            if (this.value.length >= 2) searchAndDisplayClients(this.value);
+        });
+    }
+
+    if (inputNit) {
+        inputNit.addEventListener('input', function () {
+            if (this.value.trim() !== (lastSelectedClientNit || '')) {
+                resetClientSelection();
+            }
+            if (this.value.length >= 2) {
+                searchAndDisplayClients(this.value);
+            }
+        });
+
+        // Focus listener
+        inputNit.addEventListener('focus', function () {
+            if (this.value.length >= 2) searchAndDisplayClients(this.value);
         });
     }
 
@@ -606,6 +769,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.querySelector('input[name="new_vehiculo[version]"]').value = v.version || '';
         document.querySelector('input[name="color"]').value = v.color;
         document.querySelector('input[name="new_vehiculo[anio]"]').value = v.anio;
+        document.querySelector('input[name="new_vehiculo[vin]"]').value = v.vin || ''; // Motor
 
         inputPlaca.classList.add('bg-blue-50', 'border-blue-300');
         Swal.fire({ icon: 'success', title: 'Vehículo Cargado', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500 });
@@ -638,8 +802,47 @@ document.addEventListener('DOMContentLoaded', function () {
                                 li.className = "px-4 py-2 hover:bg-gray-100 cursor-pointer text-xs";
                                 li.innerHTML = `<strong>${v.placa}</strong> - ${v.marca} ${v.modelo}`;
                                 li.addEventListener('click', () => {
-                                    fillVehicleData(v);
                                     listVehiculos.classList.add('hidden');
+
+                                    if (v.cliente) {
+                                        Swal.fire({
+                                            title: 'Propietario Registrado',
+                                            text: `El vehículo pertenece a ${v.cliente.nombre_completo}. ¿Es el cliente actual?`,
+                                            icon: 'question',
+                                            showCancelButton: true,
+                                            confirmButtonText: 'Sí, es el mismo',
+                                            cancelButtonText: 'No, es otro',
+                                            customClass: {
+                                                confirmButton: 'btn btn-primary bg-blue-900 border-none text-white font-bold py-2 px-6 rounded-xl shadow-lg hover:bg-blue-800',
+                                                cancelButton: 'btn btn-ghost text-gray-500 font-bold py-2 px-6 rounded-xl hover:bg-gray-100'
+                                            },
+                                            buttonsStyling: false
+                                        }).then((result) => {
+                                            fillVehicleData(v);
+                                            if (result.isConfirmed) {
+                                                fillClientData(v.cliente);
+                                            } else {
+                                                // Reset client data if user says "it is another client"
+                                                inputClienteNombre.value = '';
+                                                inputClienteTelefono.value = '';
+                                                inputClienteEmail.value = '';
+                                                if (inputNit) inputNit.value = '';
+                                                if (inputDireccion) inputDireccion.value = '';
+
+                                                // Ensure checkbox is reset
+                                                if (checkEsEmpresa) {
+                                                    checkEsEmpresa.checked = false;
+                                                    // Manually trigger change to hide the company field
+                                                    if (divEmpresa) divEmpresa.classList.add('hidden');
+                                                    if (inputEmpresa) inputEmpresa.value = '';
+                                                }
+
+                                                resetClientSelection();
+                                            }
+                                        });
+                                    } else {
+                                        fillVehicleData(v);
+                                    }
                                 });
                                 listVehiculos.appendChild(li);
                             });
@@ -660,8 +863,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 title: 'Capturar Fotografía',
                 html: `<div class="bg-black aspect-video rounded-lg overflow-hidden"><video id="cameraFeed" autoplay playsinline class="w-full h-full"></video><canvas id="snapshotCanvas" class="hidden"></canvas></div>`,
                 showCancelButton: true,
-                confirmButtonText: 'Capturar',
-                confirmButtonColor: '#1e3a8a',
+                confirmButtonText: '<i class="fas fa-camera"></i> CAPTURAR',
+                cancelButtonText: 'CANCELAR',
+                customClass: {
+                    confirmButton: 'btn btn-primary bg-blue-900 border-none text-white font-bold py-2 px-6 rounded-xl shadow-lg hover:bg-blue-800',
+                    cancelButton: 'btn btn-ghost text-gray-500 font-bold py-2 px-6 rounded-xl hover:bg-gray-100'
+                },
+                buttonsStyling: false,
                 didOpen: () => { document.getElementById('cameraFeed').srcObject = stream; },
                 preConfirm: () => {
                     const video = document.getElementById('cameraFeed');
@@ -680,7 +888,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     });
                 }
             });
-        } catch (err) { Swal.fire('Error', 'No se pudo acceder a la cámara.', 'error'); }
+        } catch (err) {
+            Swal.fire({
+                title: 'Error',
+                text: 'No se pudo acceder a la cámara.',
+                icon: 'error',
+                confirmButtonText: 'Cerrar',
+                customClass: {
+                    confirmButton: 'btn btn-primary bg-blue-900 border-none text-white font-bold py-2 px-6 rounded-xl shadow-lg hover:bg-blue-800'
+                },
+                buttonsStyling: false
+            });
+        }
     }
 
     // --- Manejo de Archivos y Fotos de Recepción ---
@@ -729,7 +948,19 @@ document.addEventListener('DOMContentLoaded', function () {
     const btnLimpiar = document.getElementById('btnLimpiar');
     if (btnLimpiar) {
         btnLimpiar.addEventListener('click', () => {
-            Swal.fire({ title: '¿Limpiar Todo?', icon: 'warning', showCancelButton: true, confirmButtonText: 'Sí, borrar', confirmButtonColor: '#dc2626' }).then(res => {
+            Swal.fire({
+                title: '¿Limpiar Todo?',
+                text: 'Se perderán los datos ingresados',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, borrar',
+                cancelButtonText: 'Cancelar',
+                customClass: {
+                    confirmButton: 'btn btn-error bg-red-600 border-none text-white font-bold py-2 px-6 rounded-xl shadow-lg hover:bg-red-700',
+                    cancelButton: 'btn btn-ghost text-gray-500 font-bold py-2 px-6 rounded-xl hover:bg-gray-100'
+                },
+                buttonsStyling: false
+            }).then(res => {
                 if (res.isConfirmed) { location.reload(); }
             });
         });

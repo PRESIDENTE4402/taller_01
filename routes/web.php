@@ -90,6 +90,7 @@ Route::middleware('auth')->group(function () {
                 Route::get('/list', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'list'])->name('list');
                 Route::get('/create', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'create'])->name('create');
                 Route::post('/', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'store'])->name('store');
+                Route::get('/{id}/print', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'print'])->name('print');
             });
         });
 

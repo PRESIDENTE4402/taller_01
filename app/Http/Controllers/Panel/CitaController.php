@@ -62,9 +62,12 @@ class CitaController extends Controller
         $countsQuery = Cita::query();
         if ($start) {
             $endDateForCounts = $end ?? $start;
-            if (strlen($endDateForCounts) <= 10) $endDateForCounts .= ' 23:59:59';
-            if (strlen($start) <= 10) $startClone = $start . ' 00:00:00'; // Avoid overwrite
-            else $startClone = $start;
+            if (strlen($endDateForCounts) <= 10)
+                $endDateForCounts .= ' 23:59:59';
+            if (strlen($start) <= 10)
+                $startClone = $start . ' 00:00:00'; // Avoid overwrite
+            else
+                $startClone = $start;
 
             $countsQuery->whereBetween('fecha_programada', [$startClone, $endDateForCounts]);
         }
@@ -115,7 +118,8 @@ class CitaController extends Controller
     {
         $month = $request->get('month'); // "2026-02"
 
-        if (!$month) return response()->json([]);
+        if (!$month)
+            return response()->json([]);
 
         $startOfMonth = Carbon::parse($month . '-01')->startOfMonth();
         $endOfMonth = Carbon::parse($month . '-01')->endOfMonth();
@@ -334,11 +338,14 @@ class CitaController extends Controller
     public function searchClients(Request $request)
     {
         $term = $request->term;
-        $clientes = Cliente::where('nombre_completo', 'LIKE', "%$term%")
-            ->orWhere('telefono', 'LIKE', "%$term%")
-            ->orWhere('email', 'LIKE', "%$term%")
+        $clientes = Cliente::where(function ($query) use ($term) {
+            $query->where('nombre_completo', 'LIKE', "%$term%")
+                ->orWhere('telefono', 'LIKE', "%$term%")
+                ->orWhere('email', 'LIKE', "%$term%")
+                ->orWhere('nit', 'LIKE', "%$term%");
+        })
             ->take(10)
-            ->get(['id', 'nombre_completo', 'telefono', 'email']);
+            ->get(['id', 'nombre_completo', 'telefono', 'email', 'nit', 'direccion', 'es_empresa', 'empresa']);
 
         return response()->json($clientes);
     }
@@ -360,11 +367,16 @@ class CitaController extends Controller
                 'version' => $v->version?->nombre ?? '',
                 'color' => $v->color,
                 'anio' => $v->anio,
+                'vin' => $v->vin,
                 'cliente' => $v->cliente ? [
                     'id' => $v->cliente->id,
                     'nombre_completo' => $v->cliente->nombre_completo,
                     'telefono' => $v->cliente->telefono,
-                    'email' => $v->cliente->email
+                    'email' => $v->cliente->email,
+                    'nit' => $v->cliente->nit,
+                    'direccion' => $v->cliente->direccion,
+                    'es_empresa' => $v->cliente->es_empresa,
+                    'empresa' => $v->cliente->empresa
                 ] : null,
                 'texto' => $v->placa . ' - ' . ($v->marca?->nombre ?? '') . ' ' . ($v->modelo?->nombre ?? '')
             ];
