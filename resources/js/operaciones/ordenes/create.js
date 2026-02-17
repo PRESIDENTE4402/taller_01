@@ -482,18 +482,40 @@ document.addEventListener('DOMContentLoaded', function () {
     const accionClienteInput = document.getElementById('accionClienteInput');
     let debounceTimer;
 
+    // Variables para rastrear si los datos actuales provienen de una selección
+    let lastSelectedClientName = '';
+    let lastSelectedClientPhone = '';
+
     /**
      * Llena los inputs con la información de un cliente seleccionado
      */
     function fillClientData(client) {
-        inputClienteNombre.value = client.nombre_completo.toUpperCase();
-        inputClienteTelefono.value = client.telefono;
+        lastSelectedClientName = client.nombre_completo.toUpperCase();
+        lastSelectedClientPhone = client.telefono;
+
+        inputClienteNombre.value = lastSelectedClientName;
+        inputClienteTelefono.value = lastSelectedClientPhone;
         inputClienteEmail.value = client.email || '';
         if (walkInClienteId) walkInClienteId.value = client.id;
         if (accionClienteInput) accionClienteInput.value = 'update';
 
-        inputClienteNombre.classList.add('border-green-500', 'bg-green-50');
-        setTimeout(() => inputClienteNombre.classList.remove('border-green-500', 'bg-green-50'), 1000);
+        // Feedback visual de selección
+        inputClienteNombre.classList.add('bg-blue-50', 'border-blue-300');
+        inputClienteTelefono.classList.add('bg-blue-50', 'border-blue-300');
+    }
+
+    /**
+     * Resetea el ID del cliente si el usuario edita los campos manualmente
+     * para evitar sobreescribir datos de un cliente existente por error.
+     */
+    function resetClientSelection() {
+        if (walkInClienteId && walkInClienteId.value !== '') {
+            walkInClienteId.value = '';
+            if (accionClienteInput) accionClienteInput.value = 'create';
+            inputClienteNombre.classList.remove('bg-blue-50', 'border-blue-300');
+            inputClienteTelefono.classList.remove('bg-blue-50', 'border-blue-300');
+            console.log("Selección de cliente reseteada: Se creará un nuevo registro.");
+        }
     }
 
     /**
@@ -525,7 +547,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (inputClienteNombre && listClientes) {
         inputClienteNombre.addEventListener('input', function () {
-            const term = this.value;
+            const term = this.value.trim().toUpperCase();
+
+            // Si el nombre cambió respecto al seleccionado, reseteamos el ID
+            if (term !== lastSelectedClientName) {
+                resetClientSelection();
+            }
+
             clearTimeout(debounceTimer);
             if (term.length < 2) { listClientes.classList.add('hidden'); return; }
 
@@ -549,10 +577,19 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    if (inputClienteTelefono) {
+        inputClienteTelefono.addEventListener('input', function () {
+            if (this.value.trim() !== lastSelectedClientPhone) {
+                resetClientSelection();
+            }
+        });
+    }
+
     // --- Buscador de Vehículo por Placa ---
     const inputPlaca = document.getElementById('inputPlaca');
     const listVehiculos = document.getElementById('listVehiculos');
     let debounceVehiculo;
+    let lastSelectedPlaca = '';
 
     /**
      * Llena los campos técnicos según el vehículo elegido
@@ -560,19 +597,32 @@ document.addEventListener('DOMContentLoaded', function () {
     function fillVehicleData(v) {
         const iVehiculoId = document.querySelector('input[name="vehiculo_id"]');
         if (iVehiculoId) iVehiculoId.value = v.id;
-        document.querySelector('input[name="new_vehiculo[placa]"]').value = v.placa;
+
+        lastSelectedPlaca = v.placa.toUpperCase();
+
+        document.querySelector('input[name="new_vehiculo[placa]"]').value = lastSelectedPlaca;
         document.querySelector('input[name="new_vehiculo[marca]"]').value = v.marca;
         document.querySelector('input[name="new_vehiculo[modelo]"]').value = v.modelo;
         document.querySelector('input[name="new_vehiculo[version]"]').value = v.version || '';
         document.querySelector('input[name="color"]').value = v.color;
         document.querySelector('input[name="new_vehiculo[anio]"]').value = v.anio;
 
+        inputPlaca.classList.add('bg-blue-50', 'border-blue-300');
         Swal.fire({ icon: 'success', title: 'Vehículo Cargado', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500 });
     }
 
     if (inputPlaca && listVehiculos) {
         inputPlaca.addEventListener('input', function () {
-            const term = this.value;
+            const term = this.value.trim().toUpperCase();
+            const iVehiculoId = document.querySelector('input[name="vehiculo_id"]');
+
+            // Si la placa cambió respecto a la seleccionada, reseteamos el ID del vehículo
+            if (term !== lastSelectedPlaca && iVehiculoId && iVehiculoId.value !== '') {
+                iVehiculoId.value = '';
+                inputPlaca.classList.remove('bg-blue-50', 'border-blue-300');
+                console.log("Selección de vehículo reseteada.");
+            }
+
             clearTimeout(debounceVehiculo);
             if (term.length < 2) { listVehiculos.classList.add('hidden'); return; }
 
