@@ -786,10 +786,12 @@ async function loadCitas() {
 
     const startEl = document.getElementById('dateStart');
     const endEl = document.getElementById('dateEnd');
+    const sucursalEl = document.getElementById('filterSucursal'); // NEW
 
     // Safely get values
     const start = startEl ? startEl.value : '';
     const end = endEl ? endEl.value : '';
+    const sucursalId = sucursalEl ? sucursalEl.value : 'all'; // NEW
 
     // UI Loading
     container.innerHTML = `
@@ -826,9 +828,12 @@ async function loadCitas() {
         const citas = data.citas || [];
         const counts = data.counts || {};
         const countToday = data.count_today || 0;
+        const capacities = data.capacities || []; // NEW
+        const capacityDate = data.capacity_date || ''; // NEW
 
         updateCounters(counts, countToday);
         renderCitas(citas);
+        updateCapacityWidget(capacities, capacityDate); // NEW function call
 
     } catch (error) {
         console.error(error);
@@ -995,7 +1000,8 @@ function openCitaModal(cita) {
         }
     };
 
-    // 3. Call
+    // ... (previous content) ...
+
     const btnCall = document.getElementById('btnCall');
     btnCall.href = cleanPhone ? `tel:${cleanPhone}` : '#';
     if (!cleanPhone) btnCall.classList.add('opacity-50', 'pointer-events-none');
@@ -1198,3 +1204,59 @@ window.setDateFilter = function (type) {
 
     window.loadCitas();
 };
+
+function updateCapacityWidget(capacities, dateStr) {
+    const container = document.getElementById('capacityContainer');
+    const dateLabel = document.getElementById('capacityDateLabel');
+
+    if (!container) return;
+
+    if (dateStr) {
+        // Format date: "18 Feb"
+        const [y, m, dstr] = dateStr.split('-');
+        const dateObj = new Date(y, m - 1, dstr);
+        const day = dateObj.getDate();
+        const month = dateObj.toLocaleString('es-ES', { month: 'short' });
+        if (dateLabel) dateLabel.textContent = `${day} ${month}`;
+    }
+
+    container.innerHTML = '';
+
+    if (!capacities || capacities.length === 0) {
+        container.innerHTML = '<p class="text-xs text-gray-400 text-center">Sin datos de capacidad.</p>';
+        return;
+    }
+
+    capacities.forEach(cap => {
+        // Determine Color
+        let color = 'bg-green-500';
+        let text = 'text-green-600';
+
+        if (cap.porcentaje >= 100) {
+            color = 'bg-red-500';
+            text = 'text-red-600';
+        } else if (cap.porcentaje >= 80) {
+            color = 'bg-orange-500';
+            text = 'text-orange-600';
+        }
+
+        const div = document.createElement('div');
+        div.className = 'bg-gray-50 p-2.5 rounded-lg border border-gray-100';
+        div.innerHTML = `
+            <div class="flex justify-between items-center mb-1.5">
+                <span class="text-xs font-bold text-gray-700 truncate w-2/3" title="${cap.nombre}">${cap.nombre}</span>
+                <span class="text-[10px] font-bold ${text}">${cap.ocupados}/${cap.capacidad}</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-1.5 mb-1">
+                <div class="${color} h-1.5 rounded-full transition-all duration-500" style="width: ${Math.min(100, cap.porcentaje)}%"></div>
+            </div>
+            <div class="flex justify-between items-center">
+                <span class="text-[9px] text-gray-400 uppercase font-bold tracking-wider">Ocupación ${cap.porcentaje}%</span>
+                <span class="text-[9px] font-bold ${cap.disponibles === 0 ? 'text-red-500' : 'text-blue-500'}">
+                    ${cap.disponibles} Libres
+                </span>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+}

@@ -28,57 +28,94 @@ class CitaController extends Controller
         $start = $request->get('start');
         $end = $request->get('end');
         $estado = $request->get('estado');
+        $sucursalId = $request->get('sucursal_id');
 
-        $query = Cita::with(['cliente', 'vehiculo.marca', 'vehiculo.modelo'])
+        $query = Cita::with(['cliente', 'vehiculo.marca', 'vehiculo.modelo', 'sucursal'])
             ->orderBy('fecha_programada', 'asc');
 
         // Si hay filtro de fecha exacto o rango
         if ($start) {
-            // Si viene fullcalendar o rango manual
-            $endDate = $end ?? $start; // Si no hay end, es un solo dia
-
-            // Ajustar el fin del día si es fecha simple Y-m-d
-            if (strlen($endDate) <= 10) {
-                $endDate .= ' 23:59:59';
-            }
-            if (strlen($start) <= 10) {
-                $start .= ' 00:00:00';
-            }
+            $endDate = $end ?? $start; 
+            if (strlen($endDate) <= 10) $endDate .= ' 23:59:59';
+            if (strlen($start) <= 10) $start .= ' 00:00:00';
 
             $query->whereBetween('fecha_programada', [$start, $endDate]);
+        }
+
+        if ($sucursalId && $sucursalId !== 'all') {
+            $query->where('sucursal_id', $sucursalId);
         }
 
         if ($estado && $estado !== 'all') {
             $query->where('estado', $estado);
         } else if ($estado === 'all') {
-            // "cuando le de a ver todas que muestre el de todos los estados"
-            // No filter applied, show all statuses.
+            // Show all
         } else {
-            // Default (Initial Load): "por default muestre las citas de la semana" (controller defines status, js defines date)
-            // Implicitly we usually show active work.
             $query->whereIn('estado', ['pendiente', 'confirmada']);
         }
 
-        // 1. Calculate Counts (Respect Date, Ignore Status)
+        // 1. Calculate Counts (Respect Date & Sucursal, Ignore Status)
         $countsQuery = Cita::query();
         if ($start) {
             $endDateForCounts = $end ?? $start;
             if (strlen($endDateForCounts) <= 10) $endDateForCounts .= ' 23:59:59';
-            if (strlen($start) <= 10) $startClone = $start . ' 00:00:00'; // Avoid overwrite
+            if (strlen($start) <= 10) $startClone = $start; // Already formatted above actually, but careful with variable reuse
             else $startClone = $start;
-
-            $countsQuery->whereBetween('fecha_programada', [$startClone, $endDateForCounts]);
+            
+            // Re-use logic from above for safety if variable was modified
+             $s = $request->get('start'); 
+             if (strlen($s) <= 10) $s .= ' 00:00:00';
+             
+            $countsQuery->whereBetween('fecha_programada', [$s, $endDateForCounts]);
         }
+        if ($sucursalId && $sucursalId !== 'all') {
+            $countsQuery->where('sucursal_id', $sucursalId);
+        }
+
         $counts = $countsQuery->select('estado', DB::raw('count(*) as total'))
             ->groupBy('estado')
             ->pluck('total', 'estado');
 
-        // 2. Count Today (Independent of filters)
-        $countToday = Cita::whereDate('fecha_programada', now()->toDateString())
-            ->whereNotIn('estado', ['cancelada', 'no_asistio']) // Only active work
-            ->count();
+        // 2. Count Today (Global or Filtered by Sucursal)
+        $todayQuery = Cita::whereDate('fecha_programada', now()->toDateString())
+            ->whereNotIn('estado', ['cancelada', 'no_asistio']);
+        
+        if ($sucursalId && $sucursalId !== 'all') {
+            $todayQuery->where('sucursal_id', $sucursalId);
+        }
+        $countToday = $todayQuery->count();
 
-        // 3. Get Citas (Respect Date AND Status)
+        // 3. CAPACIDAD (Visualización para el Secretario)
+        // Calculamos la capacidad para el día de INICIO del rango seleccionado (o Hoy si no hay filtro)
+        // Esto ayuda a ver la disponibilidad del día que se está consultando.
+        $capacityDate = $request->get('start') ? Carbon::parse($request->get('start'))->format('Y-m-d') : now()->format('Y-m-d');
+        
+        // Obtenemos sucursales (todas o la filtrada)
+        $sucursalesQuery = \App\Models\Sucursal::query();
+        if ($sucursalId && $sucursalId !== 'all') {
+            $sucursalesQuery->where('id', $sucursalId);
+        }
+        $sucursalesData = $sucursalesQuery->get();
+
+        $capacities = [];
+        foreach ($sucursalesData as $sucursal) {
+            // Contar ocupación para ese día
+            $ocupados = Cita::where('sucursal_id', $sucursal->id)
+                ->whereDate('fecha_programada', $capacityDate)
+                ->whereNotIn('estado', ['cancelada', 'no_asistio']) // Solo cuentan las activas
+                ->count();
+
+            $capacities[] = [
+                'id' => $sucursal->id,
+                'nombre' => $sucursal->nombre,
+                'capacidad' => $sucursal->capacidad_bahias,
+                'ocupados' => $ocupados,
+                'disponibles' => max(0, $sucursal->capacidad_bahias - $ocupados),
+                'porcentaje' => $sucursal->capacidad_bahias > 0 ? round(($ocupados / $sucursal->capacidad_bahias) * 100) : 100
+            ];
+        }
+
+        // 4. Get Citas
         $citas = $query->get()->map(function ($cita) {
             $clienteNombre = $cita->cliente?->nombre_completo ?? 'Cliente Desconocido';
             $vehiculoTexto = 'Vehículo Desconocido';
@@ -96,6 +133,7 @@ class CitaController extends Controller
                 'start' => $cita->fecha_programada,
                 'description' => $cita->motivo_cita,
                 'estado' => $cita->estado,
+                'sucursal' => $cita->sucursal?->nombre ?? 'N/A',
                 'cliente' => $clienteNombre,
                 'telefono' => $cita->cliente?->telefono ?? 'N/A',
                 'vehiculo' => $vehiculoTexto,
@@ -107,7 +145,9 @@ class CitaController extends Controller
         return response()->json([
             'citas' => $citas,
             'counts' => $counts,
-            'count_today' => $countToday
+            'count_today' => $countToday,
+            'capacities' => $capacities, // NEW DATA
+            'capacity_date' => $capacityDate
         ]);
     }
 
