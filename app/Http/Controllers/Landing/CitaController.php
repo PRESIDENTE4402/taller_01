@@ -22,57 +22,77 @@ class CitaController extends Controller
             'nombre' => 'required|string',
             'email' => 'required|email',
             'telefono' => 'required|string',
-            'placa' => 'required|string|min:3', // Indispensable para historial
+            'placa' => 'required|string', // Indispensable para historial
             'marca' => 'required|string', // Texto del input
             'modelo' => 'nullable|string', // Texto del input
             'version' => 'nullable|string', // Texto del input
             'motivo' => 'required|string',
             'fecha' => 'required|date',
             'hora' => 'required|string',
-            'valet' => 'boolean'
+            'sucursal_id' => 'required|exists:sucursales,id'
         ]);
 
         try {
+            DB::beginTransaction();
+
             // 2. Gestión de CLIENTE (Buscar o Crear)
+            // Si el cliente ya existe, se mantiene su situación actual.
+            // Si es nuevo, se crea como 'prospecto'.
             $cliente = Cliente::firstOrCreate(
                 ['email' => $validated['email']], // Búsqueda principal por email
                 [
                     'nombre_completo' => $validated['nombre'],
                     'telefono' => $validated['telefono'],
-                    'direccion' => $request->valet ? 'Dirección pendiente (Valet)' : null,
-                    // 'es_empresa' => false // default
+                    'direccion' => 'Dirección pendiente', // Opcional
+                    'situacion' => 'prospecto' // Nuevo campo
                 ]
             );
 
-            // Si el cliente ya existía, actualizamos datos de contacto recientes
+            // Actualizar datos de contacto si el cliente existe (opcional, pero útil)
             if (!$cliente->wasRecentlyCreated) {
+                // Solo actualizamos si es prospecto o si queremos mantener datos frescos
+                // Por seguridad, actualizamos teléfono y nombre
                 $cliente->update([
                     'nombre_completo' => $validated['nombre'],
                     'telefono' => $validated['telefono']
                 ]);
             }
 
-            // 3. Gestión de MARCA / MODELO (Buscar o Crear dinámicamente)
-            // Normalizar texto
+            // 3. Gestión de VEHÍCULO
             $nombreMarca = trim(strtoupper($validated['marca']));
             $nombreModelo = isset($validated['modelo']) ? trim(strtoupper($validated['modelo'])) : 'MODELO BASE';
+            $nombreVersion = isset($request->version) ? trim(strtoupper($request->version)) : '';
+            
+            $mensajeAdicionalVehiculo = "";
 
-            $marca = MarcaVehiculo::firstOrCreate(['nombre' => $nombreMarca]);
-            $modelo = ModeloVehiculo::firstOrCreate(
-                ['marca_id' => $marca->id, 'nombre' => $nombreModelo]
-            );
+            // Buscar si la marca existe en BD (para relacionarla correctamente)
+            $marca = MarcaVehiculo::where('nombre', $nombreMarca)->first();
 
-            $versionId = null;
-            if ($request->version) {
-                $nombreVersion = trim(strtoupper($request->version));
-                $version = VersionVehiculo::firstOrCreate(
-                    ['modelo_id' => $modelo->id, 'nombre' => $nombreVersion]
+            if ($marca) {
+                // Marca existe, procedemos normal con Modelo
+                $modelo = ModeloVehiculo::firstOrCreate(
+                    ['marca_id' => $marca->id, 'nombre' => $nombreModelo]
                 );
-                $versionId = $version->id;
+                
+                $versionId = null;
+                if ($nombreVersion) {
+                    $version = VersionVehiculo::firstOrCreate(
+                        ['modelo_id' => $modelo->id, 'nombre' => $nombreVersion]
+                    );
+                    $versionId = $version->id;
+                }
+            } else {
+                // Marca NO existe: Usar GENERICO
+                $marca = MarcaVehiculo::firstOrCreate(['nombre' => 'GENERICA']); 
+                $modelo = ModeloVehiculo::firstOrCreate(['marca_id' => $marca->id, 'nombre' => 'GENERICO']);
+                $versionId = null; 
+
+                // Guardamos el detalle real en el texto para que el asesor lo corrija después
+                $mensajeAdicionalVehiculo = " [Vehículo Ingresado: $nombreMarca - $nombreModelo - $nombreVersion]";
             }
 
-            // 4. Gestión de VEHÍCULO (Buscar por Placa o Crear)
-            $placa = strtoupper(str_replace([' ', '-'], '', $validated['placa'])); // Limpiar placa
+            // Crear/Buscar Vehículo
+            $placa = strtoupper(str_replace([' ', '-'], '', $validated['placa']));
 
             $vehiculo = Vehiculo::firstOrCreate(
                 ['placa' => $placa],
@@ -81,35 +101,35 @@ class CitaController extends Controller
                     'marca_id' => $marca->id,
                     'modelo_id' => $modelo->id,
                     'version_id' => $versionId,
-                    'anio' => date('Y'), // Default, luego se corregirá en recepción
-                    'vin' => null // Pendiente
+                    'anio' => date('Y'),
+                    'vin' => null,
+                    'situacion' => 'prospecto' // Nuevo campo
                 ]
             );
 
-            // Si el vehículo existía pero se registra con otro cliente, ¿actualizamos dueño o lanzamos error?
-            // Para "agendar cita", asumiremos que el usuario actual es el dueño legítimo (simplificación).
+            // Si el vehículo ya existía pero estaba asignado a otro cliente (caso raro de venta),
+            // lo reasignamos al cliente actual. O si es nuevo, aseguramos la relación.
             if ($vehiculo->cliente_id !== $cliente->id) {
-                // Opción A: Actualizar dueño (ej: venta de auto)
-                // $vehiculo->update(['cliente_id' => $cliente->id]);
-                // Opción B: No hacer nada, la cita queda a nombre del cliente, el auto puede tener otro dueño historico.
-                // PERO la tabla citas relaciona cliente y vehiculo.
-                // DE MOMENTO: Actualizamos el dueño para que coincida con quien agenda.
                 $vehiculo->update(['cliente_id' => $cliente->id]);
             }
 
-            // 5. Crear la CITA
-            // Combinar fecha y hora
-            $fechaHora = Carbon::parse($validated['fecha'] . ' ' . $validated['hora']);
+            // 4. Crear CITA
+            $fechaHora = Carbon::parse($validated['fecha'] . ' ' . $validated['hora'], 'America/Guatemala')->setTimezone('UTC');
+            
+            // Concatenar detalles al motivo
+            $motivoFinal = $validated['motivo'] . $mensajeAdicionalVehiculo;
 
             $cita = Cita::create([
                 'cliente_id' => $cliente->id,
                 'vehiculo_id' => $vehiculo->id,
-                'sucursal_id' => 1, // Default Sucursal 1 por ahora, o enviar en request
+                'sucursal_id' => $validated['sucursal_id'],
                 'fecha_programada' => $fechaHora,
-                'motivo_cita' => $validated['motivo'] . ($request->valet ? ' (Solicitó Valet Service)' : ''),
+                'motivo_cita' => $motivoFinal,
                 'origen' => 'web',
                 'estado' => 'pendiente'
             ]);
+
+            DB::commit();
 
             return response()->json([
                 'success' => true,
@@ -118,11 +138,18 @@ class CitaController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            DB::rollBack();
             return response()->json([
                 'success' => false,
                 'message' => 'Error al procesar la cita: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    public function getBranches()
+    {
+        $sucursales = \App\Models\Sucursal::orderBy('nombre', 'asc')->get(['id', 'nombre']);
+        return response()->json($sucursales);
     }
 
     public function getBrands()

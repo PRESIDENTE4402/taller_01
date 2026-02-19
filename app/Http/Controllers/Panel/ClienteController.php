@@ -19,7 +19,8 @@ class ClienteController extends Controller
     {
         $search = $request->get('search');
 
-        $query = Cliente::withCount('vehiculos')
+        $query = Cliente::where('situacion', 'activo')
+            ->withCount('vehiculos')
             ->orderBy('nombre_completo', 'asc');
 
         if ($search) {

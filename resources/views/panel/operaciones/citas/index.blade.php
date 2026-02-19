@@ -335,6 +335,16 @@
                     </div>
                 </div>
 
+                <!-- Sucursal -->
+                <div class="col-span-1 md:col-span-2">
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Sucursal</label>
+                    <select name="sucursal_id" class="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 px-4 focus:ring-2 focus:ring-blue-500 outline-none" required>
+                        @foreach($sucursales as $sucursal)
+                            <option value="{{ $sucursal->id }}">{{ $sucursal->nombre }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
                 <!-- Fecha y Hora -->
                 <div>
                      <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Fecha</label>

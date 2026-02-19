@@ -19,7 +19,8 @@ class Cliente extends Model
         'empresa',
         'nit',
         'direccion',
-        'es_empresa'
+        'es_empresa',
+        'situacion'
     ];
 
     protected $casts = [

@@ -18,7 +18,8 @@ class CitaController extends Controller
 {
     public function index()
     {
-        return view('panel.operaciones.citas.index');
+        $sucursales = \App\Models\Sucursal::all();
+        return view('panel.operaciones.citas.index', compact('sucursales'));
     }
 
     public function list(Request $request)
@@ -290,7 +291,7 @@ class CitaController extends Controller
             $cita = Cita::create([
                 'cliente_id' => $clienteId,
                 'vehiculo_id' => $vehiculoId,
-                'sucursal_id' => 1,
+                'sucursal_id' => $request->sucursal_id ?? 1,
                 'fecha_programada' => $fechaHora,
                 'motivo_cita' => $request->motivo,
                 'origen' => 'presencial',
@@ -315,7 +316,21 @@ class CitaController extends Controller
         if ($request->action === 'cambiar_estado') {
             $cita->estado = $request->estado;
             $cita->save();
-            return response()->json(['success' => true, 'message' => 'Estado actualizado']);
+
+            // Si se confirma la cita, convertir prospectos en activos
+            if ($cita->estado === 'confirmada') {
+                if ($cita->cliente && $cita->cliente->situacion === 'prospecto') {
+                    $cita->cliente->situacion = 'activo';
+                    $cita->cliente->save();
+                }
+                
+                if ($cita->vehiculo && $cita->vehiculo->situacion === 'prospecto') {
+                    $cita->vehiculo->situacion = 'activo';
+                    $cita->vehiculo->save();
+                }
+            }
+
+            return response()->json(['success' => true, 'message' => 'Estado actualizado y prospectos activados si corresponde']);
         }
 
         // Editar normal

@@ -662,7 +662,7 @@
                         <p>BMW Service Inclusive</p>
                     </div>
 
-                <form class="booking-form-premium" id="bookingForm" onsubmit="submitBooking(event)">
+                <form class="booking-form-premium" id="bookingForm" onsubmit="submitBooking(event)" novalidate>
                     <div class="form-group-premium">
                         <label>Información de Contacto</label>
                         <input type="text" id="clientName" placeholder="Nombre Completo / Empresa" required>
@@ -703,16 +703,20 @@
                             rows="3" required></textarea>
                     </div>
 
-                    <div class="checkbox-premium">
-                        <input type="checkbox" id="valet_service">
-                        <label for="valet_service">Solicitar Valet Service (Retiro a domicilio)</label>
+                    <div class="form-group-premium">
+                        <label>Taller / Sucursal de Preferencia</label>
+                        <div class="select-wrapper">
+                            <select id="sucursalSelect" class="premium-select">
+                                <option value="">Seleccione Taller / Sucursal...</option>
+                            </select>
+                        </div>
                     </div>
 
                     <!-- Hidden Inputs for Date/Time -->
-                    <input type="hidden" id="selectedDate" required>
-                    <input type="hidden" id="selectedTime" required>
 
-                    <button type="submit" class="btn btn-primary submit-btn">Confirmar Cita</button>
+                    <input type="hidden" id="selectedTime">
+
+                    <button type="submit" class="btn btn-primary submit-btn" style="width: 100%; text-transform: uppercase; font-weight: 800; letter-spacing: 1px; padding: 18px;">AGENDAR CITA</button>
                 </form>
             </div>
 
@@ -725,7 +729,7 @@
 
                 <div class="calendar-wrapper">
                     <label>Fecha Preferida</label>
-                    <input type="date" class="premium-date-input" onchange="updateTimeSlots(this.value)">
+                    <input type="date" id="selectedDate" class="premium-date-input" onchange="updateTimeSlots(this.value)">
                 </div>
 
                 <div class="time-selection-wrapper">

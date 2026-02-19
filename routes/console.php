@@ -9,6 +9,5 @@ Artisan::command('inspire', function () {
 
 use Illuminate\Support\Facades\Schedule;
 
-// Schedule Automated Reminders
 // Change time here. Example: '08:00', '18:00'.
 Schedule::command('citas:send-reminders')->dailyAt('08:00');
