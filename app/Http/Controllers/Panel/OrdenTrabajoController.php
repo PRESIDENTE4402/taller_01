@@ -206,11 +206,7 @@ class OrdenTrabajoController extends Controller
         return view('panel.operaciones.ordenes_trabajo.show', compact('orden', 'mecanicos'));
     }
 
-    public function print($id)
-    {
-        $orden = OrdenTrabajo::with(['cliente', 'vehiculo.marca', 'vehiculo.modelo', 'vehiculo.version', 'archivos', 'sucursal'])->findOrFail($id);
-        return view('panel.operaciones.ordenes_trabajo.print', compact('orden'));
-    }
+
 
     // Method to add Detail (Repuesto) via AJAX
     public function addDetail(Request $request, $id)
@@ -578,7 +574,7 @@ class OrdenTrabajoController extends Controller
             'vehiculo.modelo',
             'vehiculo.version',
             'sucursal',
-            'archivos', // Assuming this relationship exists for photos
+            'archivos',
             'receptor'
         ])->findOrFail($id);
 

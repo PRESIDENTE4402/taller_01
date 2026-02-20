@@ -636,23 +636,65 @@ document.addEventListener('DOMContentLoaded', function () {
         if (serverData.routes.getClientVehicles) {
             const url = serverData.routes.getClientVehicles.replace('PLACEHOLDER', client.id);
             fetch(url).then(r => r.json()).then(vehicles => {
-                if (vehicles.length > 0) {
-                    // Si solo tiene uno, preguntamos para cargarlo directamente
-                    if (vehicles.length === 1) {
-                        Swal.fire({
-                            title: '¡Vehículo Encontrado!',
-                            text: `El cliente tiene registrado un ${vehicles[0].texto}. ¿Cargar datos?`,
-                            icon: 'question',
-                            showCancelButton: true,
-                            confirmButtonText: 'Sí, cargar',
-                            cancelButtonText: 'Cancelar',
-                            customClass: {
-                                confirmButton: 'btn btn-primary bg-blue-900 border-none text-white font-bold py-2 px-6 rounded-xl shadow-lg hover:bg-blue-800',
-                                cancelButton: 'btn btn-ghost text-gray-500 font-bold py-2 px-6 rounded-xl hover:bg-gray-100'
-                            },
-                            buttonsStyling: false
-                        }).then(res => { if (res.isConfirmed) fillVehicleData(vehicles[0]); });
-                    }
+                if (vehicles.length === 0) return;
+
+                if (vehicles.length === 1) {
+                    Swal.fire({
+                        title: '¡Vehículo Encontrado!',
+                        text: `El cliente tiene registrado un ${vehicles[0].texto}. ¿Cargar datos?`,
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonText: 'Sí, cargar',
+                        cancelButtonText: 'No, capturar otro',
+                        customClass: {
+                            confirmButton: 'btn btn-primary bg-blue-900 border-none text-white font-bold py-2 px-6 rounded-xl shadow-lg hover:bg-blue-800',
+                            cancelButton: 'btn btn-ghost text-gray-400 font-bold py-2 px-6 rounded-xl hover:bg-gray-100'
+                        },
+                        buttonsStyling: false
+                    }).then(res => {
+                        if (res.isConfirmed) fillVehicleData(vehicles[0]);
+                    });
+                } else {
+                    // Múltiples vehículos: Mostrar lista para seleccionar
+                    Swal.fire({
+                        title: 'Seleccionar Vehículo',
+                        html: `
+                            <div class="p-2 max-h-[400px] overflow-y-auto custom-scrollbar">
+                                <p class="text-xs text-gray-500 mb-4 uppercase font-bold tracking-wider text-center">El cliente tiene varios vehículos registrados</p>
+                                <div class="grid grid-cols-1 gap-2">
+                                    ${vehicles.map(v => `
+                                        <button type="button" class="btn-select-v group flex items-center gap-4 p-4 border-2 border-gray-100 rounded-2xl hover:border-blue-900 hover:bg-blue-50 transition-all text-left w-full" data-id="${v.id}">
+                                            <div class="h-10 w-10 rounded-xl bg-blue-100 text-blue-900 flex items-center justify-center group-hover:bg-blue-900 group-hover:text-white transition-colors">
+                                                <i class="fas fa-car"></i>
+                                            </div>
+                                            <div class="flex-1">
+                                                <div class="font-extrabold text-blue-900 leading-none mb-1">${v.placa}</div>
+                                                <div class="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">${v.marca} ${v.modelo} ${v.anio}</div>
+                                            </div>
+                                            <i class="fas fa-chevron-right text-gray-300 group-hover:text-blue-900"></i>
+                                        </button>
+                                    `).join('')}
+                                </div>
+                                <button type="button" id="btnOtroVehiculo" class="btn btn-ghost btn-sm w-full mt-4 text-gray-400 font-bold hover:bg-red-50 hover:text-red-500 uppercase tracking-tighter">
+                                    <i class="fas fa-plus mr-2"></i> Usar otro vehículo
+                                </button>
+                            </div>
+                        `,
+                        showConfirmButton: false,
+                        showCancelButton: false,
+                        didOpen: () => {
+                            const btns = document.querySelectorAll('.btn-select-v');
+                            btns.forEach((btn, idx) => {
+                                btn.addEventListener('click', () => {
+                                    fillVehicleData(vehicles[idx]);
+                                    Swal.close();
+                                });
+                            });
+                            document.getElementById('btnOtroVehiculo').addEventListener('click', () => {
+                                Swal.close();
+                            });
+                        }
+                    });
                 }
             });
         }
@@ -666,7 +708,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (upperTerm.length < 2) { listClientes.classList.add('hidden'); return; }
 
         debounceTimer = setTimeout(() => {
-            fetch(`${window.serverData.routes.searchClients}?term=${upperTerm}`)
+            fetch(`${serverData.routes.searchClients}?term=${upperTerm}`)
                 .then(r => r.json())
                 .then(data => {
                     listClientes.innerHTML = '';
@@ -699,33 +741,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Hide list when clicking outside
         document.addEventListener('click', function (e) {
-            if (!inputClienteNombre.contains(e.target) && !listClientes.contains(e.target) &&
-                !inputClienteTelefono.contains(e.target) && !inputClienteEmail.contains(e.target) && !inputNit.contains(e.target)) {
+            if (!inputClienteNombre.contains(e.target) && !listClientes.contains(e.target)) {
                 listClientes.classList.add('hidden');
             }
-
-
-            clearTimeout(debounceTimer);
-            if (term.length < 2) { listClientes.classList.add('hidden'); return; }
-
-            debounceTimer = setTimeout(() => {
-                fetch(`${serverData.routes.searchClients}?term=${term}`)
-                    .then(r => r.json())
-                    .then(data => {
-                        listClientes.innerHTML = '';
-                        if (data.length > 0) {
-                            listClientes.classList.remove('hidden');
-                            data.forEach(c => {
-                                const li = document.createElement('li');
-                                li.className = "px-4 py-2 hover:bg-gray-100 cursor-pointer text-xs";
-                                li.innerHTML = `<strong>${c.nombre_completo}</strong><br>${c.telefono}`;
-                                li.addEventListener('click', () => selectClient(c));
-                                listClientes.appendChild(li);
-                            });
-                        }
-                    });
-            }, 300);
-
         });
     }
 
