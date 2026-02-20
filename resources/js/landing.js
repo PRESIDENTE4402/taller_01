@@ -238,21 +238,132 @@ window.initVehicleSelectors = async () => {
         });
     }
 
-    if (versionSelect) {
-        versionSelect.addEventListener('change', function () {
-            if (this.value === 'otro') {
-                this.classList.add('hidden');
-                document.getElementById('vehiculoVersion').classList.remove('hidden');
-                document.getElementById('vehiculoVersion').focus();
-            } else {
-                const val = document.getElementById('vehiculoVersion');
-                if (val) val.classList.add('hidden');
-            }
-        });
-    }
-};
+        if (versionSelect) {
+            versionSelect.addEventListener('change', function () {
+                if (this.value === 'otro') {
+                    this.classList.add('hidden');
+                    document.getElementById('vehiculoVersion').classList.remove('hidden');
+                    document.getElementById('vehiculoVersion').focus();
+                } else {
+                    const val = document.getElementById('vehiculoVersion');
+                    if (val) val.classList.add('hidden');
+                }
+            });
+        }
+    };
 
-window.submitBooking = async (event) => {
+    window.clientVehiclesCache = [];
+
+    window.lookupClient = async () => {
+        const input = document.getElementById('lookupInput').value.trim();
+        if(!input) {
+            Swal.fire({ title: 'Atención', text: 'Ingrese un correo o teléfono para buscar.', icon: 'warning', target: document.getElementById('bookingModal') });
+            return;
+        }
+        
+        const btn = document.querySelector('button[onclick="lookupClient()"]');
+        const originalText = btn.innerText;
+        btn.innerText = '...';
+        btn.disabled = true;
+
+        try {
+            const response = await fetch(`/api/landing/client-lookup?query=${encodeURIComponent(input)}`);
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                // Rellenar datos cliente
+                document.getElementById('clientName').value = data.cliente.nombre;
+                document.getElementById('clientEmail').value = data.cliente.email;
+                document.getElementById('clientPhone').value = data.cliente.telefono;
+
+                // Vehículos
+                const container = document.getElementById('existingVehiclesContainer');
+                const select = document.getElementById('existingVehiclesSelect');
+                
+                if (data.vehiculos && data.vehiculos.length > 0) {
+                    window.clientVehiclesCache = data.vehiculos;
+                    select.innerHTML = '<option value="">-- Ignorar / Registrar nuevo vehículo --</option>';
+                    
+                    data.vehiculos.forEach(v => {
+                        const opt = document.createElement('option');
+                        opt.value = v.placa;
+                        opt.textContent = `${v.placa} - ${v.detalles_texto}`;
+                        select.appendChild(opt);
+                    });
+                    
+                    container.style.display = 'block';
+                    Swal.fire({ title: '¡Hola de nuevo!', text: 'Hemos cargado tus datos. Selecciona tu vehículo.', icon: 'success', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, target: document.getElementById('bookingModal') });
+                } else {
+                    container.style.display = 'none';
+                    Swal.fire({ title: '¡Hola de nuevo!', text: 'Datos cargados. Por favor registra tu vehículo.', icon: 'success', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, target: document.getElementById('bookingModal') });
+                }
+                
+                // Efecto de parpadeo verde para indicar autocompletado
+                ['clientName', 'clientEmail', 'clientPhone'].forEach(id => {
+                    const el = document.getElementById(id);
+                    el.style.backgroundColor = '#dcfce7';
+                    setTimeout(() => el.style.backgroundColor = '', 2000);
+                });
+            } else {
+                Swal.fire({ title: 'No encontrado', text: data.message || 'No existe cliente con esos datos.', icon: 'info', target: document.getElementById('bookingModal') });
+            }
+        } catch(error) {
+            Swal.fire({ title: 'Error', text: 'No se pudo buscar la información.', icon: 'error', target: document.getElementById('bookingModal') });
+        } finally {
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+    };
+
+    window.selectExistingVehicle = async () => {
+        const select = document.getElementById('existingVehiclesSelect');
+        const placaSeleccionada = select.value;
+
+        if(!placaSeleccionada) {
+            // Limpiar campos para modo manual
+            document.getElementById('vehiculoPlaca').value = '';
+            document.getElementById('vehiculoMarcaSelect').value = '';
+            document.getElementById('vehiculoModeloSelect').value = '';
+            document.getElementById('vehiculoVersionSelect').value = '';
+            
+            // Trigger change
+            document.getElementById('vehiculoMarcaSelect').dispatchEvent(new Event('change'));
+            return;
+        }
+        
+        const vehiculo = window.clientVehiclesCache.find(v => v.placa === placaSeleccionada);
+        if(vehiculo) {
+            document.getElementById('vehiculoPlaca').value = vehiculo.placa;
+            document.getElementById('vehiculoPlaca').style.backgroundColor = '#dcfce7';
+            setTimeout(() => document.getElementById('vehiculoPlaca').style.backgroundColor = '', 2000);
+            
+            // Opcional: auto-seleccionar marca/modelo si coinciden los ids
+            // Para simplificar, si autocompleta la placa correctamente, el backend sabrá quién es y qué vehículo es,
+            // pero le daremos "pistas" a los selects si es que existen
+            const marcaSelect = document.getElementById('vehiculoMarcaSelect');
+            if(vehiculo.marca_id && Array.from(marcaSelect.options).some(opt => opt.value == vehiculo.marca_id)) {
+                marcaSelect.value = vehiculo.marca_id;
+                marcaSelect.dispatchEvent(new Event('change'));
+                
+                setTimeout(() => {
+                    const modelSelect = document.getElementById('vehiculoModeloSelect');
+                    if(vehiculo.modelo_id && Array.from(modelSelect.options).some(opt => opt.value == vehiculo.modelo_id)) {
+                        modelSelect.value = vehiculo.modelo_id;
+                        modelSelect.dispatchEvent(new Event('change'));
+                        
+                        setTimeout(() => {
+                            const vSelect = document.getElementById('vehiculoVersionSelect');
+                            if(vehiculo.version_id && Array.from(vSelect.options).some(opt => opt.value == vehiculo.version_id)) {
+                                vSelect.value = vehiculo.version_id;
+                            }
+                        }, 500);
+                    }
+                }, 500);
+            }
+        }
+    };
+
+    window.submitBooking = async (event) => {
     event.preventDefault();
     const data = {
         nombre: document.getElementById('clientName').value,

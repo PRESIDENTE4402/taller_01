@@ -23,6 +23,7 @@ Route::get('/api/landing/brands', [CitaController::class, 'getBrands']);
 Route::get('/api/landing/branches', [CitaController::class, 'getBranches']);
 Route::get('/api/landing/models/{marcaId}', [CitaController::class, 'getModels']);
 Route::get('/api/landing/versions/{modeloId}', [CitaController::class, 'getVersions']);
+Route::get('/api/landing/client-lookup', [CitaController::class, 'clientLookup']);
 Route::post('/api/landing/citas', [CitaController::class, 'store'])->name('landing.citas.store');
 
 // Auth Routes
