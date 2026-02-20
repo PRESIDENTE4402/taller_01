@@ -98,7 +98,10 @@ class OrdenTrabajoController extends Controller
             $cliente = Cliente::with(['vehiculos.marca', 'vehiculos.modelo'])->findOrFail($request->cliente_id);
         }
 
-        return view('panel.operaciones.ordenes_trabajo.create', compact('cita', 'vehiculo', 'cliente'));
+        $isAdmin = Auth::user()->hasRole('admin');
+        $sucursales = $isAdmin ? \App\Models\Sucursal::all() : collect([]);
+
+        return view('panel.operaciones.ordenes_trabajo.create', compact('cita', 'vehiculo', 'cliente', 'isAdmin', 'sucursales'));
     }
 
     public function cancelCita($id)
@@ -260,6 +263,9 @@ class OrdenTrabajoController extends Controller
                 'nivel_combustible' => 'required|string',
                 'falla_cliente' => 'required|string',
                 'color' => 'required|string',
+                'tipo_orden' => 'required|in:normal,garantia,cortesia',
+                'fecha_recepcion_date' => 'required|date|after_or_equal:today|before_or_equal:today',
+                'fecha_recepcion_time' => 'required',
             ];
 
             // Si NO viene cliente_id, debe venir new_cliente. También si viene cliente_id pero la acción es 'update'
@@ -273,6 +279,8 @@ class OrdenTrabajoController extends Controller
             if ($requireClientData) {
                 $rules['new_cliente.nombre'] = 'required|string';
                 $rules['new_cliente.telefono'] = 'required|string';
+                $rules['new_cliente.nit'] = 'nullable|string';
+                $rules['new_cliente.direccion'] = 'nullable|string';
             }
 
             // Si NO viene vehiculo_id, debe venir new_vehiculo (Ahora validamos siempre que vengan datos del vehiculo)
@@ -280,6 +288,10 @@ class OrdenTrabajoController extends Controller
             $rules['new_vehiculo.marca'] = 'required|string';
             $rules['new_vehiculo.modelo'] = 'required|string';
             $rules['new_vehiculo.anio'] = 'required|integer';
+
+            if (Auth::user()->hasRole('admin')) {
+                $rules['sucursal_id'] = 'required|exists:sucursales,id';
+            }
 
             $request->validate($rules);
 
@@ -296,6 +308,10 @@ class OrdenTrabajoController extends Controller
                     'nombre_completo' => $request->input('new_cliente.nombre'),
                     'telefono' => $request->input('new_cliente.telefono'),
                     'email' => $request->input('new_cliente.email'),
+                    'nit' => $request->input('new_cliente.nit'),
+                    'direccion' => $request->input('new_cliente.direccion'),
+                    'es_empresa' => $request->input('new_cliente.es_empresa') ? true : false,
+                    'empresa' => $request->input('new_cliente.es_empresa') ? strtoupper($request->input('new_cliente.empresa')) : null,
                     'tipo_cliente' => 'particular', // Default
                     'user_id' => Auth::id() // Quien lo registró
                 ]);
@@ -308,6 +324,10 @@ class OrdenTrabajoController extends Controller
                         'nombre_completo' => $request->input('new_cliente.nombre'),
                         'telefono' => $request->input('new_cliente.telefono'),
                         'email' => $request->input('new_cliente.email'),
+                        'nit' => $request->input('new_cliente.nit'),
+                        'direccion' => $request->input('new_cliente.direccion'),
+                        'es_empresa' => $request->input('new_cliente.es_empresa') ? true : false,
+                        'empresa' => $request->input('new_cliente.es_empresa') ? strtoupper($request->input('new_cliente.empresa')) : null,
                     ]);
                 }
             }
@@ -369,12 +389,13 @@ class OrdenTrabajoController extends Controller
                 // Update Existing Vehicle
                 $vehiculo = Vehiculo::find($vehiculoId);
                 $vehiculo->update([
-                    'cliente_id' => $clienteId, // Update Owner (Transfer)
+                    // Verified: Logic exists to update vehicle owner. No changes needed.
                     'marca_id' => $marca->id,
                     'modelo_id' => $modelo->id,
                     'version_id' => $versionId,
                     'placa' => strtoupper($request->input('new_vehiculo.placa')),
-                    // 'color' => $request->color, // Vehiculo table has no color column
+                    'color' => $request->color,
+                    'vin' => strtoupper($request->input('new_vehiculo.vin')), // Motor/VIN
                     'anio' => $request->input('new_vehiculo.anio'),
                 ]);
             } else {
@@ -385,7 +406,8 @@ class OrdenTrabajoController extends Controller
                     'modelo_id' => $modelo->id,
                     'version_id' => $versionId,
                     'placa' => strtoupper($request->input('new_vehiculo.placa')),
-                    // 'color' => $request->color, // Vehiculo table has no color column
+                    'color' => $request->color,
+                    'vin' => strtoupper($request->input('new_vehiculo.vin')), // Motor/VIN
                     'anio' => $request->input('new_vehiculo.anio'),
                     'tipo_transmision' => 'mecanica', // Default
                     'tipo_combustible' => 'gasolina', // Default
@@ -397,15 +419,21 @@ class OrdenTrabajoController extends Controller
             $lastId = OrdenTrabajo::max('id') ?? 0;
             $codigo = 'OT-' . date('Y') . '-' . str_pad($lastId + 1, 4, '0', STR_PAD_LEFT);
 
+            // Determinar Sucursal
+            $sucursalId = Auth::user()->sucursales->first()?->id ?? 1;
+            if (Auth::user()->hasRole('admin') && $request->has('sucursal_id')) {
+                $sucursalId = $request->sucursal_id;
+            }
+
             $orden = OrdenTrabajo::create([
-                'sucursal_id' => Auth::user()->sucursales->first()?->id ?? 1,
+                'sucursal_id' => $sucursalId,
                 'codigo_orden' => $codigo,
                 'tipo_orden' => $request->tipo_orden ?? 'normal',
                 'vehiculo_id' => $vehiculoId,
                 'cliente_id' => $clienteId,
                 'cita_id' => $request->cita_id, // Nullable
                 'receptor_id' => Auth::id() ?? 1,
-                'fecha_recepcion' => now(),
+                'fecha_recepcion' => \Carbon\Carbon::createFromFormat('Y-m-d H:i', $request->fecha_recepcion_date . ' ' . $request->fecha_recepcion_time),
                 'color' => $request->color,
                 'kilometraje_entrada' => $request->kilometraje,
                 'nivel_combustible' => $request->nivel_combustible,
@@ -467,5 +495,93 @@ class OrdenTrabajoController extends Controller
             DB::rollBack();
             return response()->json(['success' => false, 'message' => 'Error al crear orden: ' . $e->getMessage()], 500);
         }
+    }
+
+    public function searchClients(Request $request)
+    {
+        $term = $request->term;
+        $clientes = Cliente::where(function ($query) use ($term) {
+            $query->where('nombre_completo', 'LIKE', "%$term%")
+                ->orWhere('telefono', 'LIKE', "%$term%")
+                ->orWhere('email', 'LIKE', "%$term%")
+                ->orWhere('nit', 'LIKE', "%$term%");
+        })
+            ->take(10)
+            ->get(['id', 'nombre_completo', 'telefono', 'email', 'nit', 'direccion', 'es_empresa', 'empresa']);
+
+        return response()->json($clientes);
+    }
+
+    public function searchVehicles(Request $request)
+    {
+        $term = $request->term;
+        $vehiculos = Vehiculo::with(['cliente', 'marca', 'modelo', 'version'])
+            ->where('placa', 'LIKE', "%$term%")
+            ->take(5)
+            ->get();
+
+        $data = $vehiculos->map(function ($v) {
+            return [
+                'id' => $v->id,
+                'placa' => $v->placa,
+                'marca' => $v->marca?->nombre ?? '',
+                'modelo' => $v->modelo?->nombre ?? '',
+                'version' => $v->version?->nombre ?? '',
+                'color' => $v->color,
+                'anio' => $v->anio,
+                'vin' => $v->vin,
+                'cliente' => $v->cliente ? [
+                    'id' => $v->cliente->id,
+                    'nombre_completo' => $v->cliente->nombre_completo,
+                    'telefono' => $v->cliente->telefono,
+                    'email' => $v->cliente->email,
+                    'nit' => $v->cliente->nit,
+                    'direccion' => $v->cliente->direccion,
+                    'es_empresa' => $v->cliente->es_empresa,
+                    'empresa' => $v->cliente->empresa
+                ] : null,
+                'texto' => $v->placa . ' - ' . ($v->marca?->nombre ?? '') . ' - ' . ($v->modelo?->nombre ?? '')
+            ];
+        });
+
+        return response()->json($data);
+    }
+
+    public function getClientVehicles($clienteId)
+    {
+        $vehiculos = Vehiculo::where('cliente_id', $clienteId)
+            ->with(['marca', 'modelo', 'version'])
+            ->get();
+
+        $data = $vehiculos->map(function ($v) {
+            return [
+                'id' => $v->id,
+                'placa' => $v->placa,
+                'marca' => $v->marca?->nombre ?? '',
+                'modelo' => $v->modelo?->nombre ?? '',
+                'version' => $v->version?->nombre ?? '',
+                'color' => $v->color,
+                'anio' => $v->anio,
+                'vin' => $v->vin,
+                'texto' => ($v->marca?->nombre ?? '') . ' ' . ($v->modelo?->nombre ?? '') . ' - ' . $v->placa
+            ];
+        });
+
+        return response()->json($data);
+    }
+
+    public function print($id)
+    {
+        $orden = OrdenTrabajo::with([
+            'cliente',
+            'vehiculo.marca',
+            'vehiculo.modelo',
+            'vehiculo.version',
+            'sucursal',
+            'archivos', // Assuming this relationship exists for photos
+            'receptor'
+        ])->findOrFail($id);
+
+        return view('panel.operaciones.ordenes_trabajo.print', compact('orden'));
     }
 }

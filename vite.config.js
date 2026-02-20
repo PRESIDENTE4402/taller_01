@@ -25,6 +25,7 @@ export default defineConfig({
                 'resources/js/operaciones/ordenes/dashboard.js',
                 'resources/js/operaciones/ordenes/index.js',
                 'resources/js/operaciones/ordenes/show.js'],
+
             refresh: true,
         }),
         tailwindcss(),
