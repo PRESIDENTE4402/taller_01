@@ -1,11 +1,37 @@
 @extends('layouts.panel')
 
-@section('title', 'Recepción de Vehículo')
-@section('subtitle', 'Recepción de Vehículo')
+@section('title', isset($orden) ? 'Editar Orden: ' . $orden->codigo_orden : 'Recepción de Vehículo')
+@section('subtitle', isset($orden) ? 'Actualizar datos de recepción' : 'Recepción de Vehículo')
 
 @section('content')
-<form action="{{ route('panel.operaciones.ordenes_trabajo.store') }}" method="POST" id="ordenForm" class="space-y-6" enctype="multipart/form-data">
+@php
+$serverConfig = [
+"routes" => [
+"searchClients" => route("panel.operaciones.citas.searchClients"),
+"searchVehicles" => route("panel.operaciones.citas.searchVehicles"),
+"getClientVehicles" => route("panel.operaciones.citas.getClientVehicles", "PLACEHOLDER"),
+"marcasList" => route("panel.mantenimientos.marcas.list"),
+"modelosList" => route("panel.mantenimientos.modelos.listByMarca", "PLACEHOLDER"),
+"versionesList" => route("panel.mantenimientos.versiones.listByModelo", "PLACEHOLDER"),
+],
+"editMode" => isset($orden),
+"existingDanos" => isset($orden) ? ($orden->danos_imagen_url ?? "") : "",
+"existingPhotos" => (isset($orden) && $orden->archivos) ? $orden->archivos : []
+];
+@endphp
+<form action="{{ isset($orden) ? route('panel.operaciones.ordenes_trabajo.update', $orden->id) : route('panel.operaciones.ordenes_trabajo.store') }}"
+    method="POST"
+    id="ordenForm"
+    class="space-y-6"
+    enctype="multipart/form-data"
+    data-edit="{{ isset($orden) ? 'true' : 'false' }}"
+    data-orden-id="{{ $orden?->id ?? '' }}"
+    data-config='@json($serverConfig)'>
+
     @csrf
+    @if(isset($orden))
+    @method('PUT')
+    @endif
 
     <!-- Header: Datos Generales (Card Similar a la Factura) -->
     <!-- Floating Header Actions (Top Sticky) -->
@@ -15,7 +41,7 @@
                 <i class="fas fa-file-invoice text-xl"></i>
             </div>
             <div>
-                <h1 class="text-lg font-extrabold text-blue-900 leading-none">Nueva Orden</h1>
+                <h1 class="text-lg font-extrabold text-blue-900 leading-none">{{ isset($orden) ? 'Orden #' . $orden->codigo_orden : 'Nueva Orden' }}</h1>
                 <p class="text-[10px] text-gray-500 font-medium uppercase tracking-wider mt-1">Recepción de Vehículo</p>
             </div>
         </div>
@@ -217,17 +243,17 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div class="form-control">
                             <label class="label"><span class="label-text text-xs text-blue-900">FECHA</span></label>
-                            <div class="font-mono text-sm font-bold bg-blue-50/50 p-2 rounded border border-blue-100 text-blue-900">{{ now()->format('Y-m-d') }}</div>
+                            <div class="font-mono text-sm font-bold bg-blue-50/50 p-2 rounded border border-blue-100 text-blue-900">{{ isset($orden) ? $orden->fecha_recepcion->format('Y-m-d') : now()->format('Y-m-d') }}</div>
                         </div>
                         <div class="form-control">
                             <label class="label"><span class="label-text text-xs text-blue-900">HORA</span></label>
-                            <div class="font-mono text-sm font-bold bg-blue-50/50 p-2 rounded border border-blue-100 text-blue-900">{{ now()->format('H:i') }}</div>
+                            <div class="font-mono text-sm font-bold bg-blue-50/50 p-2 rounded border border-blue-100 text-blue-900">{{ isset($orden) ? $orden->fecha_recepcion->format('H:i') : now()->format('H:i') }}</div>
                         </div>
                     </div>
                     <div class="form-control mt-3">
                         <label class="label"><span class="label-text font-bold text-blue-900">Kilometraje Actual</span></label>
                         <div class="relative">
-                            <input type="number" name="kilometraje" class="input input-bordered border-yellow-400 w-full font-mono font-bold text-lg text-right pr-8 focus:ring-2 focus:ring-blue-900 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300" required placeholder="0">
+                            <input type="number" name="kilometraje" value="{{ old('kilometraje', $orden?->kilometraje_entrada ?? '') }}" class="input input-bordered border-yellow-400 w-full font-mono font-bold text-lg text-right pr-8 focus:ring-2 focus:ring-blue-900 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300" required placeholder="0">
                             <span class="absolute right-3 top-3 text-xs font-bold text-gray-400">KM</span>
                         </div>
                     </div>
@@ -261,14 +287,20 @@
                         </div>
 
                         <!-- Range Input -->
-                        <!-- Using accent-blue-900 to try and force navy color, or text-blue-900 -->
-                        <input type="range" name="nivel_combustible_val" id="fuelRange" min="0" max="100" value="50" step="1"
+                        @php
+                        $fuelVal = 50;
+                        if(isset($orden)) {
+                        $vals = ['E' => 0, '1/4' => 25, '1/2' => 50, '3/4' => 75, 'F' => 100];
+                        $fuelVal = $vals[$orden->nivel_combustible] ?? 50;
+                        }
+                        @endphp
+                        <input type="range" name="nivel_combustible_val" id="fuelRange" min="0" max="100" value="{{ $fuelVal }}" step="1"
                             class="range range-xs range-primary mt-4 w-full text-blue-900" />
 
-                        <input type="hidden" name="nivel_combustible" id="fuelInput" value="1/2">
+                        <input type="hidden" name="nivel_combustible" id="fuelInput" value="{{ $orden?->nivel_combustible ?? '1/2' }}">
 
                         <div class="text-center mt-2">
-                            <p class="font-extrabold text-xl text-blue-900" id="fuelLabel">1/2 Tanque</p>
+                            <p class="font-extrabold text-xl text-blue-900" id="fuelLabel">{{ $orden?->nivel_combustible ?? '1/2' }} Tanque</p>
                         </div>
                     </div>
                 </div>
@@ -337,6 +369,10 @@
                     </div>
                 </div>
 
+                @php
+                $invVal = isset($orden) ? (is_array($orden->inventario_recepcion) ? $orden->inventario_recepcion : json_decode($orden->inventario_recepcion, true)) : [];
+                @endphp
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-1">
                     <!-- Section 1 -->
                     <div class="space-y-1">
@@ -350,11 +386,11 @@
                             <span class="text-xs font-bold text-gray-600 group-hover:text-blue-900 transition-colors uppercase">Documentos</span>
                             <div class="flex gap-4">
                                 <label class="flex items-center gap-2 cursor-pointer group/sub">
-                                    <input type="checkbox" name="inv[documentos][original]" class="checkbox checkbox-xs rounded border-gray-300 checkbox-primary">
+                                    <input type="checkbox" name="inv[documentos][original]" class="checkbox checkbox-xs rounded border-gray-300 checkbox-primary" {{ isset($invVal['documentos']['original']) && $invVal['documentos']['original'] ? 'checked' : '' }}>
                                     <span class="text-[10px] font-black text-gray-400 group-hover/sub:text-blue-900 mt-0.5">ORIGINAL</span>
                                 </label>
                                 <label class="flex items-center gap-2 cursor-pointer group/sub">
-                                    <input type="checkbox" name="inv[documentos][copia]" class="checkbox checkbox-xs rounded border-gray-300 checkbox-primary">
+                                    <input type="checkbox" name="inv[documentos][copia]" class="checkbox checkbox-xs rounded border-gray-300 checkbox-primary" {{ isset($invVal['documentos']['copia']) && $invVal['documentos']['copia'] ? 'checked' : '' }}>
                                     <span class="text-[10px] font-black text-gray-400 group-hover/sub:text-blue-900 mt-0.5">COPIA</span>
                                 </label>
                             </div>
@@ -379,11 +415,11 @@
                             <span class="text-xs font-bold text-gray-600 group-hover:text-blue-900 transition-colors uppercase">{{ $label }}</span>
                             <div class="flex gap-1 bg-gray-100 p-1 rounded-lg">
                                 <label class="flex items-center justify-center p-1.5 cursor-pointer rounded-md transition-all has-[:checked]:bg-blue-900 has-[:checked]:text-white hover:bg-white border-none">
-                                    <input type="radio" name="inv[{{$key}}]" value="1" class="hidden">
+                                    <input type="radio" name="inv[{{$key}}]" value="1" class="hidden" {{ (isset($invVal[$key]) && ($invVal[$key] == '1' || $invVal[$key] === true)) ? 'checked' : '' }}>
                                     <span class="text-[10px] font-black px-2">SÍ</span>
                                 </label>
                                 <label class="flex items-center justify-center p-1.5 cursor-pointer rounded-md transition-all has-[:checked]:bg-gray-400 has-[:checked]:text-white hover:bg-white border-none">
-                                    <input type="radio" name="inv[{{$key}}]" value="0" class="hidden" checked>
+                                    <input type="radio" name="inv[{{$key}}]" value="0" class="hidden" {{ (!isset($invVal[$key]) || $invVal[$key] == '0' || $invVal[$key] === false) ? 'checked' : '' }}>
                                     <span class="text-[10px] font-black px-2">NO</span>
                                 </label>
                             </div>
@@ -394,15 +430,15 @@
                             <span class="text-xs font-bold text-gray-600 group-hover:text-blue-900 transition-colors uppercase">Estado Tapicería</span>
                             <div class="flex gap-1 bg-gray-100 p-1 rounded-lg">
                                 <label class="flex items-center justify-center p-1.5 cursor-pointer rounded-md transition-all has-[:checked]:bg-emerald-600 has-[:checked]:text-white hover:bg-white border-none shadow-sm">
-                                    <input type="radio" name="inv[tapiceria]" value="buena" class="hidden">
+                                    <input type="radio" name="inv[tapiceria]" value="buena" class="hidden" {{ (isset($invVal['tapiceria']) && $invVal['tapiceria'] == 'buena') ? 'checked' : '' }}>
                                     <span class="text-[9px] font-black px-1">BUENA</span>
                                 </label>
                                 <label class="flex items-center justify-center p-1.5 cursor-pointer rounded-md transition-all has-[:checked]:bg-amber-500 has-[:checked]:text-white hover:bg-white border-none shadow-sm">
-                                    <input type="radio" name="inv[tapiceria]" value="regular" class="hidden" checked>
+                                    <input type="radio" name="inv[tapiceria]" value="regular" class="hidden" {{ (!isset($invVal['tapiceria']) || $invVal['tapiceria'] == 'regular') ? 'checked' : '' }}>
                                     <span class="text-[9px] font-black px-1">REGULAR</span>
                                 </label>
                                 <label class="flex items-center justify-center p-1.5 cursor-pointer rounded-md transition-all has-[:checked]:bg-rose-600 has-[:checked]:text-white hover:bg-white border-none shadow-sm">
-                                    <input type="radio" name="inv[tapiceria]" value="mala" class="hidden">
+                                    <input type="radio" name="inv[tapiceria]" value="mala" class="hidden" {{ (isset($invVal['tapiceria']) && $invVal['tapiceria'] == 'mala') ? 'checked' : '' }}>
                                     <span class="text-[9px] font-black px-1">MALA</span>
                                 </label>
                             </div>
@@ -441,11 +477,11 @@
                             <span class="text-xs font-bold text-gray-600 group-hover:text-blue-900 transition-colors uppercase">{{ $label }}</span>
                             <div class="flex gap-1 bg-gray-100 p-1 rounded-lg">
                                 <label class="flex items-center justify-center p-1.5 cursor-pointer rounded-md transition-all has-[:checked]:bg-blue-900 has-[:checked]:text-white hover:bg-white border-none">
-                                    <input type="radio" name="inv[{{$key}}]" value="1" class="hidden">
+                                    <input type="radio" name="inv[{{$key}}]" value="1" class="hidden" {{ (isset($invVal[$key]) && ($invVal[$key] == '1' || $invVal[$key] === true)) ? 'checked' : '' }}>
                                     <span class="text-[10px] font-black px-2 text-center">SÍ</span>
                                 </label>
                                 <label class="flex items-center justify-center p-1.5 cursor-pointer rounded-md transition-all has-[:checked]:bg-gray-400 has-[:checked]:text-white hover:bg-white border-none">
-                                    <input type="radio" name="inv[{{$key}}]" value="0" class="hidden" checked>
+                                    <input type="radio" name="inv[{{$key}}]" value="0" class="hidden" {{ (!isset($invVal[$key]) || $invVal[$key] == '0' || $invVal[$key] === false) ? 'checked' : '' }}>
                                     <span class="text-[10px] font-black px-2 text-center">NO</span>
                                 </label>
                             </div>
@@ -457,10 +493,10 @@
                             <span class="text-xs font-bold text-gray-600 group-hover:text-amber-900 transition-colors uppercase">{{ $label }}</span>
                             <div class="flex items-center gap-3">
                                 <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" name="inv[{{$key}}][check]" value="1" class="checkbox checkbox-xs rounded border-gray-300 checkbox-warning toggle-qty" data-target="qty-{{$key}}">
+                                    <input type="checkbox" name="inv[{{$key}}][check]" value="1" class="checkbox checkbox-xs rounded border-gray-300 checkbox-warning toggle-qty" data-target="qty-{{$key}}" {{ (isset($invVal[$key]['check']) && $invVal[$key]['check']) ? 'checked' : '' }}>
                                     <span class="text-[10px] font-black text-gray-400 mt-0.5">¿TRAE?</span>
                                 </label>
-                                <input type="number" id="qty-{{$key}}" name="inv[{{$key}}][cant]" class="input input-xs input-bordered w-12 text-center hidden font-black text-blue-900 border-amber-200 bg-amber-50" value="0">
+                                <input type="number" id="qty-{{$key}}" name="inv[{{$key}}][cant]" class="input input-xs input-bordered w-12 text-center {{ (isset($invVal[$key]['check']) && $invVal[$key]['check']) ? '' : 'hidden' }} font-black text-blue-900 border-amber-200 bg-amber-50" value="{{ $invVal[$key]['cant'] ?? 0 }}">
                             </div>
                         </div>
                         @endforeach
@@ -472,7 +508,7 @@
                     <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 mb-3">
                         <i class="fas fa-comment-alt"></i> Observaciones de Inventario
                     </label>
-                    <textarea name="inventario_observaciones" rows="2" class="w-full textarea textarea-sm bg-white border-slate-200 focus:border-blue-900 focus:outline-none text-gray-800 placeholder-slate-300 font-medium" placeholder="Escriba detalles como rayones en el tablero, tapicería manchada, etc."></textarea>
+                    <textarea name="inventario_observaciones" rows="2" class="w-full textarea textarea-sm bg-white border-slate-200 focus:border-blue-900 focus:outline-none text-gray-800 placeholder-slate-300 font-medium" placeholder="Escriba detalles como rayones en el tablero, tapicería manchada, etc.">{{ $invVal['observaciones'] ?? ($orden?->inventario_observaciones ?? '') }}</textarea>
                 </div>
             </div>
 
@@ -567,19 +603,6 @@
 
 </form>
 @endsection
-
 @push('scripts')
-<script>
-    window.serverData = {
-        routes: {
-            searchClients: "{{ route('panel.operaciones.citas.searchClients') }}",
-            searchVehicles: "{{ route('panel.operaciones.citas.searchVehicles') }}",
-            getClientVehicles: "{{ route('panel.operaciones.citas.getClientVehicles', 'PLACEHOLDER') }}",
-            marcasList: "{{ route('panel.mantenimientos.marcas.list') }}",
-            modelosList: "{{ route('panel.mantenimientos.modelos.listByMarca', 'PLACEHOLDER') }}",
-            versionesList: "{{ route('panel.mantenimientos.versiones.listByModelo', 'PLACEHOLDER') }}",
-        }
-    };
-</script>
 @vite('resources/js/operaciones/ordenes/create.js')
 @endpush

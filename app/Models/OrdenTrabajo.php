@@ -73,4 +73,14 @@ class OrdenTrabajo extends Model
     {
         return $this->belongsTo(User::class, 'receptor_id');
     }
+
+    public function detalles()
+    {
+        return $this->hasMany(DetalleOrden::class, 'orden_trabajo_id');
+    }
+
+    public function bitacoras()
+    {
+        return $this->hasMany(BitacoraTrabajo::class, 'orden_trabajo_id');
+    }
 }

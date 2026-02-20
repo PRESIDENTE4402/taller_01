@@ -1,4 +1,8 @@
 document.addEventListener('DOMContentLoaded', function () {
+    // Extraer configuración desde el formulario (inyectada por Laravel)
+    const formElement = document.getElementById('ordenForm');
+    const serverData = formElement && formElement.dataset.config ? JSON.parse(formElement.dataset.config) : { routes: {}, editMode: false };
+
     // Almacena las fotos seleccionadas en la galería principal y en la galería de daños
     let selectedPhotos = [];
     let selectedDamagePhotos = [];
@@ -81,6 +85,22 @@ document.addEventListener('DOMContentLoaded', function () {
         setTimeout(() => updateFuel(fuelRange.value), 200);
     }
 
+    // --- Carga de Datos en Modo Edición ---
+    if (serverData && serverData.editMode) {
+        // Carga de fotos de recepción
+        if (serverData.existingPhotos && serverData.existingPhotos.length > 0) {
+            serverData.existingPhotos.forEach(photo => {
+                selectedPhotos.push({
+                    id: photo.id,
+                    src: window.location.origin + '/' + photo.url,
+                    title: photo.titulo || '',
+                    isExisting: true
+                });
+            });
+            setTimeout(() => renderPhotos(), 500);
+        }
+    }
+
     // --- Control de Inputs de Cantidad ---
     // Muestra u oculta campos de cantidad (como llantas de repuesto) según el checklist
     document.querySelectorAll('.toggle-qty').forEach(chk => {
@@ -110,6 +130,12 @@ document.addEventListener('DOMContentLoaded', function () {
         const ctx = canvas.getContext('2d');
         let currentImage = new Image();
         let marks = [];
+
+        // Modo Edición: Cargar mapa de daños existente
+        if (serverData && serverData.existingDanos) {
+            const url = window.location.origin + '/' + serverData.existingDanos;
+            setDamageImage(url);
+        }
 
         resizeCanvas();
 
@@ -418,9 +444,9 @@ document.addEventListener('DOMContentLoaded', function () {
     let marcasMap = {};
     let modelosMap = {};
 
-    if (inputMarca && listMarcas && window.serverData) {
+    if (inputMarca && listMarcas && serverData) {
         // Carga inicial de marcas
-        fetch(window.serverData.routes.marcasList)
+        fetch(serverData.routes.marcasList)
             .then(r => r.json())
             .then(data => {
                 listMarcas.innerHTML = '';
@@ -441,7 +467,7 @@ document.addEventListener('DOMContentLoaded', function () {
             modelosMap = {};
 
             if (marcaId) {
-                const url = window.serverData.routes.modelosList.replace('PLACEHOLDER', marcaId);
+                const url = serverData.routes.modelosList.replace('PLACEHOLDER', marcaId);
                 fetch(url).then(r => r.json()).then(data => {
                     data.forEach(m => {
                         const nombreUpper = m.nombre.toUpperCase();
@@ -461,7 +487,7 @@ document.addEventListener('DOMContentLoaded', function () {
             listVersiones.innerHTML = '';
 
             if (modeloId) {
-                const url = window.serverData.routes.versionesList.replace('PLACEHOLDER', modeloId);
+                const url = serverData.routes.versionesList.replace('PLACEHOLDER', modeloId);
                 fetch(url).then(r => r.json()).then(data => {
                     data.forEach(v => {
                         const opt = document.createElement('option');
@@ -525,8 +551,8 @@ document.addEventListener('DOMContentLoaded', function () {
         fillClientData(client);
         listClientes.classList.add('hidden');
 
-        if (window.serverData.routes.getClientVehicles) {
-            const url = window.serverData.routes.getClientVehicles.replace('PLACEHOLDER', client.id);
+        if (serverData.routes.getClientVehicles) {
+            const url = serverData.routes.getClientVehicles.replace('PLACEHOLDER', client.id);
             fetch(url).then(r => r.json()).then(vehicles => {
                 if (vehicles.length > 0) {
                     // Si solo tiene uno, preguntamos para cargarlo directamente
@@ -558,7 +584,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (term.length < 2) { listClientes.classList.add('hidden'); return; }
 
             debounceTimer = setTimeout(() => {
-                fetch(`${window.serverData.routes.searchClients}?term=${term}`)
+                fetch(`${serverData.routes.searchClients}?term=${term}`)
                     .then(r => r.json())
                     .then(data => {
                         listClientes.innerHTML = '';
@@ -627,7 +653,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (term.length < 2) { listVehiculos.classList.add('hidden'); return; }
 
             debounceVehiculo = setTimeout(() => {
-                fetch(`${window.serverData.routes.searchVehicles}?term=${term}`)
+                fetch(`${serverData.routes.searchVehicles}?term=${term}`)
                     .then(r => r.json())
                     .then(data => {
                         listVehiculos.innerHTML = '';

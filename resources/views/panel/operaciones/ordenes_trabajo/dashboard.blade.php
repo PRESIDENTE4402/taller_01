@@ -45,21 +45,20 @@
                 Citas del {{ \Carbon\Carbon::parse(request('fecha'))->format('d/m/Y') }}
                 @endif
             </h2>
-            <span class="badge badge-primary">{{ $citasHoy->count() }} Resultados</span>
+            <span id="results-count" class="badge badge-primary">{{ $citasHoy->count() }} Resultados</span>
         </div>
 
-        @if($citasHoy->isEmpty())
-        <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-center">
+        <div id="no-citas-msg" class="{{ $citasHoy->isEmpty() ? '' : 'hidden' }} bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-center">
             <div class="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
                 <i class="fas fa-calendar-check text-2xl"></i>
             </div>
             <h3 class="font-bold text-gray-700">No hay citas para hoy</h3>
             <p class="text-sm text-gray-500 mt-1">Todos los vehículos agendados han sido recibidos o no hay programación.</p>
         </div>
-        @else
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+        <div id="citas-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 {{ $citasHoy->isEmpty() ? 'hidden' : '' }}">
             @foreach($citasHoy as $cita)
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:border-blue-300 transition-colors group">
+            <div id="cita-card-{{ $cita->id }}" class="appointment-card bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:border-blue-300 transition-colors group">
                 <div class="flex justify-between items-start mb-2">
                     <span class="font-bold text-blue-600 text-lg">{{ \Carbon\Carbon::parse($cita->fecha_programada)->format('H:i') }}</span>
                     <span class="badge badge-ghost badge-sm">{{ $cita->codigo_cita ?? 'CITA-'.$cita->id }}</span>
@@ -82,13 +81,22 @@
                     <i class="fas fa-info-circle mr-1"></i> {{ $cita->motivo_cita }}
                 </div>
 
-                <a href="{{ route('panel.operaciones.ordenes_trabajo.create', ['cita_id' => $cita->id]) }}" class="btn btn-sm btn-primary w-full gap-2">
-                    <i class="fas fa-check-circle"></i> Recibir Vehículo
-                </a>
+                <div class="flex gap-2">
+                    <a href="{{ route('panel.operaciones.ordenes_trabajo.create', ['cita_id' => $cita->id]) }}" class="btn btn-sm btn-primary flex-1 gap-2">
+                        <i class="fas fa-check-circle"></i> Recibir
+                    </a>
+                    <button type="button"
+                        data-id="{{ $cita->id }}"
+                        data-cliente="{{ addslashes($cita->cliente->nombre_completo) }}"
+                        data-url="{{ route('panel.operaciones.ordenes_trabajo.citas.cancel', $cita->id) }}"
+                        class="btn btn-sm btn-outline btn-error px-3 btn-cancelar"
+                        title="Marcar como: No asistió">
+                        <i class="fas fa-user-times"></i>
+                    </button>
+                </div>
             </div>
             @endforeach
         </div>
-        @endif
     </div>
 
     <!-- Column 2: Quick Actions -->
@@ -116,11 +124,16 @@
                 </div>
                 <div class="flex justify-between items-center text-sm">
                     <span class="text-gray-500">Pendientes</span>
-                    <span class="font-bold text-orange-500">{{ $citasHoy->count() }}</span>
+                    <span id="stats-pendientes-count" class="font-bold text-orange-500">{{ $citasHoy->count() }}</span>
                 </div>
             </div>
         </div>
     </div>
 
 </div>
+
+@push('scripts')
+@vite(['resources/js/operaciones/ordenes/dashboard.js'])
+@endpush
+
 @endsection

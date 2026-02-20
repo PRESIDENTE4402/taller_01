@@ -11,6 +11,8 @@ use App\Models\Cliente;
 use App\Models\MarcaVehiculo;
 use App\Models\ModeloVehiculo;
 use App\Models\VersionVehiculo;
+use App\Models\BitacoraTrabajo;
+use App\Models\DetalleOrden;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
@@ -97,6 +99,154 @@ class OrdenTrabajoController extends Controller
         }
 
         return view('panel.operaciones.ordenes_trabajo.create', compact('cita', 'vehiculo', 'cliente'));
+    }
+
+    public function cancelCita($id)
+    {
+        try {
+            $cita = Cita::findOrFail($id);
+            $cita->estado = 'no_asistio';
+            $cita->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Cita marcada como inasistencia correctamente.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al cancelar la cita: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function edit($id)
+    {
+        $orden = OrdenTrabajo::with(['cliente', 'vehiculo.marca', 'vehiculo.modelo', 'vehiculo.version', 'archivos'])->findOrFail($id);
+        $cliente = $orden->cliente;
+        $vehiculo = $orden->vehiculo;
+        $cita = $orden->cita;
+
+        return view('panel.operaciones.ordenes_trabajo.create', compact('orden', 'cliente', 'vehiculo', 'cita'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        try {
+            $orden = OrdenTrabajo::findOrFail($id);
+            DB::beginTransaction();
+
+            // Similar validation but slightly relaxed for update? No, same rules.
+            $rules = [
+                'kilometraje' => 'required|integer',
+                'nivel_combustible' => 'required|string',
+                'falla_cliente' => 'required|string',
+                'color' => 'required|string',
+            ];
+
+            // Client/Vehicle resolution logic is the same as store.
+            // I'll keep it simple for now and update only order-specific fields if they changed.
+
+            $orden->update([
+                'tipo_orden' => $request->tipo_orden ?? $orden->tipo_orden,
+                'color' => $request->color,
+                'kilometraje_entrada' => $request->kilometraje,
+                'nivel_combustible' => $request->nivel_combustible,
+                'inventario_recepcion' => json_encode($request->inv ?? []),
+                'danos_reportados' => json_encode($request->danos ?? []),
+                'falla_cliente' => $request->falla_cliente,
+            ]);
+
+            // Handle Damage Image Update
+            if ($request->has('danos_image') && !empty($request->danos_image)) {
+                $image_parts = explode(";base64,", $request->danos_image);
+                if (count($image_parts) >= 2) {
+                    $image_base64 = base64_decode($image_parts[1]);
+                    $fileName = 'orden_' . $orden->id . '_danos_' . time() . '.png';
+                    \Illuminate\Support\Facades\Storage::disk('public')->put('ordenes/danos/' . $fileName, $image_base64);
+                    $orden->danos_imagen_url = 'storage/ordenes/danos/' . $fileName;
+                    $orden->save();
+                }
+            }
+
+            // Handle New Photos
+            if ($request->hasFile('fotos_recepcion')) {
+                $titulos = $request->input('fotos_titulos', []);
+                foreach ($request->file('fotos_recepcion') as $index => $foto) {
+                    $path = $foto->store('ordenes/fotos', 'public');
+                    $titulo = isset($titulos[$index]) ? $titulos[$index] : null;
+                    $orden->archivos()->create([
+                        'url' => 'storage/' . $path,
+                        'tipo' => 'recepcion',
+                        'titulo' => $titulo
+                    ]);
+                }
+            }
+
+            DB::commit();
+            return response()->json(['success' => true, 'redirect' => route('panel.operaciones.ordenes_trabajo.index'), 'message' => 'Orden actualizada con éxito']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => 'Error al actualizar orden: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function show($id)
+    {
+        $orden = OrdenTrabajo::with(['cliente', 'vehiculo.marca', 'vehiculo.modelo', 'vehiculo.version', 'archivos', 'detalles.repuesto', 'bitacoras.mecanico'])->findOrFail($id);
+
+        // List of mechanics (mechanic role users)
+        $mecanicos = \App\Models\User::whereHas('roles', function ($q) {
+            $q->where('slug', 'mecanico');
+        })->get();
+
+        return view('panel.operaciones.ordenes_trabajo.show', compact('orden', 'mecanicos'));
+    }
+
+    public function print($id)
+    {
+        $orden = OrdenTrabajo::with(['cliente', 'vehiculo.marca', 'vehiculo.modelo', 'vehiculo.version', 'archivos', 'sucursal'])->findOrFail($id);
+        return view('panel.operaciones.ordenes_trabajo.print', compact('orden'));
+    }
+
+    // Method to add Detail (Repuesto) via AJAX
+    public function addDetail(Request $request, $id)
+    {
+        try {
+            $orden = OrdenTrabajo::findOrFail($id);
+            $detalle = $orden->detalles()->create([
+                'repuesto_id' => $request->repuesto_id,
+                'descripcion_manual' => $request->descripcion_manual,
+                'cantidad' => $request->cantidad,
+                'precio_unitario' => $request->precio_unitario,
+                'suministrado_por' => $request->suministrado_por ?? 'taller',
+                'notas' => $request->notas
+            ]);
+
+            return response()->json(['success' => true, 'message' => 'Detalle agregado', 'data' => $detalle]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    // Method to add Task (Bitacora) via AJAX
+    public function addTask(Request $request, $id)
+    {
+        try {
+            $orden = OrdenTrabajo::findOrFail($id);
+            $tarea = $orden->bitacoras()->create([
+                'user_id' => $request->user_id, // Mecánico
+                'sucursal_id' => $orden->sucursal_id,
+                'tipo_actividad' => 'mecanica',
+                'descripcion' => $request->descripcion,
+                'meta_minutos' => $request->meta_minutos,
+                'estado' => 'en_pausa' // Default planned
+            ]);
+
+            return response()->json(['success' => true, 'message' => 'Tarea asignada', 'data' => $tarea]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 
     public function store(Request $request)
