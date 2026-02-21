@@ -102,6 +102,15 @@ Route::middleware('auth')->group(function () {
             });
         });
 
+        // Tablero de Colaboradores
+        Route::prefix('colaboradores')->name('colaboradores.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Panel\ColaboradorController::class, 'index'])->name('index');
+            Route::get('/list', [App\Http\Controllers\Panel\ColaboradorController::class, 'list'])->name('list');
+            Route::post('/assign', [App\Http\Controllers\Panel\ColaboradorController::class, 'assignTask'])->name('assign');
+            Route::get('/{id}', [App\Http\Controllers\Panel\ColaboradorController::class, 'show'])->name('show');
+            Route::get('/{id}/print', [App\Http\Controllers\Panel\ColaboradorController::class, 'print'])->name('print');
+        });
+
 
         // Módulos de Mantenimiento
         Route::prefix('mantenimientos')->name('mantenimientos.')->group(function () {

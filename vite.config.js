@@ -24,7 +24,8 @@ export default defineConfig({
                 'resources/js/operaciones/ordenes/create.js',
                 'resources/js/operaciones/ordenes/dashboard.js',
                 'resources/js/operaciones/ordenes/index.js',
-                'resources/js/operaciones/ordenes/show.js'],
+                'resources/js/operaciones/ordenes/show.js',
+                'resources/js/panel/colaboradores.js'],
 
             refresh: true,
         }),

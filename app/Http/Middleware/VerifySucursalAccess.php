@@ -18,9 +18,16 @@ class VerifySucursalAccess
     public function handle(Request $request, Closure $next)
     {
         // Si el request contiene un parámetro 'sucursal_id', validarlo
-        if ($request->has('sucursal_id')) {
+        if ($request->filled('sucursal_id')) {
             $sucursalId = $request->input('sucursal_id');
-            $userSucursals = Auth::user()->sucursales->pluck('id');
+            $user = Auth::user();
+
+            // Los administradores pueden ver todo
+            if ($user->hasRole('admin')) {
+                return $next($request);
+            }
+
+            $userSucursals = $user->sucursales->pluck('id');
 
             // Si el usuario no tiene acceso a esta sucursal, denegar
             if (!$userSucursals->contains($sucursalId)) {

@@ -133,13 +133,17 @@
                     <i class="fas fa-clipboard-list w-5 text-center"></i>
                     Órdenes de Trabajo
                 </a>
+                <a href="{{ route('panel.colaboradores.index') }}"
+                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.colaboradores.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                    <i class="fas fa-users-cog w-5 text-center"></i>
+                    Tablero de Personal
+                </a>
                 @endcan
                 @endif
 
                 {{-- Sección Inventario --}}
                 @can('gestionar_inventario')
                 <div class="px-3 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Logística</div>
-
 
                 <a href="#"
                     class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md sidebar-item text-slate-400 transition-colors">
