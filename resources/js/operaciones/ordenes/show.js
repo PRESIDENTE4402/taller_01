@@ -1,10 +1,54 @@
-import Swal from 'sweetalert2';
-
 document.addEventListener('DOMContentLoaded', () => {
     initTaskForm();
     initPartForm();
     initOriginButtons();
+    initStatusActions();
 });
+
+function initStatusActions() {
+    const btnFinalizar = document.querySelector('.btn-finalizar');
+    if (btnFinalizar) {
+        btnFinalizar.addEventListener('click', async () => {
+            const { isConfirmed } = await Swal.fire({
+                title: '¿Finalizar Orden?',
+                text: 'Se marcará como terminada y se registrará la fecha de hoy.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, finalizar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (isConfirmed) {
+                updateStatus('finalizada');
+            }
+        });
+    }
+}
+
+async function updateStatus(nuevoEstado) {
+    const url = window.location.pathname + '/status';
+    try {
+        const response = await fetch(url, {
+            method: 'PUT',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ estado: nuevoEstado })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            Swal.fire('¡Éxito!', data.message, 'success').then(() => window.location.reload());
+        } else {
+            Swal.fire('Error', data.message, 'error');
+        }
+    } catch (error) {
+        console.error(error);
+        Swal.fire('Error', 'No se pudo actualizar el estado', 'error');
+    }
+}
 
 function initTaskForm() {
     const form = document.getElementById('form-add-task');

@@ -93,7 +93,9 @@ Route::middleware('auth')->group(function () {
                 Route::get('/{id}/edit', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'edit'])->name('edit');
                 Route::put('/{id}', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'update'])->name('update');
                 Route::get('/{id}', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'show'])->name('show');
+                Route::get('/{id}/details', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'getDetails'])->name('details');
                 Route::get('/{id}/print', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'print'])->name('print');
+                Route::put('/{id}/status', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'updateStatus'])->name('status.update');
                 Route::post('/{id}/details', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'addDetail'])->name('details.store');
                 Route::post('/{id}/tasks', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'addTask'])->name('tasks.store');
                 Route::put('/citas/{id}/cancel', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'cancelCita'])->name('citas.cancel');

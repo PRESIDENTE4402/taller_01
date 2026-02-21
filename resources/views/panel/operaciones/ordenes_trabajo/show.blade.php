@@ -9,78 +9,134 @@
     <!-- Column 1 & 2: Main Planning -->
     <div class="lg:col-span-2 space-y-6">
 
-        <!-- Order Header Summary -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center">
-            <div class="flex items-center gap-4">
-                <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-2xl">
-                    <i class="fas fa-file-invoice"></i>
+        <!-- Order Header Summary & Progress Stepper -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="p-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-2xl shadow-inner">
+                        <i class="fas fa-file-invoice"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-black text-gray-800 tracking-tighter">{{ $orden->codigo_orden }}</h2>
+                        <p class="text-gray-500 font-medium text-xs uppercase tracking-tight">{{ $orden->vehiculo->marca->nombre }} {{ $orden->vehiculo->modelo->nombre }} • <span class="text-blue-600 font-bold">{{ $orden->vehiculo->placa }}</span></p>
+                    </div>
                 </div>
-                <div>
-                    <h2 class="text-2xl font-black text-gray-800">{{ $orden->codigo_orden }}</h2>
-                    <p class="text-gray-500 font-medium">{{ $orden->vehiculo->marca->nombre }} {{ $orden->vehiculo->modelo->nombre }} • {{ $orden->vehiculo->placa }}</p>
+                <div class="flex flex-col items-center md:items-end">
+                    <span class="badge badge-lg {{ $orden->estado == 'abierta' ? 'badge-info' : ($orden->estado == 'finalizada' ? 'badge-success' : 'badge-primary') }} uppercase font-black italic px-4 shadow-sm border-none text-white h-8">
+                        {{ str_replace('_', ' ', $orden->estado) }}
+                    </span>
+                    <p class="text-[9px] text-gray-400 mt-1 uppercase font-black tracking-widest">Estado de la Reparación</p>
                 </div>
             </div>
-            <div class="text-right">
-                <span class="badge badge-lg {{ $orden->estado == 'abierta' ? 'badge-info' : 'badge-primary' }} uppercase font-bold">{{ $orden->estado }}</span>
-                <p class="text-xs text-gray-400 mt-1 uppercase font-bold tracking-widest">Estado Actual</p>
+
+            <!-- Visual Stepper -->
+            <div class="px-6 pb-6 pt-2">
+                <div class="flex items-center w-full">
+                    <!-- Step 1: Received -->
+                    <div class="flex flex-col items-center flex-1 relative">
+                        <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs z-10 shadow-lg ring-4 ring-blue-50">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <span class="text-[9px] font-bold mt-2 uppercase text-blue-600">Recibido</span>
+                        <div class="absolute h-1 w-full bg-blue-600 top-4 left-1/2 -z-0"></div>
+                    </div>
+
+                    <!-- Step 2: Planning / Assigned -->
+                    <div class="flex flex-col items-center flex-1 relative">
+                        @php $isAssigned = $orden->bitacoras->count() > 0; @endphp
+                        <div class="w-8 h-8 rounded-full {{ $isAssigned ? 'bg-blue-600 text-white shadow-lg ring-4 ring-blue-50' : 'bg-gray-200 text-gray-400' }} flex items-center justify-center font-bold text-xs z-10 transition-all duration-500">
+                            @if($isAssigned) <i class="fas fa-check"></i> @else 2 @endif
+                        </div>
+                        <span class="text-[9px] font-bold mt-2 uppercase {{ $isAssigned ? 'text-blue-600' : 'text-gray-400' }}">Planificado</span>
+                        <div class="absolute h-1 w-full {{ $orden->estado == 'en_proceso' || $orden->estado == 'finalizada' ? 'bg-blue-600' : 'bg-gray-200' }} top-4 left-1/2 -z-0"></div>
+                    </div>
+
+                    <!-- Step 3: Execution -->
+                    <div class="flex flex-col items-center flex-1 relative">
+                        @php $inProgress = $orden->estado == 'en_proceso' || $orden->estado == 'finalizada'; @endphp
+                        <div class="w-8 h-8 rounded-full {{ $inProgress ? 'bg-blue-600 text-white shadow-lg ring-4 ring-blue-50' : 'bg-gray-200 text-gray-400' }} flex items-center justify-center font-bold text-xs z-10 transition-all duration-500">
+                            @if($orden->estado == 'finalizada') <i class="fas fa-check"></i> @else 3 @endif
+                        </div>
+                        <span class="text-[9px] font-bold mt-2 uppercase {{ $inProgress ? 'text-blue-600' : 'text-gray-400' }}">Reparación</span>
+                        <div class="absolute h-1 w-full {{ $orden->estado == 'finalizada' ? 'bg-blue-600' : 'bg-gray-200' }} top-4 left-1/2 -z-0"></div>
+                    </div>
+
+                    <!-- Step 4: Finished -->
+                    <div class="flex flex-col items-center flex-1 relative">
+                        @php $isFinished = $orden->estado == 'finalizada'; @endphp
+                        <div class="w-8 h-8 rounded-full {{ $isFinished ? 'bg-green-500 text-white shadow-lg ring-4 ring-green-50' : 'bg-gray-200 text-gray-400' }} flex items-center justify-center font-bold text-xs z-10 transition-all duration-500">
+                            @if($isFinished) <i class="fas fa-flag-checkered"></i> @else 4 @endif
+                        </div>
+                        <span class="text-[9px] font-bold mt-2 uppercase {{ $isFinished ? 'text-green-600' : 'text-gray-400' }}">Entregado</span>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- Section: Tasks / Labor -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div class="p-5 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
-                <h3 class="font-bold text-gray-700 flex items-center gap-2">
-                    <i class="fas fa-tools text-blue-500"></i> Mano de Obra y Tareas
+                <h3 class="font-black text-gray-700 flex items-center gap-2 uppercase text-xs tracking-widest">
+                    <i class="fas fa-tools text-blue-500"></i> Planificación Técnica
                 </h3>
-                <button onclick="document.getElementById('modal-task').showModal()" class="btn btn-sm btn-primary gap-2">
-                    <i class="fas fa-plus"></i> Asignar Tarea
+                <button onclick="document.getElementById('modal-task').showModal()" class="btn btn-sm btn-primary gap-2 shadow-md shadow-blue-500/20 px-4">
+                    <i class="fas fa-plus"></i> <span class="hidden sm:inline">Asignar Tarea</span><span class="sm:hidden">Tarea</span>
                 </button>
             </div>
-            <div class="overflow-x-auto">
-                <table class="table w-full">
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="table w-full border-separate border-spacing-0">
                     <thead>
-                        <tr class="text-gray-400 text-xs uppercase">
-                            <th>Descripción</th>
-                            <th>Mecánico</th>
-                            <th>Tiempo Est.</th>
-                            <th>Estado</th>
-                            <th></th>
+                        <tr class="text-gray-400 text-[10px] uppercase bg-gray-50/30">
+                            <th class="rounded-tl-xl border-b border-gray-100 py-4">Descripción / Actividad</th>
+                            <th class="border-b border-gray-100">Mecánico Asignado</th>
+                            <th class="border-b border-gray-100">Estimado</th>
+                            <th class="border-b border-gray-100">Estado</th>
+                            <th class="rounded-tr-xl border-b border-gray-100"></th>
                         </tr>
                     </thead>
                     <tbody id="tasks-table-body">
                         @forelse($orden->bitacoras as $task)
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td>
-                                <div class="font-bold text-gray-700 text-sm">{{ $task->descripcion }}</div>
-                                <div class="text-[10px] text-gray-400 uppercase font-bold">{{ $task->tipo_actividad }}</div>
+                        <tr class="hover:bg-blue-50/30 transition-colors group">
+                            <td class="border-b border-gray-50 py-4">
+                                <div class="font-black text-gray-800 text-sm italic">{{ $task->descripcion }}</div>
+                                <div class="text-[9px] text-blue-500 font-black uppercase tracking-widest mt-0.5">{{ $task->tipo_actividad }}</div>
                             </td>
-                            <td>
+                            <td class="border-b border-gray-50">
                                 <div class="flex items-center gap-2">
                                     <div class="avatar placeholder">
-                                        <div class="bg-neutral text-neutral-content rounded-full w-6">
-                                            <span class="text-[10px]">{{ substr($task->mecanico->name ?? 'M', 0, 1) }}</span>
+                                        <div class="bg-blue-600 text-white rounded-lg w-7 h-7 flex items-center justify-center font-black text-[10px]">
+                                            {{ substr($task->mecanico->name ?? 'M', 0, 1) }}
                                         </div>
                                     </div>
-                                    <span class="text-sm font-medium">{{ $task->mecanico->name ?? 'Sin asignar' }}</span>
+                                    <div>
+                                        <span class="text-xs font-bold text-gray-700 block leading-none">{{ $task->mecanico->name ?? 'Sin asignar' }}</span>
+                                        <span class="text-[9px] text-gray-400 uppercase font-bold">Técnico Especialista</span>
+                                    </div>
                                 </div>
                             </td>
-                            <td>
-                                <span class="badge badge-ghost font-mono text-xs">{{ $task->meta_minutos }} min</span>
+                            <td class="border-b border-gray-50">
+                                <span class="badge badge-ghost font-mono text-[10px] font-bold bg-gray-100 text-gray-600 border-none">{{ $task->meta_minutos }} MIN</span>
                             </td>
-                            <td>
-                                <span class="badge badge-sm uppercase font-bold text-[9px] {{ $task->estado == 'completado' ? 'badge-success' : 'badge-warning' }}">
+                            <td class="border-b border-gray-50">
+                                <span class="badge badge-sm uppercase font-black text-[9px] italic {{ $task->estado == 'completado' ? 'badge-success' : 'badge-warning' }} border-none px-3">
                                     {{ $task->estado }}
                                 </span>
                             </td>
-                            <td class="text-right">
-                                <button class="btn btn-ghost btn-xs text-gray-300 hover:text-red-500">
+                            <td class="text-right border-b border-gray-50 rounded-r-xl">
+                                <button class="btn btn-ghost btn-xs text-gray-300 hover:text-red-500 transition-colors">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="5" class="text-center py-10 text-gray-400 italic">No hay tareas asignadas aún.</td>
+                            <td colspan="5" class="text-center py-16">
+                                <div class="flex flex-col items-center gap-2 opacity-30">
+                                    <i class="fas fa-clipboard-list text-4xl"></i>
+                                    <p class="text-xs font-black uppercase tracking-widest">No hay tareas planificadas aún</p>
+                                    <button onclick="document.getElementById('modal-task').showModal()" class="btn btn-xs btn-outline btn-primary mt-2">Crear Primera Tarea</button>
+                                </div>
+                            </td>
                         </tr>
                         @endforelse
                     </tbody>
@@ -175,7 +231,9 @@
                 <button class="btn btn-primary w-full gap-2 shadow-lg shadow-blue-500/30">
                     <i class="fas fa-save"></i> Guardar Cambios
                 </button>
-                <button class="btn btn-success w-full text-white gap-2 shadow-lg shadow-green-500/30 font-black italic">
+                <button
+                    class="btn btn-success w-full text-white gap-2 shadow-lg shadow-green-500/30 font-black italic btn-finalizar"
+                    {{ $orden->estado == 'finalizada' ? 'disabled' : '' }}>
                     <i class="fas fa-check-double"></i> Finalizar Orden
                 </button>
             </div>

@@ -65,7 +65,7 @@ class OrdenTrabajoController extends Controller
     public function list(Request $request)
     {
         // 1. Órdenes Activas (No finalizadas/entregadas)
-        $ordenes = OrdenTrabajo::with(['cliente', 'vehiculo.marca', 'vehiculo.modelo'])
+        $ordenes = OrdenTrabajo::with(['cliente', 'vehiculo.marca', 'vehiculo.modelo', 'sucursal', 'bitacoras', 'receptor'])
             ->whereNotIn('estado', ['finalizada', 'entregada'])
             ->orderBy('created_at', 'desc')
             ->get();
@@ -130,7 +130,10 @@ class OrdenTrabajoController extends Controller
         $vehiculo = $orden->vehiculo;
         $cita = $orden->cita;
 
-        return view('panel.operaciones.ordenes_trabajo.create', compact('orden', 'cliente', 'vehiculo', 'cita'));
+        $isAdmin = Auth::user()->hasRole('admin');
+        $sucursales = $isAdmin ? \App\Models\Sucursal::all() : collect([]);
+
+        return view('panel.operaciones.ordenes_trabajo.create', compact('orden', 'cliente', 'vehiculo', 'cita', 'isAdmin', 'sucursales'));
     }
 
     public function update(Request $request, $id)
@@ -206,6 +209,21 @@ class OrdenTrabajoController extends Controller
         return view('panel.operaciones.ordenes_trabajo.show', compact('orden', 'mecanicos'));
     }
 
+    public function getDetails($id)
+    {
+        $orden = OrdenTrabajo::with([
+            'cliente',
+            'vehiculo.marca',
+            'vehiculo.modelo',
+            'vehiculo.version',
+            'archivos',
+            'detalles.repuesto',
+            'bitacoras.mecanico'
+        ])->findOrFail($id);
+
+        return response()->json($orden);
+    }
+
 
 
     // Method to add Detail (Repuesto) via AJAX
@@ -242,7 +260,31 @@ class OrdenTrabajoController extends Controller
                 'estado' => 'en_pausa' // Default planned
             ]);
 
+            // Al asignar la primera tarea, podríamos pasar a "en_proceso" automáticamente
+            if ($orden->estado == 'abierta') {
+                $orden->estado = 'en_proceso';
+                $orden->save();
+            }
+
             return response()->json(['success' => true, 'message' => 'Tarea asignada', 'data' => $tarea]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        try {
+            $orden = OrdenTrabajo::findOrFail($id);
+            $orden->estado = $request->estado;
+
+            if ($request->estado == 'finalizada') {
+                $orden->fecha_finalizacion = now();
+            }
+
+            $orden->save();
+
+            return response()->json(['success' => true, 'message' => 'Estado actualizado a ' . $request->estado]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
@@ -375,21 +417,24 @@ class OrdenTrabajoController extends Controller
 
             // 3. Crear o Actualizar Vehículo
             $vehiculoId = $request->vehiculo_id;
+            $placaInput = strtoupper($request->input('new_vehiculo.placa'));
 
-            // Si el usuario eligió "Crear Nuevo" explícitamente, ignoramos el ID
-            if ($request->input('accion_vehiculo') == 'create') {
-                $vehiculoId = null;
+            // Si el usuario eligió "Crear Nuevo" explícitamente o no hay ID, buscamos por placa para evitar error SQL
+            if ($request->input('accion_vehiculo') == 'create' || empty($vehiculoId)) {
+                $vehiculo = Vehiculo::where('placa', $placaInput)->first();
+                if ($vehiculo) {
+                    $vehiculoId = $vehiculo->id;
+                }
             }
 
             if (!empty($vehiculoId)) {
-                // Update Existing Vehicle
                 $vehiculo = Vehiculo::find($vehiculoId);
                 $vehiculo->update([
-                    // Verified: Logic exists to update vehicle owner. No changes needed.
+                    'cliente_id' => $clienteId, // Actualizar dueño en caso de cambio de propiedad
                     'marca_id' => $marca->id,
                     'modelo_id' => $modelo->id,
                     'version_id' => $versionId,
-                    'placa' => strtoupper($request->input('new_vehiculo.placa')),
+                    'placa' => $placaInput,
                     'color' => $request->color,
                     'vin' => strtoupper($request->input('new_vehiculo.vin')), // Motor/VIN
                     'anio' => $request->input('new_vehiculo.anio'),
@@ -401,7 +446,7 @@ class OrdenTrabajoController extends Controller
                     'marca_id' => $marca->id,
                     'modelo_id' => $modelo->id,
                     'version_id' => $versionId,
-                    'placa' => strtoupper($request->input('new_vehiculo.placa')),
+                    'placa' => $placaInput,
                     'color' => $request->color,
                     'vin' => strtoupper($request->input('new_vehiculo.vin')), // Motor/VIN
                     'anio' => $request->input('new_vehiculo.anio'),
@@ -486,7 +531,7 @@ class OrdenTrabajoController extends Controller
 
             DB::commit();
 
-            return response()->json(['success' => true, 'redirect' => route('panel.operaciones.ordenes_trabajo.index'), 'message' => 'Orden creada con éxito']);
+            return response()->json(['success' => true, 'redirect' => route('panel.operaciones.ordenes_trabajo.show', $orden->id), 'message' => 'Orden creada con éxito']);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['success' => false, 'message' => 'Error al crear orden: ' . $e->getMessage()], 500);
