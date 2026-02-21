@@ -98,7 +98,9 @@ class OrdenTrabajoController extends Controller
             $cliente = Cliente::with(['vehiculos.marca', 'vehiculos.modelo'])->findOrFail($request->cliente_id);
         }
 
-        $isAdmin = Auth::user()->hasRole('admin');
+        /** @var \App\Models\User $authUser */
+        $authUser = Auth::user();
+        $isAdmin = $authUser->hasRole('admin');
         $sucursales = $isAdmin ? \App\Models\Sucursal::all() : collect([]);
 
         return view('panel.operaciones.ordenes_trabajo.create', compact('cita', 'vehiculo', 'cliente', 'isAdmin', 'sucursales'));
@@ -130,7 +132,9 @@ class OrdenTrabajoController extends Controller
         $vehiculo = $orden->vehiculo;
         $cita = $orden->cita;
 
-        $isAdmin = Auth::user()->hasRole('admin');
+        /** @var \App\Models\User $authUser */
+        $authUser = Auth::user();
+        $isAdmin = $authUser->hasRole('admin');
         $sucursales = $isAdmin ? \App\Models\Sucursal::all() : collect([]);
 
         return view('panel.operaciones.ordenes_trabajo.create', compact('orden', 'cliente', 'vehiculo', 'cita', 'isAdmin', 'sucursales'));
@@ -327,7 +331,9 @@ class OrdenTrabajoController extends Controller
             $rules['new_vehiculo.modelo'] = 'required|string';
             $rules['new_vehiculo.anio'] = 'required|integer';
 
-            if (Auth::user()->hasRole('admin')) {
+            /** @var \App\Models\User $authUser */
+            $authUser = Auth::user();
+            if ($authUser->hasRole('admin')) {
                 $rules['sucursal_id'] = 'required|exists:sucursales,id';
             }
 
@@ -461,8 +467,10 @@ class OrdenTrabajoController extends Controller
             $codigo = 'OT-' . date('Y') . '-' . str_pad($lastId + 1, 4, '0', STR_PAD_LEFT);
 
             // Determinar Sucursal
-            $sucursalId = Auth::user()->sucursales->first()?->id ?? 1;
-            if (Auth::user()->hasRole('admin') && $request->has('sucursal_id')) {
+            /** @var \App\Models\User $authUser */
+            $authUser = Auth::user();
+            $sucursalId = $authUser->sucursales->first()?->id ?? 1;
+            if ($authUser->hasRole('admin') && $request->has('sucursal_id')) {
                 $sucursalId = $request->sucursal_id;
             }
 

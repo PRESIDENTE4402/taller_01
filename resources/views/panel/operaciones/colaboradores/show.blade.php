@@ -40,7 +40,8 @@
                 @endif
             </form>
 
-            <button onclick="openPDFPreview('{{ route('panel.colaboradores.print', ['id' => $worker->id, 'desde' => $desde, 'hasta' => $hasta]) }}')" class="btn btn-primary bg-blue-600 border-none text-white hover:bg-blue-700 rounded-xl font-black italic uppercase text-xs shadow-lg shadow-blue-500/30">
+            @php $printUrl = route('panel.colaboradores.print', ['id' => $worker->id, 'desde' => $desde, 'hasta' => $hasta]); @endphp
+            <button onclick="openPDFPreview('{{ $printUrl }}')" class="btn btn-primary bg-blue-600 border-none text-white hover:bg-blue-700 rounded-xl font-black italic uppercase text-xs shadow-lg shadow-blue-500/30">
                 <i class="fas fa-file-pdf"></i> Exportar Historial
             </button>
             <a href="{{ route('panel.colaboradores.index') }}" class="btn btn-outline border-gray-200 text-gray-500 hover:bg-gray-100 hover:text-gray-800 rounded-xl font-black italic uppercase text-xs">
@@ -147,8 +148,10 @@
         @endif
     </div>
 </div>
+@endsection
 
 <!-- Modal: Vista Previa PDF -->
+@push('modals')
 <dialog id="modalPreviewPDF" class="modal">
     <div class="modal-box w-11/12 max-w-5xl h-[90vh] bg-gray-900 p-0 rounded-3xl overflow-hidden shadow-2xl flex flex-col">
         <div class="p-6 bg-gray-900 text-white flex justify-between items-center border-b border-gray-800">
@@ -165,6 +168,7 @@
         </div>
     </div>
 </dialog>
+@endpush
 
 @push('scripts')
 <script type="text/javascript">
@@ -178,4 +182,3 @@
     }
 </script>
 @endpush
-@endsection

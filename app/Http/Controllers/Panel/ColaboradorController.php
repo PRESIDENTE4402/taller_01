@@ -23,6 +23,7 @@ class ColaboradorController extends Controller
     public function list(Request $request)
     {
         $sucursalId = $request->get('sucursal_id');
+        /** @var \App\Models\User $user */
         $user = Auth::user();
 
         // Si se pide una sucursal específica, validar acceso (excepto para administradores)
