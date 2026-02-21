@@ -35,6 +35,14 @@
                 </button>
             </div>
 
+            <h4 class="font-bold text-gray-700 mb-2 border-t border-gray-100 pt-4 text-xs uppercase">Filtrar Sucursal</h4>
+            <select id="filterSucursal" class="w-full text-xs border border-gray-200 rounded-lg py-2 px-3 text-gray-600 font-medium focus:ring-1 focus:ring-blue-500 outline-none mb-4" onchange="loadCitas()">
+                <option value="all">Todas las Sucursales</option>
+                @foreach($sucursales as $sucursal)
+                    <option value="{{ $sucursal->id }}">{{ $sucursal->nombre }}</option>
+                @endforeach
+            </select>
+
             <h4 class="font-bold text-gray-700 mb-4 border-t border-gray-100 pt-4">Filtrar Estado</h4>
             <div class="space-y-2">
                 <button onclick="filterCitas('pendiente')" class="w-full text-left px-4 py-2 rounded-lg hover:bg-gray-50 text-sm font-medium text-gray-600 flex justify-between items-center group transition-colors filter-btn" data-status="pendiente">
@@ -56,6 +64,18 @@
                 <button onclick="filterCitas('all')" class="w-full text-left px-4 py-2 rounded-lg bg-blue-50 text-blue-700 text-sm font-bold flex justify-between items-center ring-1 ring-blue-200 mt-4 filter-btn active" data-status="all">
                     <span>Ver Todas</span>
                 </button>
+            </div>
+        </div>
+
+        <!-- Widget Capacidad -->
+        <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+            <h4 class="font-bold text-gray-700 text-xs uppercase mb-3 flex justify-between items-center">
+                <span>Disponibilidad (<span id="capacityDateLabel">--</span>)</span>
+                <i class="fas fa-chart-pie text-blue-400"></i>
+            </h4>
+            <div id="capacityContainer" class="space-y-4">
+                <!-- Injected via JS -->
+                <p class="text-xs text-gray-400 text-center py-2">Cargando disponibilidad...</p>
             </div>
         </div>
         
@@ -333,6 +353,16 @@
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Sucursal -->
+                <div class="col-span-1 md:col-span-2">
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Sucursal</label>
+                    <select name="sucursal_id" class="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 px-4 focus:ring-2 focus:ring-blue-500 outline-none" required>
+                        @foreach($sucursales as $sucursal)
+                            <option value="{{ $sucursal->id }}">{{ $sucursal->nombre }}</option>
+                        @endforeach
+                    </select>
                 </div>
 
                 <!-- Fecha y Hora -->

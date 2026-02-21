@@ -20,7 +20,8 @@ class Vehiculo extends Model
         'placa',
         'anio',
         'color',
-        'vin'
+        'vin',
+        'situacion'
     ];
 
     protected $casts = [

@@ -30,9 +30,25 @@
         
         .booking-modal-container {
             border-radius: 24px !important;
-            overflow: hidden;
+            overflow-y: auto;
+            overflow-x: hidden;
+            max-height: 95vh;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
             border: 1px solid rgba(255, 255, 255, 0.1);
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 transparent;
+        }
+        
+        /* Custom Scrollbar for Webkit */
+        .booking-modal-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        .booking-modal-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .booking-modal-container::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 20px;
         }
 
         .booking-form-premium input,
@@ -662,7 +678,17 @@
                         <p>BMW Service Inclusive</p>
                     </div>
 
-                <form class="booking-form-premium" id="bookingForm" onsubmit="submitBooking(event)">
+                <form class="booking-form-premium" id="bookingForm" onsubmit="submitBooking(event)" novalidate>
+                    
+                    <div style="background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 15px; margin-bottom: 20px;">
+                        <label style="color: #1e40af; font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; display: block;">¿Ya eres cliente?</label>
+                        <p style="font-size: 0.85rem; color: #3b82f6; margin-bottom: 10px;">Ingresa tu correo o teléfono para autocompletar tus datos y ver tus vehículos.</p>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="lookupInput" placeholder="Correo o Teléfono" style="flex: 1; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px; font-size: 0.9rem;">
+                            <button type="button" onclick="lookupClient()" style="background-color: #2563eb; color: white; border: none; border-radius: 8px; padding: 0 15px; font-weight: 600; cursor: pointer;">Buscar</button>
+                        </div>
+                    </div>
+
                     <div class="form-group-premium">
                         <label>Información de Contacto</label>
                         <input type="text" id="clientName" placeholder="Nombre Completo / Empresa" required>
@@ -671,7 +697,18 @@
                     </div>
 
                     <div class="form-group-premium">
-                        <label>Datos del Vehículo</label>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <label style="margin-bottom: 0;">Datos del Vehículo</label>
+                        </div>
+                        
+                        <!-- Contenedor para mostrar vehículos existentes (oculto por defecto) -->
+                        <div id="existingVehiclesContainer" style="display: none; margin-bottom: 15px; background: #fdfdfd; border: 1px dashed #cbd5e1; padding: 10px; border-radius: 8px;">
+                            <label style="font-size: 0.8rem; color: #475569;">Selecciona un vehículo registrado o ignora esto para registrar uno nuevo:</label>
+                            <select id="existingVehiclesSelect" class="premium-select" style="margin-top: 5px; border-color: #cbd5e1; background-color: #fff;" onchange="selectExistingVehicle()">
+                                <option value="">-- Ignorar / Registrar nuevo vehículo --</option>
+                            </select>
+                        </div>
+
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
                             <input type="text" id="vehiculoPlaca" placeholder="Placa (Indispensable)" required style="text-transform: uppercase;">
                             <div class="select-wrapper">
@@ -703,16 +740,13 @@
                             rows="3" required></textarea>
                     </div>
 
-                    <div class="checkbox-premium">
-                        <input type="checkbox" id="valet_service">
-                        <label for="valet_service">Solicitar Valet Service (Retiro a domicilio)</label>
-                    </div>
+
 
                     <!-- Hidden Inputs for Date/Time -->
-                    <input type="hidden" id="selectedDate" required>
-                    <input type="hidden" id="selectedTime" required>
 
-                    <button type="submit" class="btn btn-primary submit-btn">Confirmar Cita</button>
+                    <input type="hidden" id="selectedTime">
+
+                    <button type="submit" class="btn btn-primary submit-btn" style="width: 100%; text-transform: uppercase; font-weight: 800; letter-spacing: 1px; padding: 18px;">AGENDAR CITA</button>
                 </form>
             </div>
 
@@ -723,9 +757,18 @@
                     <p>Disponibilidad en tiempo real</p>
                 </div>
 
+                <div class="calendar-wrapper" style="margin-bottom: 20px;">
+                    <label>Taller / Sucursal de Preferencia</label>
+                    <div class="select-wrapper">
+                        <select id="sucursalSelect" class="premium-select">
+                            <option value="">Seleccione Taller / Sucursal...</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="calendar-wrapper">
                     <label>Fecha Preferida</label>
-                    <input type="date" class="premium-date-input" onchange="updateTimeSlots(this.value)">
+                    <input type="date" id="selectedDate" class="premium-date-input" onchange="updateTimeSlots(this.value)">
                 </div>
 
                 <div class="time-selection-wrapper">
