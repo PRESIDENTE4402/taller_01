@@ -17,7 +17,6 @@ export default defineConfig({
                 'resources/js/panel/citas.js',
                 'resources/js/panel/asistencia.js',
                 'resources/js/panel/categorias.js',
-                'resources/js/panel/categorias.js',
                 'resources/js/panel/repuestos.js',
                 'resources/js/clientes/index.js',
                 'resources/js/clientes/show.js',
