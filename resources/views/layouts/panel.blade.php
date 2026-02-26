@@ -94,11 +94,11 @@
                 <div class="px-3 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Principal</div>
 
                 @can('ver_dashboard')
-                <a href="{{ route('panel.dashboard') }}"
-                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.dashboard') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
-                    <i class="fas fa-chart-pie w-5 text-center"></i>
-                    Dashboard
-                </a>
+                    <a href="{{ route('panel.dashboard') }}"
+                        class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.dashboard') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                        <i class="fas fa-chart-pie w-5 text-center"></i>
+                        Dashboard
+                    </a>
                 @endcan
 
                 <a href="{{ route('panel.clientes.index') }}"
@@ -108,142 +108,150 @@
                 </a>
 
                 {{-- Sección Operaciones --}}
-                @if(Gate::check('gestionar_citas') || Gate::check('gestionar_recepcion') || Gate::check('gestionar_ordenes_trabajo'))
-                <div class="px-3 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Operaciones</div>
+                @if(Gate::check('gestionar_citas') || Gate::check('gestionar_recepcion') || Gate::check('gestionar_ordenes_trabajo') || auth()->user()->hasRole('mecanico') || auth()->user()->hasRole('ayudante') || auth()->user()->hasRole('tecnico'))
+                    <div class="px-3 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Operaciones</div>
 
-                @can('gestionar_citas')
-                <a href="{{ route('panel.operaciones.citas.index') }}"
-                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.operaciones.citas.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
-                    <i class="fas fa-calendar-check w-5 text-center"></i>
-                    Gestionar Citas
-                </a>
-                @endcan
+                    @can('gestionar_citas')
+                        <a href="{{ route('panel.operaciones.citas.index') }}"
+                            class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.operaciones.citas.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                            <i class="fas fa-calendar-check w-5 text-center"></i>
+                            Gestionar Citas
+                        </a>
+                    @endcan
 
-                @can('gestionar_recepcion')
-                <a href="{{ route('panel.operaciones.ordenes_trabajo.dashboard') }}"
-                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.operaciones.ordenes_trabajo.dashboard') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
-                    <i class="fas fa-car w-5 text-center"></i>
-                    Recepción Vehículos
-                </a>
-                @endcan
+                    @can('gestionar_recepcion')
+                        <a href="{{ route('panel.operaciones.ordenes_trabajo.dashboard') }}"
+                            class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.operaciones.ordenes_trabajo.dashboard') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                            <i class="fas fa-car w-5 text-center"></i>
+                            Recepción Vehículos
+                        </a>
+                    @endcan
 
-                @can('gestionar_ordenes_trabajo')
-                <a href="{{ route('panel.operaciones.ordenes_trabajo.index') }}"
-                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ (request()->routeIs('panel.operaciones.ordenes_trabajo.*') && !request()->routeIs('panel.operaciones.ordenes_trabajo.create') && !request()->routeIs('panel.operaciones.ordenes_trabajo.dashboard')) ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
-                    <i class="fas fa-clipboard-list w-5 text-center"></i>
-                    Órdenes de Trabajo
-                </a>
-                <a href="{{ route('panel.colaboradores.index') }}"
-                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.colaboradores.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
-                    <i class="fas fa-users-cog w-5 text-center"></i>
-                    Tablero de Personal
-                </a>
-                @endcan
+                    @can('gestionar_ordenes_trabajo')
+                        <a href="{{ route('panel.operaciones.ordenes_trabajo.index') }}"
+                            class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ (request()->routeIs('panel.operaciones.ordenes_trabajo.*') && !request()->routeIs('panel.operaciones.ordenes_trabajo.create') && !request()->routeIs('panel.operaciones.ordenes_trabajo.dashboard')) ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                            <i class="fas fa-clipboard-list w-5 text-center"></i>
+                            Órdenes de Trabajo
+                        </a>
+                        <a href="{{ route('panel.colaboradores.index') }}"
+                            class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.colaboradores.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                            <i class="fas fa-users-cog w-5 text-center"></i>
+                            Tablero de Personal
+                        </a>
+                    @endcan
+
+                    @if(auth()->user()->hasRole('mecanico') || auth()->user()->hasRole('ayudante') || auth()->user()->hasRole('tecnico') || auth()->user()->hasRole('admin') || auth()->user()->hasRole('recepcionista'))
+                        <a href="{{ route('panel.mis_tareas.index') }}"
+                            class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.mis_tareas.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                            <i class="fas fa-tools w-5 text-center"></i>
+                            {{ (auth()->user()->hasRole('admin') || auth()->user()->hasRole('recepcionista')) ? 'Tareas de Personal' : 'Mis Tareas' }}
+                        </a>
+                    @endif
                 @endif
 
                 {{-- Sección Inventario --}}
                 @can('gestionar_inventario')
-                <div class="px-3 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Logística</div>
+                    <div class="px-3 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Logística</div>
 
-                <a href="#"
-                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md sidebar-item text-slate-400 transition-colors">
-                    <i class="fas fa-boxes w-5 text-center"></i>
-                    Inventario Repuestos
-                </a>
+                    <a href="#"
+                        class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md sidebar-item text-slate-400 transition-colors">
+                        <i class="fas fa-boxes w-5 text-center"></i>
+                        Inventario Repuestos
+                    </a>
 
-                <a href="{{ route('panel.mantenimientos.categorias.index') }}"
-                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.mantenimientos.categorias.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
-                    <i class="fas fa-tags w-5 text-center"></i>
-                    Categorías
-                </a>
+                    <a href="{{ route('panel.mantenimientos.categorias.index') }}"
+                        class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.mantenimientos.categorias.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                        <i class="fas fa-tags w-5 text-center"></i>
+                        Categorías
+                    </a>
 
-                <a href="{{ route('panel.mantenimientos.repuestos.index') }}"
-                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.mantenimientos.repuestos.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
-                    <i class="fas fa-boxes w-5 text-center"></i>
-                    Repuestos (SaaS)
-                </a>
+                    <a href="{{ route('panel.mantenimientos.repuestos.index') }}"
+                        class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.mantenimientos.repuestos.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                        <i class="fas fa-boxes w-5 text-center"></i>
+                        Repuestos (SaaS)
+                    </a>
 
                 @endcan
 
                 {{-- Sección Mantenimientos (CRUDs) --}}
                 @if(Gate::check('gestionar_marcas') || Gate::check('gestionar_versiones') || Gate::check('gestionar_sucursales'))
-                <div class="px-3 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Mantenimientos
-                </div>
+                    <div class="px-3 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Mantenimientos
+                    </div>
 
-                @can('gestionar_marcas')
-                <a href="{{ route('panel.mantenimientos.marcas.index') }}"
-                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.mantenimientos.marcas.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
-                    <i class="fas fa-tags w-5 text-center"></i>
-                    Marcas de Vehículos
-                </a>
-                @endcan
+                    @can('gestionar_marcas')
+                        <a href="{{ route('panel.mantenimientos.marcas.index') }}"
+                            class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.mantenimientos.marcas.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                            <i class="fas fa-tags w-5 text-center"></i>
+                            Marcas de Vehículos
+                        </a>
+                    @endcan
 
-                @can('gestionar_versiones')
-                <a href="{{ route('panel.mantenimientos.versiones.index') }}"
-                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.mantenimientos.versiones.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
-                    <i class="fas fa-code-branch w-5 text-center"></i>
-                    Versiones de Modelos
-                </a>
-                @endcan
+                    @can('gestionar_versiones')
+                        <a href="{{ route('panel.mantenimientos.versiones.index') }}"
+                            class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.mantenimientos.versiones.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                            <i class="fas fa-code-branch w-5 text-center"></i>
+                            Versiones de Modelos
+                        </a>
+                    @endcan
 
-                @can('gestionar_sucursales')
-                <a href="{{ route('panel.mantenimientos.sucursales.index') }}"
-                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.mantenimientos.sucursales.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
-                    <i class="fas fa-store w-5 text-center"></i>
-                    Sucursales
-                </a>
-                @endcan
+                    @can('gestionar_sucursales')
+                        <a href="{{ route('panel.mantenimientos.sucursales.index') }}"
+                            class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.mantenimientos.sucursales.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                            <i class="fas fa-store w-5 text-center"></i>
+                            Sucursales
+                        </a>
+                    @endcan
                 @endif
 
                 {{-- Sección Recursos Humanos --}}
                 @if(Gate::check('ver_mi_qr') || Gate::check('ver_asistencias'))
-                <div class="px-3 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Recursos Humanos
-                </div>
+                    <div class="px-3 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Recursos Humanos
+                    </div>
 
-                @can('ver_mi_qr')
-                <a href="{{ route('panel.rrhh.asistencias.mi-qr') }}"
-                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.rrhh.asistencias.mi-qr') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
-                    <i class="fas fa-qrcode w-5 text-center"></i>
-                    Mi Credencial QR
-                </a>
-                @endcan
+                    @can('ver_mi_qr')
+                        <a href="{{ route('panel.rrhh.asistencias.mi-qr') }}"
+                            class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.rrhh.asistencias.mi-qr') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                            <i class="fas fa-qrcode w-5 text-center"></i>
+                            Mi Credencial QR
+                        </a>
+                    @endcan
 
-                @can('ver_asistencias')
-                <a href="{{ route('panel.rrhh.asistencias.index') }}"
-                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.rrhh.asistencias.index') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
-                    <i class="fas fa-fingerprint w-5 text-center"></i>
-                    Control Asistencias (Admin)
-                </a>
-                @endcan
+                    @can('ver_asistencias')
+                        <a href="{{ route('panel.rrhh.asistencias.index') }}"
+                            class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.rrhh.asistencias.index') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                            <i class="fas fa-fingerprint w-5 text-center"></i>
+                            Control Asistencias (Admin)
+                        </a>
+                    @endcan
                 @endif
 
                 {{-- Sección Seguridad --}}
                 @if(Gate::check('gestionar_roles') || Gate::check('gestionar_permisos') || Gate::check('gestionar_usuarios'))
-                <div class="px-3 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Seguridad</div>
+                    <div class="px-3 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Seguridad</div>
 
-                @can('gestionar_roles')
-                <a href="{{ route('panel.seguridad.roles.index') }}"
-                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.seguridad.roles.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
-                    <i class="fas fa-user-shield w-5 text-center"></i>
-                    Roles
-                </a>
-                @endcan
+                    @can('gestionar_roles')
+                        <a href="{{ route('panel.seguridad.roles.index') }}"
+                            class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.seguridad.roles.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                            <i class="fas fa-user-shield w-5 text-center"></i>
+                            Roles
+                        </a>
+                    @endcan
 
-                @can('gestionar_permisos')
-                <a href="{{ route('panel.seguridad.permisos.index') }}"
-                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.seguridad.permisos.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
-                    <i class="fas fa-key w-5 text-center"></i>
-                    Permisos
-                </a>
-                @endcan
+                    @can('gestionar_permisos')
+                        <a href="{{ route('panel.seguridad.permisos.index') }}"
+                            class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.seguridad.permisos.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                            <i class="fas fa-key w-5 text-center"></i>
+                            Permisos
+                        </a>
+                    @endcan
 
-                @can('gestionar_usuarios')
-                <a href="{{ route('panel.seguridad.usuarios.index') }}"
-                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.seguridad.usuarios.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
-                    <i class="fas fa-users-cog w-5 text-center"></i>
-                    Usuarios
-                </a>
-                @endcan
+                    @can('gestionar_usuarios')
+                        <a href="{{ route('panel.seguridad.usuarios.index') }}"
+                            class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.seguridad.usuarios.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                            <i class="fas fa-users-cog w-5 text-center"></i>
+                            Usuarios
+                        </a>
+                    @endcan
                 @endif
             </nav>
         </div>
@@ -300,11 +308,62 @@
                 </div>
 
                 {{-- Notifications --}}
-                <button
-                    class="btn btn-ghost btn-circle btn-sm text-gray-500 hover:text-blue-600 hover:bg-blue-50 relative">
-                    <i class="fas fa-bell text-lg"></i>
-                    <span class="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full border border-white"></span>
-                </button>
+                <div class="dropdown dropdown-end">
+                    <div tabindex="0" role="button"
+                        class="btn btn-ghost btn-circle btn-sm text-gray-500 hover:text-blue-600 hover:bg-blue-50 relative">
+                        <i class="fas fa-bell text-lg"></i>
+                        @if(Auth::user()->unreadNotifications->count() > 0)
+                            <span
+                                class="absolute top-1 right-1 h-3 w-3 bg-red-500 rounded-full border-2 border-white"></span>
+                        @endif
+                    </div>
+                    <ul tabindex="0"
+                        class="dropdown-content z-[20] menu p-2 shadow-xl bg-white border border-gray-100 rounded-box w-80 mt-2 text-sm">
+                        <li
+                            class="menu-title pt-3 pb-2 px-3 font-bold text-gray-800 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-lg">
+                            <span>Notificaciones</span>
+                            @if(Auth::user()->unreadNotifications->count() > 0)
+                                <span class="badge badge-error badge-sm">{{ Auth::user()->unreadNotifications->count() }}
+                                    nuevas</span>
+                            @endif
+                        </li>
+                        <li class="p-0">
+                            <div class="max-h-64 overflow-y-auto p-0 w-full block">
+                                <ul class="menu p-0 w-full">
+                                    @forelse(Auth::user()->unreadNotifications->take(5) as $notification)
+                                        <li class="border-b border-gray-50 last:border-0 rounded-none w-full">
+                                            <a href="{{ $notification->data['url'] ?? '#' }}"
+                                                class="py-3 px-4 flex flex-col items-start gap-1 whitespace-normal hover:bg-blue-50 transition-colors w-full rounded-none">
+                                                <div class="flex items-start gap-3 w-full">
+                                                    <div class="mt-1 flex-shrink-0">
+                                                        <div
+                                                            class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                                                            <i class="fas fa-briefcase text-xs"></i>
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex-1 min-w-0">
+                                                        <p class="font-medium text-gray-800 leading-tight text-xs">
+                                                            {{ $notification->data['mensaje'] ?? 'Nueva notificación' }}
+                                                        </p>
+                                                        <p class="text-gray-400 text-[10px] mt-1"><i
+                                                                class="far fa-clock mr-1"></i>{{ $notification->created_at->diffForHumans() }}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        </li>
+                                    @empty
+                                        <li
+                                            class="py-6 px-4 text-center text-gray-400 flex flex-col items-center justify-center rounded-none bg-white hover:bg-white cursor-default">
+                                            <i class="fas fa-bell-slash text-2xl mb-2 text-gray-200"></i>
+                                            <span class="text-xs">Sin notificaciones nuevas</span>
+                                        </li>
+                                    @endforelse
+                                </ul>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </header>
 

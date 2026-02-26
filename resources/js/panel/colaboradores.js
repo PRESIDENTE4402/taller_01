@@ -74,10 +74,17 @@ async function loadBoard() {
                         ` : '<span class="badge badge-ghost text-gray-400 text-[8px] font-black uppercase tracking-widest italic border-gray-100 px-3">Tarea General</span>'}
                     </td>
                     <td class="py-4 px-6 text-center">
-                        <span class="badge badge-info border-none font-black italic uppercase tracking-tighter text-[9px]">EN PROGRESO</span>
+                        <div class="flex flex-col items-center">
+                             <span class="badge badge-info border-none font-black italic uppercase tracking-tighter text-[9px]">EN PROGRESO</span>
+                        </div>
                     </td>
-                    <td class="py-4 px-6 text-right font-mono text-[10px] text-gray-400 font-bold">
-                        ${new Date(c.tarea_actual.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    <td class="py-4 px-6 text-right font-mono text-[10px] text-gray-500 font-bold">
+                        <div class="flex flex-col items-end gap-1 whitespace-nowrap">
+                            <span><i class="fas fa-calendar-plus text-gray-400 mr-1"></i> <span class="uppercase tracking-widest text-[8px] text-gray-400">Asig:</span> ${new Date(c.tarea_actual.created_at).toLocaleDateString()} - ${new Date(c.tarea_actual.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            ${c.tarea_actual.inicio
+                    ? `<span class="text-green-600"><i class="fas fa-play-circle mr-1"></i> <span class="uppercase tracking-widest text-[8px] text-green-400">Ini:</span> ${new Date(c.tarea_actual.inicio).toLocaleDateString()} - ${new Date(c.tarea_actual.inicio).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>`
+                    : `<span class="text-gray-400 italic"><i class="fas fa-play-circle mr-1"></i> No iniciada</span>`}
+                        </div>
                     </td>
                 </tr>
             `).join('');

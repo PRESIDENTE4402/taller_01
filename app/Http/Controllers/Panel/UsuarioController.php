@@ -38,6 +38,7 @@ class UsuarioController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:4',
             'sucursal_id' => 'required|exists:sucursales,id',
             // Persona validation
             'nombres' => 'required|string|max:255',
@@ -49,13 +50,10 @@ class UsuarioController extends Controller
         try {
             \DB::beginTransaction();
 
-            // Generar una contraseña genérica/aleatoria de 8 caracteres
-            $generatedPassword = \Illuminate\Support\Str::random(8);
-
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
-                'password' => \Hash::make($generatedPassword),
+                'password' => \Hash::make($request->password),
             ]);
 
             $user->persona()->create([
@@ -80,13 +78,17 @@ class UsuarioController extends Controller
                 $user->sucursales()->sync([$request->sucursal_id]);
             }
 
-            // Send Notification with the generated password
-            $user->notify(new \App\Notifications\NewUserWelcomeNotification($generatedPassword));
+            // Send Notification (Only if an email is real, but to prevent crashes with fake ones, we catch any error)
+            try {
+                $user->notify(new \App\Notifications\NewUserWelcomeNotification($request->password));
+            } catch (\Exception $e) {
+                // Silently bypass fake email errors
+            }
 
             \DB::commit();
 
             return response()->json([
-                'message' => 'Usuario creado. Se ha enviado un correo con la contraseña temporal.',
+                'message' => 'Usuario creado exitosamente con la contraseña especificada.',
                 'user' => $user->load('persona', 'roles', 'sucursales')
             ], 201);
 

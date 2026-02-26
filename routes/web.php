@@ -117,6 +117,13 @@ Route::middleware('auth')->group(function () {
             Route::get('/{id}/print', [App\Http\Controllers\Panel\ColaboradorController::class, 'print'])->name('print');
         });
 
+        // Tablero de Mecánicos (Mis Tareas)
+        Route::prefix('mis-tareas')->name('mis_tareas.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Panel\MisTareasController::class, 'index'])->name('index');
+            Route::post('/{id}/status', [\App\Http\Controllers\Panel\MisTareasController::class, 'updateStatus'])->name('status');
+            Route::post('/{id}/notes', [\App\Http\Controllers\Panel\MisTareasController::class, 'addNotes'])->name('notes');
+        });
+
 
         // Módulos de Mantenimiento
         Route::prefix('mantenimientos')->name('mantenimientos.')->group(function () {

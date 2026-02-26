@@ -10,6 +10,7 @@ use App\Models\Sucursal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use App\Notifications\TareaAsignada;
 
 class ColaboradorController extends Controller
 {
@@ -99,6 +100,8 @@ class ColaboradorController extends Controller
                 'meta_minutos' => $request->meta_minutos ?? 30,
                 'estado' => 'en_pausa'
             ]);
+
+            $user->notify(new TareaAsignada($tarea));
 
             return response()->json(['success' => true, 'message' => 'Tarea asignada correctamente', 'data' => $tarea]);
         } catch (\Exception $e) {
