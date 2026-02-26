@@ -193,6 +193,12 @@
                     Sucursales
                 </a>
                 @endcan
+
+                <a href="{{ route('panel.mantenimientos.imagenes_landing.index') }}"
+                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.mantenimientos.imagenes_landing.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                    <i class="fas fa-images w-5 text-center"></i>
+                    Imágenes Landing
+                </a>
                 @endif
 
                 {{-- Sección Recursos Humanos --}}

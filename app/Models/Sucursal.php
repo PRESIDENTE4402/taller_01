@@ -16,5 +16,16 @@ class Sucursal extends Model
         'direccion',
         'telefono',
         'capacidad_bahias',
+        'latitud',
+        'longitud',
+        'ciudad',
+        'activa',
+    ];
+
+    protected $casts = [
+        'latitud' => 'float',
+        'longitud' => 'float',
+        'activa' => 'boolean',
+        'capacidad_bahias' => 'integer',
     ];
 }

@@ -36,13 +36,19 @@ class SucursalController extends Controller
             'direccion' => 'required|string|max:255',
             'telefono' => 'required|string|max:20',
             'capacidad_bahias' => 'required|integer|min:1',
+            'ciudad' => 'nullable|string|max:100',
+            'latitud' => 'nullable|numeric|between:-90,90',
+            'longitud' => 'nullable|numeric|between:-180,180',
+            'activa' => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $sucursal = Sucursal::create($request->all());
+        $data = $request->only(['nombre', 'direccion', 'telefono', 'capacidad_bahias', 'ciudad', 'latitud', 'longitud']);
+        $data['activa'] = $request->boolean('activa', true);
+        $sucursal = Sucursal::create($data);
 
         return response()->json(['success' => true, 'message' => 'Sucursal creada correctamente.', 'id' => $sucursal->id]);
     }
@@ -63,13 +69,19 @@ class SucursalController extends Controller
             'direccion' => 'required|string|max:255',
             'telefono' => 'required|string|max:20',
             'capacidad_bahias' => 'required|integer|min:1',
+            'ciudad' => 'nullable|string|max:100',
+            'latitud' => 'nullable|numeric|between:-90,90',
+            'longitud' => 'nullable|numeric|between:-180,180',
+            'activa' => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $sucursal->update($request->all());
+        $data = $request->only(['nombre', 'direccion', 'telefono', 'capacidad_bahias', 'ciudad', 'latitud', 'longitud']);
+        $data['activa'] = $request->boolean('activa', true);
+        $sucursal->update($data);
 
         return response()->json(['success' => true, 'message' => 'Sucursal actualizada correctamente.']);
     }

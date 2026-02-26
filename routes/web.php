@@ -25,6 +25,7 @@ Route::get('/api/landing/models/{marcaId}', [CitaController::class, 'getModels']
 Route::get('/api/landing/versions/{modeloId}', [CitaController::class, 'getVersions']);
 Route::get('/api/landing/client-lookup', [CitaController::class, 'clientLookup']);
 Route::post('/api/landing/citas', [CitaController::class, 'store'])->name('landing.citas.store');
+Route::get('/api/landing/images', [\App\Http\Controllers\Panel\LandingImageController::class, 'getPublicImages']);
 
 // Auth Routes
 Route::middleware('guest')->group(function () {
@@ -196,6 +197,16 @@ Route::middleware('auth')->group(function () {
                 Route::post('/', [\App\Http\Controllers\Panel\RepuestoController::class, 'store'])->name('store');
                 Route::put('/{id}', [\App\Http\Controllers\Panel\RepuestoController::class, 'update'])->name('update');
                 Route::delete('/{id}', [\App\Http\Controllers\Panel\RepuestoController::class, 'destroy'])->name('destroy');
+            });
+
+            // Imágenes para Landing Page
+            Route::prefix('imagenes-landing')->name('imagenes_landing.')->group(function () {
+                Route::get('/', [\App\Http\Controllers\Panel\LandingImageController::class, 'index'])->name('index');
+                Route::get('/list', [\App\Http\Controllers\Panel\LandingImageController::class, 'list'])->name('list');
+                Route::post('/', [\App\Http\Controllers\Panel\LandingImageController::class, 'store'])->name('store');
+                Route::put('/{id}', [\App\Http\Controllers\Panel\LandingImageController::class, 'update'])->name('update');
+                Route::delete('/{id}', [\App\Http\Controllers\Panel\LandingImageController::class, 'destroy'])->name('destroy');
+                Route::post('/upload', [\App\Http\Controllers\Panel\LandingImageController::class, 'upload'])->name('upload');
             });
         });
 
