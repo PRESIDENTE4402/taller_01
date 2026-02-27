@@ -348,18 +348,37 @@ class OrdenTrabajoController extends Controller
             }
 
             if (empty($clienteId)) {
-                $newCliente = Cliente::create([
-                    'nombre_completo' => $request->input('new_cliente.nombre'),
-                    'telefono' => $request->input('new_cliente.telefono'),
-                    'email' => $request->input('new_cliente.email'),
-                    'nit' => $request->input('new_cliente.nit'),
-                    'direccion' => $request->input('new_cliente.direccion'),
-                    'es_empresa' => $request->input('new_cliente.es_empresa') ? true : false,
-                    'empresa' => $request->input('new_cliente.es_empresa') ? strtoupper($request->input('new_cliente.empresa')) : null,
-                    'tipo_cliente' => 'particular', // Default
-                    'user_id' => Auth::id() // Quien lo registró
-                ]);
-                $clienteId = $newCliente->id;
+                // Verificar si el correo ya existe para evitar error 1062
+                $emailIngresado = $request->input('new_cliente.email');
+                $clienteExistente = null;
+
+                if (!empty($emailIngresado)) {
+                    $clienteExistente = Cliente::where('email', $emailIngresado)->first();
+                }
+
+                if ($clienteExistente) {
+                    $clienteId = $clienteExistente->id;
+                    // Actualizamos sus datos principales
+                    $clienteExistente->update([
+                        'nombre_completo' => $request->input('new_cliente.nombre'),
+                        'telefono' => $request->input('new_cliente.telefono'),
+                        'nit' => $request->input('new_cliente.nit') ? $request->input('new_cliente.nit') : $clienteExistente->nit,
+                        'direccion' => $request->input('new_cliente.direccion') ? $request->input('new_cliente.direccion') : $clienteExistente->direccion,
+                    ]);
+                } else {
+                    $newCliente = Cliente::create([
+                        'nombre_completo' => $request->input('new_cliente.nombre'),
+                        'telefono' => $request->input('new_cliente.telefono'),
+                        'email' => $emailIngresado,
+                        'nit' => $request->input('new_cliente.nit'),
+                        'direccion' => $request->input('new_cliente.direccion'),
+                        'es_empresa' => $request->input('new_cliente.es_empresa') ? true : false,
+                        'empresa' => $request->input('new_cliente.es_empresa') ? strtoupper($request->input('new_cliente.empresa')) : null,
+                        'tipo_cliente' => 'particular', // Default
+                        'user_id' => Auth::id() // Quien lo registró
+                    ]);
+                    $clienteId = $newCliente->id;
+                }
             } elseif ($request->input('accion_cliente') == 'update') {
                 // Update existing client
                 $cliente = Cliente::find($clienteId);
