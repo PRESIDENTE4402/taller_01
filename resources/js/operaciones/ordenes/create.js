@@ -103,17 +103,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- Carga de Datos en Modo Edición ---
     if (serverData && serverData.editMode) {
-        // Carga de fotos de recepción
         if (serverData.existingPhotos && serverData.existingPhotos.length > 0) {
             serverData.existingPhotos.forEach(photo => {
-                selectedPhotos.push({
+                const photoObj = {
                     id: photo.id,
                     src: window.location.origin + '/' + photo.url,
                     title: photo.titulo || '',
                     isExisting: true
-                });
+                };
+
+                // Clasificar según el tipo de foto guardado en BD
+                if (photo.tipo === 'recepcion') {
+                    selectedPhotos.push(photoObj);
+                } else if (photo.tipo === 'otro' || photo.tipo === 'danos') {
+                    selectedDamagePhotos.push(photoObj);
+                }
             });
-            setTimeout(() => renderPhotos(), 500);
+
+            setTimeout(() => {
+                if (typeof window.renderPhotos === 'function') window.renderPhotos();
+                if (typeof window.renderDamagePhotos === 'function') window.renderDamagePhotos();
+            }, 500);
         }
     }
 
@@ -213,6 +223,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (imageUpload) {
             imageUpload.addEventListener('change', function (e) {
                 if (this.files && this.files[0]) {
+                    window.hasUnsavedCanvasChanges = true;
                     const reader = new FileReader();
                     reader.onload = (evt) => setDamageImage(evt.target.result);
                     reader.readAsDataURL(this.files[0]);
@@ -224,17 +235,20 @@ document.addEventListener('DOMContentLoaded', function () {
         setTimeout(resizeCanvas, 500);
 
         // Registro de marcas al hacer click en el lienzo
+        window.hasUnsavedCanvasChanges = false;
         canvas.addEventListener('click', function (e) {
             const rect = canvas.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
             marks.push({ x: x / canvas.width, y: y / canvas.height });
+            window.hasUnsavedCanvasChanges = true;
             redrawAll();
         });
 
         if (clearCanvasBtn) {
             clearCanvasBtn.addEventListener('click', () => {
                 marks = [];
+                window.hasUnsavedCanvasChanges = true;
                 redrawAll();
             });
         }
@@ -243,6 +257,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (undoMark) {
             undoMark.addEventListener('click', () => {
                 marks.pop();
+                window.hasUnsavedCanvasChanges = true;
                 redrawAll();
             });
         }
@@ -254,6 +269,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 marks = [];
                 if (canvasPlaceholder) canvasPlaceholder.classList.remove('hidden');
                 if (imageUpload) imageUpload.value = '';
+                window.hasUnsavedCanvasChanges = true;
                 redrawAll();
             });
         }
@@ -298,7 +314,7 @@ document.addEventListener('DOMContentLoaded', function () {
         };
 
         window.removeDamagePhoto = function (id) {
-            selectedDamagePhotos = selectedDamagePhotos.filter(p => p.id !== id);
+            selectedDamagePhotos = selectedDamagePhotos.filter(p => p.id != id); // Use != instead of !== for type coercion
             renderDamagePhotos();
         };
 
@@ -410,20 +426,36 @@ document.addEventListener('DOMContentLoaded', function () {
             try {
                 const formData = new FormData(this);
 
-                // Adjunta fotos de la galería de recepción
+                // Manejo de fotos existentes vs nuevas
+                const retainedPhotoIds = [];
                 if (typeof selectedPhotos !== 'undefined' && selectedPhotos.length > 0) {
                     selectedPhotos.forEach((photoObj, index) => {
-                        formData.append(`fotos_recepcion[${index}]`, photoObj.file);
-                        const titleInput = document.getElementById(`title-${photoObj.id}`);
-                        formData.append(`fotos_titulos[${index}]`, titleInput ? titleInput.value : photoObj.title);
+                        if (photoObj.isExisting) {
+                            retainedPhotoIds.push(photoObj.id);
+                        } else if (photoObj.file) {
+                            formData.append(`fotos_recepcion[${index}]`, photoObj.file);
+                            const titleInput = document.getElementById(`title-${photoObj.id}`);
+                            formData.append(`fotos_titulos[${index}]`, titleInput ? titleInput.value : photoObj.title);
+                        }
                     });
                 }
+                formData.append('retained_photos', JSON.stringify(retainedPhotoIds));
 
-                // Adjunta fotos del reporte de daños (Base64)
-                if (selectedDamagePhotos && selectedDamagePhotos.length > 0) {
+                const retainedDamageIds = [];
+                if (typeof selectedDamagePhotos !== 'undefined' && selectedDamagePhotos.length > 0) {
                     selectedDamagePhotos.forEach((photo, index) => {
-                        formData.append(`fotos_danos[${index}]`, photo.src);
+                        if (photo.isExisting) {
+                            retainedDamageIds.push(photo.id);
+                        } else {
+                            formData.append(`fotos_danos[${index}]`, photo.src);
+                        }
                     });
+                }
+                formData.append('retained_damage_photos', JSON.stringify(retainedDamageIds));
+
+                // Evitar enviar un 'danos_image' nuevo si no hubo cambios en el canvas
+                if (typeof window.hasUnsavedCanvasChanges !== 'undefined' && !window.hasUnsavedCanvasChanges && serverData.editMode) {
+                    formData.delete('danos_image');
                 }
 
                 const response = await fetch(this.action, {
@@ -443,7 +475,44 @@ document.addEventListener('DOMContentLoaded', function () {
                             confirmButton: 'btn btn-primary bg-blue-900 border-none text-white font-bold py-2 px-6 rounded-xl shadow-lg hover:bg-blue-800'
                         },
                         buttonsStyling: false
-                    }).then(() => window.location.href = result.redirect);
+                    });
+
+                    // Si estamos en modo de edición, reconstruimos los arrays locales con los datos nuevos
+                    if (serverData.editMode && result.archivos) {
+                        selectedPhotos = [];
+                        selectedDamagePhotos = [];
+                        result.archivos.forEach(photo => {
+                            const photoObj = {
+                                id: photo.id,
+                                src: window.location.origin + '/' + photo.url,
+                                title: photo.titulo || '',
+                                isExisting: true
+                            };
+                            if (photo.tipo === 'recepcion') {
+                                selectedPhotos.push(photoObj);
+                            } else if (photo.tipo === 'otro' || photo.tipo === 'danos') {
+                                selectedDamagePhotos.push(photoObj);
+                            }
+                        });
+
+                        // Reiniciar la vista
+                        if (typeof window.renderPhotos === 'function') window.renderPhotos();
+                        if (typeof window.renderDamagePhotos === 'function') window.renderDamagePhotos();
+
+                        // Limpiar formulario y archivo de ingreso visualmente
+                        const galleryInput = document.getElementById('inputGallery');
+                        if (galleryInput) galleryInput.value = '';
+                    }
+
+                    // Reactivar el botón
+                    btn.disabled = false;
+                    btn.innerHTML = originalBtnContent;
+                    window.hasUnsavedCanvasChanges = false;
+
+                    // Si el ordenamos redirigir y estamos en modo creración, ahí sí nos vamos a la lista
+                    if (!serverData.editMode) {
+                        setTimeout(() => { window.location.href = result.redirect; }, 1000);
+                    }
                 } else {
                     Swal.fire({
                         title: 'Error',

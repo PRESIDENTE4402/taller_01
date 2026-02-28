@@ -20,10 +20,11 @@ class VerifySucursalAccess
         // Si el request contiene un parámetro 'sucursal_id', validarlo
         if ($request->filled('sucursal_id')) {
             $sucursalId = $request->input('sucursal_id');
+            /** @var \App\Models\User $user */
             $user = Auth::user();
 
             // Los administradores pueden ver todo
-            if ($user->hasRole('admin')) {
+            if ($user && $user->hasRole('admin')) {
                 return $next($request);
             }
 
@@ -42,7 +43,11 @@ class VerifySucursalAccess
         if ($request->isMethod('post') || $request->isMethod('put')) {
             if ($request->has('sucursal_id')) {
                 $sucursalId = $request->input('sucursal_id');
-                $userSucursals = Auth::user()->sucursales->pluck('id');
+                /** @var \App\Models\User $user */
+                $user = Auth::user();
+                if (!$user) return $next($request);
+
+                $userSucursals = $user->sucursales->pluck('id');
 
                 if (!$userSucursals->contains($sucursalId)) {
                     return response()->json([

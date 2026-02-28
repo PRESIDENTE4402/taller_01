@@ -167,15 +167,63 @@ class OrdenTrabajoController extends Controller
                 'falla_cliente' => $request->falla_cliente,
             ]);
 
-            // Handle Damage Image Update
+            // --- Eliminación de Fotos y Daños Removidos en Frontend ---
+            if ($request->has('retained_photos')) {
+                $retainedIds = json_decode($request->input('retained_photos'), true) ?? [];
+                $orden->archivos()->where('tipo', 'recepcion')->whereNotIn('id', $retainedIds)->delete();
+            }
+
+            if ($request->has('retained_damage_photos')) {
+                $retainedDamageIds = json_decode($request->input('retained_damage_photos'), true) ?? [];
+                $orden->archivos()->whereIn('tipo', ['otro', 'danos'])
+                    ->whereNotIn('id', $retainedDamageIds)
+                    ->delete();
+            }
+
+            // --- Lógica de Daños (fotos_danos y danos_image) ---
+            if ($request->has('fotos_danos')) {
+                foreach ($request->input('fotos_danos') as $index => $b64) {
+                    $image_parts = explode(";base64,", $b64);
+                    if (count($image_parts) >= 2) {
+                        $image_base64 = base64_decode($image_parts[1]);
+                        $fileName = 'orden_' . $orden->id . '_dano_upd_' . $index . '_' . time() . '.png';
+                        \Illuminate\Support\Facades\Storage::disk('public')->put('ordenes/danos/' . $fileName, $image_base64);
+
+                        $url = 'storage/ordenes/danos/' . $fileName;
+
+                        // Si es la primera, guardarla como la principal si no hay o si se quiere sobreescribir
+                        if ($index == 0) {
+                            $orden->danos_imagen_url = $url;
+                            $orden->save();
+                        }
+
+                        // Guardar en archivos relacionales
+                        $orden->archivos()->create([
+                            'url' => $url,
+                            'tipo' => 'otro',
+                            'titulo' => 'Daño ' . ($index + 1)
+                        ]);
+                    }
+                }
+            }
+
+            // Handle Single Damage Image Update (canvas sin guardar a galería)
             if ($request->has('danos_image') && !empty($request->danos_image)) {
                 $image_parts = explode(";base64,", $request->danos_image);
                 if (count($image_parts) >= 2) {
                     $image_base64 = base64_decode($image_parts[1]);
-                    $fileName = 'orden_' . $orden->id . '_danos_' . time() . '.png';
+                    $fileName = 'orden_' . $orden->id . '_danos_upd_' . time() . '.png';
                     \Illuminate\Support\Facades\Storage::disk('public')->put('ordenes/danos/' . $fileName, $image_base64);
-                    $orden->danos_imagen_url = 'storage/ordenes/danos/' . $fileName;
+
+                    $url = 'storage/ordenes/danos/' . $fileName;
+                    $orden->danos_imagen_url = $url;
                     $orden->save();
+
+                    // Guardar en archivos relacionales
+                    $orden->archivos()->updateOrCreate(
+                        ['url' => $url],
+                        ['tipo' => 'otro', 'titulo' => 'Reporte de Daños Editado']
+                    );
                 }
             }
 
@@ -194,7 +242,17 @@ class OrdenTrabajoController extends Controller
             }
 
             DB::commit();
-            return response()->json(['success' => true, 'redirect' => route('panel.operaciones.ordenes_trabajo.index'), 'message' => 'Orden actualizada con éxito']);
+
+            // Refresh order to get the latest updated files
+            $orden->refresh();
+            $archivos = $orden->archivos;
+
+            return response()->json([
+                'success' => true,
+                'redirect' => route('panel.operaciones.ordenes_trabajo.index'),
+                'message' => 'Orden actualizada con éxito',
+                'archivos' => $archivos
+            ]);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['success' => false, 'message' => 'Error al actualizar orden: ' . $e->getMessage()], 500);
@@ -512,19 +570,51 @@ class OrdenTrabajoController extends Controller
                 'estado' => 'abierta'
             ]);
 
-            // Handle Base64 Image
-            if ($request->has('danos_image') && !empty($request->danos_image)) {
+            // --- Lógica de Daños (fotos_danos y danos_image) ---
+            if ($request->has('fotos_danos')) {
+                foreach ($request->input('fotos_danos') as $index => $b64) {
+                    $image_parts = explode(";base64,", $b64);
+                    if (count($image_parts) >= 2) {
+                        $image_base64 = base64_decode($image_parts[1]);
+                        $fileName = 'orden_' . $orden->id . '_dano_' . $index . '_' . time() . '.png';
+                        \Illuminate\Support\Facades\Storage::disk('public')->put('ordenes/danos/' . $fileName, $image_base64);
+
+                        $url = 'storage/ordenes/danos/' . $fileName;
+
+                        // Si es la primera, guardarla como la principal
+                        if ($index == 0) {
+                            $orden->danos_imagen_url = $url;
+                            $orden->save();
+                        }
+
+                        // Guardar en archivos relacionales
+                        $orden->archivos()->create([
+                            'url' => $url,
+                            'tipo' => 'otro',
+                            'titulo' => 'Daño ' . ($index + 1)
+                        ]);
+                    }
+                }
+            }
+
+            // Handle Single Base64 Image (si no usó la galería pero hay algo en canvas)
+            if ($request->has('danos_image') && !empty($request->danos_image) && empty($orden->danos_imagen_url)) {
                 $image_parts = explode(";base64,", $request->danos_image);
                 if (count($image_parts) >= 2) {
-                    $image_type_aux = explode("image/", $image_parts[0]);
-                    $image_type = $image_type_aux[1];
                     $image_base64 = base64_decode($image_parts[1]);
                     $fileName = 'orden_' . $orden->id . '_danos_' . time() . '.png';
-
                     \Illuminate\Support\Facades\Storage::disk('public')->put('ordenes/danos/' . $fileName, $image_base64);
 
-                    $orden->danos_imagen_url = 'storage/ordenes/danos/' . $fileName;
+                    $url = 'storage/ordenes/danos/' . $fileName;
+                    $orden->danos_imagen_url = $url;
                     $orden->save();
+
+                    // Guardar en archivos relacionales
+                    $orden->archivos()->create([
+                        'url' => $url,
+                        'tipo' => 'otro',
+                        'titulo' => 'Reporte de Daños Principal'
+                    ]);
                 }
             }
 

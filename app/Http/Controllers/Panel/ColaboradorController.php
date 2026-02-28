@@ -24,11 +24,11 @@ class ColaboradorController extends Controller
     public function list(Request $request)
     {
         $sucursalId = $request->get('sucursal_id');
-        /** @var \App\Models\User $user */
+        /** @var \App\Models\User|null $user */
         $user = Auth::user();
 
         // Si se pide una sucursal específica, validar acceso (excepto para administradores)
-        if (!empty($sucursalId) && !$user->hasRole('admin')) {
+        if ($user && !empty($sucursalId) && !$user->hasRole('admin')) {
             $userSucursals = $user->sucursales->pluck('id');
             if (!$userSucursals->contains($sucursalId)) {
                 return response()->json(['success' => false, 'message' => 'Sin acceso a esta sucursal'], 403);
