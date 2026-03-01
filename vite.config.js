@@ -13,6 +13,7 @@ export default defineConfig({
                 'resources/js/panel/versiones.js',
                 'resources/js/panel/sucursales.js',
                 'resources/js/panel/roles.js',
+                'resources/js/panel/permisos.js',
                 'resources/js/panel/usuarios.js',
                 'resources/js/panel/citas.js',
                 'resources/js/panel/asistencia.js',

@@ -104,7 +104,7 @@
     </style>
 </head>
 
-<body class="h-screen overflow-hidden flex text-gray-800 bg-gray-50 sidebar-body-wrapper transition-colors">
+<body class="h-[100dvh] overflow-hidden flex text-gray-800 bg-gray-50 sidebar-body-wrapper transition-colors">
 
     {{-- MOBILE BACKDROP --}}
     <div id="mobile-backdrop"
@@ -305,7 +305,7 @@
         </div>
 
         {{-- User Footer --}}
-        <div class="border-t border-slate-700 p-4 bg-slate-900/50 flex flex-col items-center">
+        <div class="border-t border-slate-700 p-4 pb-6 sm:pb-4 bg-slate-900/50 flex flex-col items-center flex-shrink-0">
             <div class="flex items-center gap-3 w-full justify-center md:justify-start">
                 <div class="avatar online placeholder flex-shrink-0">
                     <div class="bg-blue-600 text-white rounded-full w-10 h-10 shadow-md flex items-center justify-center">
@@ -328,7 +328,7 @@
     </aside>
 
     {{-- MAIN CONTENT --}}
-    <div class="flex-1 flex flex-col h-screen overflow-hidden relative">
+    <div class="flex-1 flex flex-col h-[100dvh] overflow-hidden relative">
 
         {{-- Topbar (Solo visible en desktop para acciones rápidas o breadcrumbs) --}}
         <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 z-10">
