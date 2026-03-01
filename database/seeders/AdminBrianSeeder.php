@@ -13,17 +13,17 @@ class AdminBrianSeeder extends Seeder
     public function run(): void
     {
         // Verificar si el usuario ya existe para evitar duplicados
-        $existingUser = User::where('email', 'brianmarin734@gmail.com')->first();
+        $existingUser = User::where('email', 'diegoroca10994@gmail.com')->first();
 
         if ($existingUser) {
-            $this->command->info('El usuario brianmarin734@gmail.com ya existe.');
+            $this->command->info('El usuario diegoroca10994@gmail.com ya existe.');
             return;
         }
 
-        // Crear Usuario BRIAN
+        // Crear Usuario Diego
         $user = User::create([
-            'name' => 'BRIAN',
-            'email' => 'brianmarin734@gmail.com',
+            'name' => 'DIEGO',
+            'email' => 'diegoroca10994@gmail.com',
             'password' => Hash::make('admin1234'),
             'phone' => '0000-0000', // Teléfono placeholder
         ]);

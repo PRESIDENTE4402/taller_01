@@ -149,6 +149,12 @@
                     <span class="menu-text whitespace-nowrap overflow-hidden text-ellipsis">Directorio Clientes</span>
                 </a>
 
+                <a href="{{ route('panel.vehiculos.index') }}"
+                    class="sidebar-menu-btn tooltip tooltip-right flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.vehiculos.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors" data-tip="Directorio Vehículos">
+                    <i class="fas fa-car w-5 text-center flex-shrink-0"></i>
+                    <span class="menu-text whitespace-nowrap overflow-hidden text-ellipsis">Directorio Vehículos</span>
+                </a>
+
                 {{-- Sección Operaciones --}}
                 @if(Gate::check('gestionar_citas') || Gate::check('gestionar_recepcion') || Gate::check('gestionar_ordenes_trabajo') || auth()->user()->hasRole('mecanico') || auth()->user()->hasRole('ayudante') || auth()->user()->hasRole('tecnico'))
                 <div class="px-3 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider section-title whitespace-nowrap overflow-hidden">Operaciones</div>
@@ -194,12 +200,6 @@
                 {{-- Sección Inventario --}}
                 @can('gestionar_inventario')
                 <div class="px-3 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider section-title whitespace-nowrap overflow-hidden">Logística</div>
-
-                <a href="#"
-                    class="sidebar-menu-btn tooltip tooltip-right flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md sidebar-item text-slate-400 transition-colors" data-tip="Inventario Repuestos">
-                    <i class="fas fa-boxes w-5 text-center flex-shrink-0"></i>
-                    <span class="menu-text whitespace-nowrap overflow-hidden text-ellipsis">Inventario Repuestos</span>
-                </a>
 
                 <a href="{{ route('panel.mantenimientos.categorias.index') }}"
                     class="sidebar-menu-btn tooltip tooltip-right flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.mantenimientos.categorias.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors" data-tip="Categorías">

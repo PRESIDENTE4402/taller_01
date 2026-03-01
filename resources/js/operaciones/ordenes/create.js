@@ -160,7 +160,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Modo Edición: Cargar mapa de daños existente
         if (serverData && serverData.existingDanos) {
             const url = window.location.origin + '/' + serverData.existingDanos;
-            setDamageImage(url);
+            setDamageImage(url, true);
         }
 
         resizeCanvas();
@@ -321,11 +321,11 @@ document.addEventListener('DOMContentLoaded', function () {
         /**
          * Carga una imagen base en el canvas para empezar a marcar daños
          */
-        function setDamageImage(src) {
+        function setDamageImage(src, isExisting = false) {
             const img = new Image();
             img.onload = function () {
                 currentImage = img;
-                marks = [];
+                if (!isExisting) marks = [];
                 if (canvasPlaceholder) canvasPlaceholder.classList.add('hidden');
                 redrawAll();
             }
@@ -453,8 +453,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 formData.append('retained_damage_photos', JSON.stringify(retainedDamageIds));
 
-                // Evitar enviar un 'danos_image' nuevo si no hubo cambios en el canvas
-                if (typeof window.hasUnsavedCanvasChanges !== 'undefined' && !window.hasUnsavedCanvasChanges && serverData.editMode) {
+                // Evitar enviar un 'danos_image' nuevo si la imagen base está vacía o si no hubo cambios
+                const placeh = document.getElementById('canvasPlaceholder');
+                if (placeh && !placeh.classList.contains('hidden')) {
+                    formData.delete('danos_image');
+                } else if (typeof window.hasUnsavedCanvasChanges !== 'undefined' && !window.hasUnsavedCanvasChanges && serverData.editMode) {
                     formData.delete('danos_image');
                 }
 

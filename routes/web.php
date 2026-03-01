@@ -44,9 +44,7 @@ Route::middleware('auth')->group(function () {
 
     // Rutas del PANEL (Aplicación Interna)
     Route::prefix('panel')->name('panel.')->middleware(['verify_sucursal', 'set_current_sucursal'])->group(function () {
-        Route::get('/', function () {
-            return view('dashboard');
-        })->name('dashboard');
+        Route::get('/', [\App\Http\Controllers\Panel\DashboardController::class, 'index'])->name('dashboard');
 
 
         // Gestión de Clientes (Directorio Principal)
@@ -60,6 +58,8 @@ Route::middleware('auth')->group(function () {
         });
 
         Route::prefix('vehiculos')->name('vehiculos.')->group(function () {
+            Route::get('/', [VehiculoController::class, 'index'])->name('index');
+            Route::get('/{id}', [VehiculoController::class, 'show'])->name('show');
             Route::post('/', [VehiculoController::class, 'store'])->name('store');
             Route::put('/{id}', [VehiculoController::class, 'update'])->name('update');
             Route::delete('/{id}', [VehiculoController::class, 'destroy'])->name('destroy');

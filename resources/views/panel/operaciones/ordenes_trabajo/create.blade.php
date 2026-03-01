@@ -694,6 +694,13 @@ $serverConfig=[ "routes"=> [
                         <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Las fotos marcadas aparecerán aquí</span>
                     </div>
                 </div>
+
+                <div class="mt-8">
+                    <h4 class="text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2 mb-3">
+                        <i class="fas fa-clipboard-list text-blue-600"></i> Detalles Escritos (Opcional)
+                    </h4>
+                    <textarea name="danos_reportados" rows="4" class="w-full textarea textarea-bordered border-blue-200 focus:border-blue-900 text-sm font-medium text-gray-700 bg-gray-50" placeholder="Ej: Raspón en puerta lateral izquierda, abolladura en guardafango...">{!! isset($orden) && is_string($orden->danos_reportados) ? htmlspecialchars(trim(trim($orden->danos_reportados, '\"'), '[]')) : '' !!}</textarea>
+                </div>
             </div>
         </div>
     </div>

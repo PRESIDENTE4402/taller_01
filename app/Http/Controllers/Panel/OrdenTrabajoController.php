@@ -163,7 +163,7 @@ class OrdenTrabajoController extends Controller
                 'kilometraje_entrada' => $request->kilometraje,
                 'nivel_combustible' => $request->nivel_combustible,
                 'inventario_recepcion' => json_encode($request->inv ?? []),
-                'danos_reportados' => json_encode($request->danos ?? []),
+                'danos_reportados' => json_encode($request->input('danos_reportados', '')),
                 'falla_cliente' => $request->falla_cliente,
             ]);
 
@@ -564,7 +564,7 @@ class OrdenTrabajoController extends Controller
                 'kilometraje_entrada' => $request->kilometraje,
                 'nivel_combustible' => $request->nivel_combustible,
                 'inventario_recepcion' => json_encode($request->inv ?? []), // Checklist (Array 'inv')
-                'danos_reportados' => json_encode($request->danos ?? []),
+                'danos_reportados' => json_encode($request->input('danos_reportados', '')),
                 'danos_imagen_url' => null, // Placeholder
                 'falla_cliente' => $request->falla_cliente,
                 'estado' => 'abierta'

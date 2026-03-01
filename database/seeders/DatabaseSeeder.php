@@ -19,7 +19,9 @@ class DatabaseSeeder extends Seeder
             PermissionsSeeder::class,
             RepuestosSeeder::class,
             StaffSeeder::class,
-           
+            LandingImagesSeeder::class,
+            AdminBrianSeeder::class,
+            DailyActivitySeeder::class,
         ]);
     }
 }

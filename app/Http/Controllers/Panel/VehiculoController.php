@@ -6,9 +6,47 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Vehiculo;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
 
 class VehiculoController extends Controller
 {
+    public function index(Request $request)
+    {
+        $query = Vehiculo::with(['cliente', 'marca', 'modelo', 'version']);
+
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if (!$user->hasRole('admin')) {
+            $sucursalId = session('sucursal_id') ?? $user->sucursales->first()?->id;
+            if ($sucursalId) {
+                $query->whereHas('ordenes', function ($q) use ($sucursalId) {
+                    $q->where('sucursal_id', $sucursalId);
+                });
+            } else {
+                // Si no es admin y no tiene sucursal, no ve nada
+                $query->whereRaw('0 = 1');
+            }
+        }
+
+        if ($request->filled('buscar')) {
+            $busqueda = $request->buscar;
+            $query->where(function ($qq) use ($busqueda) {
+                $qq->where('placa', 'like', "%{$busqueda}%")
+                    ->orWhereHas('cliente', function ($q) use ($busqueda) {
+                        $q->where('nombre_completo', 'like', "%{$busqueda}%")
+                            ->orWhere('empresa', 'like', "%{$busqueda}%")
+                            ->orWhere('nit', 'like', "%{$busqueda}%");
+                    })
+                    ->orWhereHas('marca', function ($q) use ($busqueda) {
+                        $q->where('nombre', 'like', "%{$busqueda}%");
+                    });
+            });
+        }
+
+        $vehiculos = $query->orderBy('created_at', 'desc')->paginate(10);
+        return view('panel.vehiculos.index', compact('vehiculos'));
+    }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -62,6 +100,36 @@ class VehiculoController extends Controller
         }
 
         return back()->with('success', 'Vehículo actualizado correctamente');
+    }
+
+    public function show($id)
+    {
+        $vehiculo = Vehiculo::with([
+            'cliente',
+            'marca',
+            'modelo',
+            'version',
+            'ordenes' => function ($query) {
+                $query->orderBy('fecha_recepcion', 'desc');
+            },
+            'ordenes.detalles',
+            'ordenes.archivos'
+        ])->findOrFail($id);
+
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if (!$user->hasRole('admin')) {
+            $sucursalId = session('sucursal_id') ?? $user->sucursales->first()?->id;
+
+            // Revisa si el vehículo tiene alguna orden en la sucursal del usuario
+            $hasOrdenInSucursal = $vehiculo->ordenes->where('sucursal_id', $sucursalId)->count() > 0;
+
+            if (!$hasOrdenInSucursal && $sucursalId) {
+                abort(403, 'No tienes permiso para ver este vehículo porque no tiene historial en tu sucursal actual.');
+            }
+        }
+
+        return view('panel.vehiculos.show', compact('vehiculo'));
     }
 
     public function destroy(Request $request, $id)

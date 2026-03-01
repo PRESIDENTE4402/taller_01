@@ -150,6 +150,7 @@
                                     {{ $vehiculo->latestOrden ? $vehiculo->latestOrden->fecha_recepcion->format('d/m/Y') : '-' }}
                                 </td>
                                 <td class="text-right">
+                                    <a href="{{ route('panel.vehiculos.show', $vehiculo->id) }}" class="btn btn-ghost btn-xs text-info" title="Ver Perfil del Vehículo"><i class="fas fa-eye"></i></a>
                                     <button class="btn btn-ghost btn-xs text-blue-600 btn-edit-vehicle" data-vehicle="{{ json_encode($vehiculo) }}"><i class="fas fa-edit"></i></button>
                                 </td>
                             </tr>
