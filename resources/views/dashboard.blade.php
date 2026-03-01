@@ -288,6 +288,48 @@
     {{-- Columna Derecha: Avisos y Novedades --}}
     <div class="col-span-1 space-y-6">
 
+        {{-- Mecánicos Disponibles --}}
+        <div class="card bg-white shadow-lg border border-gray-100">
+            <div class="card-body p-5">
+                <h3 class="card-title text-gray-700 mb-2 text-sm uppercase tracking-widest"><i class="fas fa-users-cog text-indigo-500"></i> ESTADO DEL PERSONAL</h3>
+                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-4">Mecánicos asignados a esta sucursal</p>
+
+                <div class="space-y-3">
+                    @forelse($mecanicos as $mecanico)
+                    <div class="flex items-center justify-between p-3 {{ $mecanico->is_available ? 'bg-emerald-50 border-emerald-100' : 'bg-orange-50 border-orange-100' }} border rounded-xl">
+                        <div class="flex items-center gap-3 w-full sm:w-auto overflow-hidden">
+                            <div class="avatar placeholder flex-shrink-0">
+                                <div class="{{ $mecanico->is_available ? 'bg-emerald-500' : 'bg-orange-500' }} text-white rounded-full w-8 h-8 shadow-sm">
+                                    <span class="text-xs font-bold">{{ substr($mecanico->name, 0, 1) }}</span>
+                                </div>
+                            </div>
+                            <div class="flex flex-col min-w-0">
+                                <span class="font-bold text-gray-700 text-xs truncate">{{ $mecanico->name }}</span>
+                                @if($mecanico->is_available)
+                                <span class="text-[9px] font-black text-emerald-600 uppercase tracking-wider">Libre / Disponible</span>
+                                @else
+                                <span class="text-[9px] font-black text-orange-600 uppercase tracking-wider truncate" title="{{ $mecanico->tarea_actual->descripcion ?? 'Ocupado en una orden' }}">
+                                    Trabajando
+                                </span>
+                                @endif
+                            </div>
+                        </div>
+                        @if(!$mecanico->is_available && $mecanico->tarea_actual)
+                        <a href="{{ route('panel.operaciones.ordenes_trabajo.show', $mecanico->tarea_actual->orden_trabajo_id) }}" class="btn btn-xs btn-ghost btn-circle text-orange-500 hover:bg-orange-100 tooltip tooltip-left flex-shrink-0" data-tip="Ir a la orden">
+                            <i class="fas fa-external-link-alt"></i>
+                        </a>
+                        @endif
+                    </div>
+                    @empty
+                    <div class="text-center p-6 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                        <i class="fas fa-user-slash text-2xl text-gray-300 mb-2"></i>
+                        <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">No hay técnicos asignados</p>
+                    </div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+
         {{-- Próximas Citas --}}
         <div class="card bg-white shadow-lg border border-gray-100">
             <div class="card-body p-5">

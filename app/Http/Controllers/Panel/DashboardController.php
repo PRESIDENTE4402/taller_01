@@ -117,6 +117,22 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
+        // Mecánicos de la sucursal y su disponibilidad actual
+        $mecanicos = (clone $baseUsers)
+            ->whereHas('roles', function ($q) {
+                $q->whereIn('slug', ['mecanico', 'tecnico', 'ayudante']);
+            })
+            ->with(['bitacoras' => function ($q) {
+                $q->latest()->limit(1);
+            }])
+            ->get()
+            ->map(function ($mecanico) {
+                $ultimaBitacora = $mecanico->bitacoras->first();
+                $mecanico->is_available = !$ultimaBitacora || $ultimaBitacora->estado !== 'en_progreso';
+                $mecanico->tarea_actual = $ultimaBitacora && $ultimaBitacora->estado === 'en_progreso' ? $ultimaBitacora : null;
+                return $mecanico;
+            });
+
         return view('dashboard', compact(
             'citasHoy',
             'enTaller',
@@ -129,6 +145,7 @@ class DashboardController extends Controller
             'ordenesEsperaRepuesto',
             'ordenesFinalizadas',
             'citasProximas',
+            'mecanicos',
             'isAdmin',
             'sucursalId'
         ));

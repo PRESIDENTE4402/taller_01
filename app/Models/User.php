@@ -77,6 +77,11 @@ class User extends Authenticatable
         return $this->belongsToMany(Sucursal::class, 'sucursal_usuario');
     }
 
+    public function bitacoras()
+    {
+        return $this->hasMany(BitacoraTrabajo::class, 'user_id');
+    }
+
     /**
      * Relación: Sucursal por defecto del usuario
      */
