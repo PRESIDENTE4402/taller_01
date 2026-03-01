@@ -140,6 +140,55 @@
                                         <span class="text-xs text-red-500 mt-1 hidden font-medium"
                                             id="errorCapacidad"></span>
                                     </div>
+                                    {{-- Ciudad --}}
+                                    <div class="group relative z-0 w-full mb-6">
+                                        <input type="text" id="ciudadSucursal" name="ciudad"
+                                            class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                                            placeholder=" " />
+                                        <label for="ciudadSucursal"
+                                            class="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">
+                                            Ciudad
+                                        </label>
+                                    </div>
+
+                                    {{-- Coordenadas --}}
+                                    <div class="mb-3">
+                                        <p class="text-xs text-gray-500 mb-2"><i
+                                                class="fas fa-map-pin mr-1 text-blue-500"></i> Haz clic en el mapa para
+                                            fijar la ubicación, o escríbela manualmente:</p>
+                                        <div id="mapPicker"
+                                            style="height:200px; border-radius:10px; border:1px solid #e2e8f0; z-index:1;">
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-4 mb-6">
+                                        <div class="group relative z-0 w-full">
+                                            <input type="number" step="any" id="latitudSucursal" name="latitud"
+                                                class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                                                placeholder=" " />
+                                            <label for="latitudSucursal"
+                                                class="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">
+                                                Latitud
+                                            </label>
+                                        </div>
+                                        <div class="group relative z-0 w-full">
+                                            <input type="number" step="any" id="longitudSucursal" name="longitud"
+                                                class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                                                placeholder=" " />
+                                            <label for="longitudSucursal"
+                                                class="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">
+                                                Longitud
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    {{-- Activa --}}
+                                    <div class="flex items-center gap-3 mb-6">
+                                        <input type="checkbox" id="activaSucursal" name="activa" checked
+                                            class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                        <label for="activaSucursal" class="text-sm text-gray-700">Sucursal activa (visible
+                                            en el mapa público)</label>
+                                    </div>
 
                                 </form>
                             </div>

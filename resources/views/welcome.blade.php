@@ -25,9 +25,9 @@
         /* Modern Form Aesthetics */
         .booking-modal-overlay {
             backdrop-filter: blur(8px);
-            background-color: rgba(0,0,0,0.6);
+            background-color: rgba(0, 0, 0, 0.6);
         }
-        
+
         .booking-modal-container {
             border-radius: 24px !important;
             overflow-y: auto;
@@ -38,14 +38,16 @@
             scrollbar-width: thin;
             scrollbar-color: #cbd5e1 transparent;
         }
-        
+
         /* Custom Scrollbar for Webkit */
         .booking-modal-container::-webkit-scrollbar {
             width: 8px;
         }
+
         .booking-modal-container::-webkit-scrollbar-track {
             background: transparent;
         }
+
         .booking-modal-container::-webkit-scrollbar-thumb {
             background-color: #cbd5e1;
             border-radius: 20px;
@@ -96,13 +98,13 @@
             font-weight: 600 !important;
             color: #4b5563;
         }
-        
+
         .time-slot:hover {
             border-color: #bfdbfe !important;
             background-color: #eff6ff !important;
             color: #1e40af !important;
         }
-        
+
         .time-slot.selected {
             background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
             border-color: transparent !important;
@@ -120,9 +122,10 @@
             letter-spacing: 0.02em;
             transition: transform 0.2s;
         }
+
         .btn-confirm:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
         }
     </style>
 </head>
@@ -193,40 +196,10 @@
                 <p>Mantenimiento de clase mundial para su vehículo</p>
             </div>
 
-            <div class="services-grid-premium">
-                <div class="service-card-premium">
-                    <div class="card-image"
-                        style="background-image: url('https://img.freepik.com/foto-gratis/mecanico-haciendo-servicio-mantenimiento-coche_1303-26804.jpg');">
-                    </div>
-                    <div class="card-content">
-                        <div class="card-icon">🛠️</div>
-                        <h3>Mecánica Integral</h3>
-                        <p>Desde cambios de aceite hasta reparaciones complejas de motor, utilizando solo partes
-                            originales BMW.</p>
-                        <a href="#contacto" class="link-arrow">Agendar Servicio <i class="fas fa-arrow-right"></i></a>
-                    </div>
-                </div>
-                <div class="service-card-premium">
-                    <div class="card-image"
-                        style="background-image: url('https://img.freepik.com/foto-gratis/hombre-herramienta-diagnostico-taller-coches_1303-26818.jpg');">
-                    </div>
-                    <div class="card-content">
-                        <div class="card-icon">💻</div>
-                        <h3>Diagnóstico Avanzado</h3>
-                        <p>Software oficial ISTA/D e ISTA/P para diagnósticos precisos y programación de módulos.</p>
-                        <a href="#contacto" class="link-arrow">Ver Detalles <i class="fas fa-arrow-right"></i></a>
-                    </div>
-                </div>
-                <div class="service-card-premium">
-                    <div class="card-image"
-                        style="background-image: url('https://img.freepik.com/foto-gratis/primer-plano-coche-electrico-cargando_23-2148972418.jpg');">
-                    </div>
-                    <div class="card-content">
-                        <div class="card-icon">🔋</div>
-                        <h3>E-Mobility Service</h3>
-                        <p>Especialistas certificados en BMW i3, i8, iX. Mantenimiento de baterías de alta tensión.</p>
-                        <a href="#contacto" class="link-arrow">Consultar <i class="fas fa-arrow-right"></i></a>
-                    </div>
+            <div class="services-grid-premium" id="services-container">
+                <!-- Las imágenes de servicios se cargarán dinámicamente desde la API -->
+                <div class="loading-spinner">
+                    <p>Cargando servicios...</p>
                 </div>
             </div>
         </div>
@@ -238,83 +211,36 @@
                 <p>Revisa las reparaciones que hemos completado con éxito</p>
             </div>
 
-            <div class="carousel-container-modern">
-                <!-- Using a more modern Grid/Flex approach instead of just a slider for "Success Stories" -->
-                <div class="success-grid">
-                    <div class="success-item big">
-                        <img src="https://res.cloudinary.com/dcfodug6m/image/upload/v1768881736/WhatsApp_Image_2026-01-19_at_8.46.46_PM_je6mv6.jpg"
-                            alt="Work 1">
-                        <div class="overlay-info">
-                            <h3>X5 M Competition</h3>
-                            <p>Restauración completa motor S63</p>
-                        </div>
-                    </div>
-                    <div class="success-item">
-                        <img src="https://res.cloudinary.com/dcfodug6m/image/upload/v1768881857/WhatsApp_Image_2026-01-19_at_8.47.39_PM_wgqejr.jpg"
-                            alt="Work 2">
-                        <div class="overlay-info">
-                            <h3>Módulo BDC2</h3>
-                            <p>Recuperación exitosa</p>
-                        </div>
-                    </div>
-                    <div class="success-item">
-                        <img src="https://res.cloudinary.com/dcfodug6m/image/upload/v1768882560/WhatsApp_Image_2026-01-19_at_8.49.29_PM_mr3mzj.jpg"
-                            alt="Work 3">
-                        <div class="overlay-info">
-                            <h3>Tesla Model 3</h3>
-                            <p>Reparación sistema de carga</p>
-                        </div>
-                    </div>
-                    <div class="success-item wide">
-                        <img src="https://res.cloudinary.com/dcfodug6m/image/upload/v1768882416/WhatsApp_Image_2026-01-19_at_8.48.17_PM_e0p4f2.jpg"
-                            alt="Work 4">
-                        <div class="overlay-info">
-                            <h3>Diagnóstico Lab</h3>
-                            <p>Nuestra área de electrónica avanzada</p>
+            <div class="gallery-carousel-wrapper">
+                <button class="carousel-nav-btn prev" id="gallery-prev">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+
+                <div class="gallery-viewport">
+                    <div class="gallery-track" id="gallery-container">
+                        <!-- Las imágenes de galería se cargarán dinámicamente -->
+                        <div class="loading-spinner">
+                            <p>Cargando galería...</p>
                         </div>
                     </div>
                 </div>
+
+                <button class="carousel-nav-btn next" id="gallery-next">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
             </div>
         </div>
     </section>
 
-
     <section id="videos" class="videos-section">
         <div class="videos-container">
-            <div class="section-title">
-                <h2>Más historias de éxito</h2>
-                <p>Mira algunos de nuestros trabajos más destacados</p>
+            <div class="section-title text-center">
+                <h2 style="color: #111; margin-bottom: 3rem;">Más historias de éxito</h2>
             </div>
-
-            <div class="videos-grid">
-                <div class="video-card">
-                    <div class="video-wrapper">
-                        <video class="video-player" width="100%" height="100%" controls>
-                            <source
-                                src="https://res.cloudinary.com/dcfodug6m/video/upload/v1768883590/WhatsApp_Video_2026-01-19_at_10.30.39_PM_jax7da.mp4"
-                                type="video/mp4">
-
-                        </video>
-                    </div>
-                    <div class="video-info">
-                        <h3>Reparación de Tesla Model 3</h3>
-                        <p>Pioneros en la reparación de vehículos eléctricos a nivel mundial.</p>
-                    </div>
-                </div>
-
-                <div class="video-card">
-                    <div class="video-wrapper">
-                        <video class="video-player" width="100%" height="100%" controls>
-                            <source
-                                src="https://res.cloudinary.com/dcfodug6m/video/upload/v1768883995/WhatsApp_Video_2026-01-19_at_10.39.03_PM_x3oskq.mp4"
-                                type="video/mp4">
-
-                        </video>
-                    </div>
-                    <div class="video-info">
-                        <h3>Mantenimiento correctivo BMW</h3>
-                        <p>Reparación BDC2 BMW G01 restaurado al 100%.</p>
-                    </div>
+            <div class="videos-grid-modern" id="videos-container">
+                <!-- Los videos se cargarán dinámicamente desde landing.js -->
+                <div class="loading-spinner">
+                    <p>Cargando historias...</p>
                 </div>
             </div>
         </div>
@@ -678,123 +604,143 @@
                         <p>BMW Service Inclusive</p>
                     </div>
 
-                <form class="booking-form-premium" id="bookingForm" onsubmit="submitBooking(event)" novalidate>
-                    
-                    <div style="background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 15px; margin-bottom: 20px;">
-                        <label style="color: #1e40af; font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; display: block;">¿Ya eres cliente?</label>
-                        <p style="font-size: 0.85rem; color: #3b82f6; margin-bottom: 10px;">Ingresa tu correo o teléfono para autocompletar tus datos y ver tus vehículos.</p>
-                        <div style="display: flex; gap: 10px;">
-                            <input type="text" id="lookupInput" placeholder="Correo o Teléfono" style="flex: 1; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px; font-size: 0.9rem;">
-                            <button type="button" onclick="lookupClient()" style="background-color: #2563eb; color: white; border: none; border-radius: 8px; padding: 0 15px; font-weight: 600; cursor: pointer;">Buscar</button>
+                    <form class="booking-form-premium" id="bookingForm" onsubmit="submitBooking(event)" novalidate>
+
+                        <div
+                            style="background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 15px; margin-bottom: 20px;">
+                            <label
+                                style="color: #1e40af; font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; display: block;">¿Ya
+                                eres cliente?</label>
+                            <p style="font-size: 0.85rem; color: #3b82f6; margin-bottom: 10px;">Ingresa tu correo o
+                                teléfono para autocompletar tus datos y ver tus vehículos.</p>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="lookupInput" placeholder="Correo o Teléfono"
+                                    style="flex: 1; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px; font-size: 0.9rem;">
+                                <button type="button" onclick="lookupClient()"
+                                    style="background-color: #2563eb; color: white; border: none; border-radius: 8px; padding: 0 15px; font-weight: 600; cursor: pointer;">Buscar</button>
+                            </div>
                         </div>
+
+                        <div class="form-group-premium">
+                            <label>Información de Contacto</label>
+                            <input type="text" id="clientName" placeholder="Nombre Completo / Empresa" required>
+                            <input type="email" id="clientEmail" placeholder="Correo Electrónico" required>
+                            <input type="tel" id="clientPhone" placeholder="Teléfono Móvil" required>
+                        </div>
+
+                        <div class="form-group-premium">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <label style="margin-bottom: 0;">Datos del Vehículo</label>
+                            </div>
+
+                            <!-- Contenedor para mostrar vehículos existentes (oculto por defecto) -->
+                            <div id="existingVehiclesContainer"
+                                style="display: none; margin-bottom: 15px; background: #fdfdfd; border: 1px dashed #cbd5e1; padding: 10px; border-radius: 8px;">
+                                <label style="font-size: 0.8rem; color: #475569;">Selecciona un vehículo registrado o
+                                    ignora esto para registrar uno nuevo:</label>
+                                <select id="existingVehiclesSelect" class="premium-select"
+                                    style="margin-top: 5px; border-color: #cbd5e1; background-color: #fff;"
+                                    onchange="selectExistingVehicle()">
+                                    <option value="">-- Ignorar / Registrar nuevo vehículo --</option>
+                                </select>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                                <input type="text" id="vehiculoPlaca" placeholder="Placa (Indispensable)" required
+                                    style="text-transform: uppercase;">
+                                <div class="select-wrapper">
+                                    <select id="vehiculoMarcaSelect" class="premium-select">
+                                        <option value="">Cargando marcas...</option>
+                                    </select>
+                                    <input type="text" id="vehiculoMarca" placeholder="Escriba Marca..."
+                                        class="hidden mt-2">
+                                </div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                                <div class="select-wrapper">
+                                    <select id="vehiculoModeloSelect" class="premium-select" disabled>
+                                        <option value="">Seleccione Marca...</option>
+                                    </select>
+                                    <input type="text" id="vehiculoModelo" placeholder="Escriba Modelo..."
+                                        class="hidden mt-2">
+                                </div>
+                                <div class="select-wrapper">
+                                    <select id="vehiculoVersionSelect" class="premium-select" disabled>
+                                        <option value="">Seleccione Modelo...</option>
+                                    </select>
+                                    <input type="text" id="vehiculoVersion" placeholder="Escriba Versión..."
+                                        class="hidden mt-2">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group-premium">
+                            <label>Tipo de Requerimiento</label>
+                            <textarea id="requestDetails"
+                                placeholder="Describa el servicio (ej. Mantención 40.000km, Testigo encendido...)"
+                                rows="3" required></textarea>
+                        </div>
+
+
+
+                        <!-- Hidden Inputs for Date/Time -->
+
+                        <input type="hidden" id="selectedTime">
+
+                        <button type="submit" class="btn btn-primary submit-btn"
+                            style="width: 100%; text-transform: uppercase; font-weight: 800; letter-spacing: 1px; padding: 18px;">AGENDAR
+                            CITA</button>
+                    </form>
+                </div>
+
+                <!-- Right: Calendar & Time -->
+                <div class="booking-right-panel">
+                    <div class="panel-header-right">
+                        <h3>Selecciona Fecha y Hora</h3>
+                        <p>Disponibilidad en tiempo real</p>
                     </div>
 
-                    <div class="form-group-premium">
-                        <label>Información de Contacto</label>
-                        <input type="text" id="clientName" placeholder="Nombre Completo / Empresa" required>
-                        <input type="email" id="clientEmail" placeholder="Correo Electrónico" required>
-                        <input type="tel" id="clientPhone" placeholder="Teléfono Móvil" required>
-                    </div>
-
-                    <div class="form-group-premium">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <label style="margin-bottom: 0;">Datos del Vehículo</label>
-                        </div>
-                        
-                        <!-- Contenedor para mostrar vehículos existentes (oculto por defecto) -->
-                        <div id="existingVehiclesContainer" style="display: none; margin-bottom: 15px; background: #fdfdfd; border: 1px dashed #cbd5e1; padding: 10px; border-radius: 8px;">
-                            <label style="font-size: 0.8rem; color: #475569;">Selecciona un vehículo registrado o ignora esto para registrar uno nuevo:</label>
-                            <select id="existingVehiclesSelect" class="premium-select" style="margin-top: 5px; border-color: #cbd5e1; background-color: #fff;" onchange="selectExistingVehicle()">
-                                <option value="">-- Ignorar / Registrar nuevo vehículo --</option>
+                    <div class="calendar-wrapper" style="margin-bottom: 20px;">
+                        <label>Taller / Sucursal de Preferencia</label>
+                        <div class="select-wrapper">
+                            <select id="sucursalSelect" class="premium-select">
+                                <option value="">Seleccione Taller / Sucursal...</option>
                             </select>
                         </div>
+                    </div>
 
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-                            <input type="text" id="vehiculoPlaca" placeholder="Placa (Indispensable)" required style="text-transform: uppercase;">
-                            <div class="select-wrapper">
-                                <select id="vehiculoMarcaSelect" class="premium-select">
-                                    <option value="">Cargando marcas...</option>
-                                </select>
-                                <input type="text" id="vehiculoMarca" placeholder="Escriba Marca..." class="hidden mt-2">
-                            </div>
+                    <div class="calendar-wrapper">
+                        <label>Fecha Preferida</label>
+                        <input type="date" id="selectedDate" class="premium-date-input"
+                            onchange="updateTimeSlots(this.value)">
+                    </div>
+
+                    <div class="time-selection-wrapper">
+                        <label>Horarios Disponibles</label>
+                        <div class="time-grid" id="timeSlotsGrid">
+                            <!-- Times generated by JS -->
+                            <button type="button" class="time-slot" onclick="selectTime(this, '07:00')">07:00</button>
+                            <button type="button" class="time-slot" onclick="selectTime(this, '08:00')">08:00</button>
+                            <button type="button" class="time-slot" onclick="selectTime(this, '09:00')">09:00</button>
+                            <button type="button" class="time-slot" onclick="selectTime(this, '10:00')">10:00</button>
+                            <button type="button" class="time-slot" onclick="selectTime(this, '11:00')">11:00</button>
+                            <button type="button" class="time-slot" onclick="selectTime(this, '12:00')">12:00</button>
+                            <button type="button" class="time-slot" onclick="selectTime(this, '13:00')">13:00</button>
+                            <button type="button" class="time-slot" onclick="selectTime(this, '14:00')">14:00</button>
+                            <button type="button" class="time-slot" onclick="selectTime(this, '15:00')">15:00</button>
+                            <button type="button" class="time-slot" onclick="selectTime(this, '16:00')">16:00</button>
                         </div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-                            <div class="select-wrapper">
-                                <select id="vehiculoModeloSelect" class="premium-select" disabled>
-                                    <option value="">Seleccione Marca...</option>
-                                </select>
-                                <input type="text" id="vehiculoModelo" placeholder="Escriba Modelo..." class="hidden mt-2">
-                            </div>
-                            <div class="select-wrapper">
-                                <select id="vehiculoVersionSelect" class="premium-select" disabled>
-                                    <option value="">Seleccione Modelo...</option>
-                                </select>
-                                <input type="text" id="vehiculoVersion" placeholder="Escriba Versión..." class="hidden mt-2">
-                            </div>
-                        </div>
+                        <p class="helper-text">* Horarios sujetos a confirmación por el asesor.</p>
                     </div>
-
-                    <div class="form-group-premium">
-                        <label>Tipo de Requerimiento</label>
-                        <textarea id="requestDetails" placeholder="Describa el servicio (ej. Mantención 40.000km, Testigo encendido...)"
-                            rows="3" required></textarea>
-                    </div>
-
-
-
-                    <!-- Hidden Inputs for Date/Time -->
-
-                    <input type="hidden" id="selectedTime">
-
-                    <button type="submit" class="btn btn-primary submit-btn" style="width: 100%; text-transform: uppercase; font-weight: 800; letter-spacing: 1px; padding: 18px;">AGENDAR CITA</button>
-                </form>
-            </div>
-
-            <!-- Right: Calendar & Time -->
-            <div class="booking-right-panel">
-                <div class="panel-header-right">
-                    <h3>Selecciona Fecha y Hora</h3>
-                    <p>Disponibilidad en tiempo real</p>
-                </div>
-
-                <div class="calendar-wrapper" style="margin-bottom: 20px;">
-                    <label>Taller / Sucursal de Preferencia</label>
-                    <div class="select-wrapper">
-                        <select id="sucursalSelect" class="premium-select">
-                            <option value="">Seleccione Taller / Sucursal...</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="calendar-wrapper">
-                    <label>Fecha Preferida</label>
-                    <input type="date" id="selectedDate" class="premium-date-input" onchange="updateTimeSlots(this.value)">
-                </div>
-
-                <div class="time-selection-wrapper">
-                    <label>Horarios Disponibles</label>
-                    <div class="time-grid" id="timeSlotsGrid">
-                        <!-- Times generated by JS -->
-                        <button type="button" class="time-slot" onclick="selectTime(this, '07:00')">07:00</button>
-                        <button type="button" class="time-slot" onclick="selectTime(this, '08:00')">08:00</button>
-                        <button type="button" class="time-slot" onclick="selectTime(this, '09:00')">09:00</button>
-                        <button type="button" class="time-slot" onclick="selectTime(this, '10:00')">10:00</button>
-                        <button type="button" class="time-slot" onclick="selectTime(this, '11:00')">11:00</button>
-                        <button type="button" class="time-slot" onclick="selectTime(this, '12:00')">12:00</button>
-                        <button type="button" class="time-slot" onclick="selectTime(this, '13:00')">13:00</button>
-                        <button type="button" class="time-slot" onclick="selectTime(this, '14:00')">14:00</button>
-                        <button type="button" class="time-slot" onclick="selectTime(this, '15:00')">15:00</button>
-                        <button type="button" class="time-slot" onclick="selectTime(this, '16:00')">16:00</button>
-                    </div>
-                    <p class="helper-text">* Horarios sujetos a confirmación por el asesor.</p>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
 
 </body>
+
 </html>
 
 <!-- ===== JAVASCRIPT ===== -->

@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initScrollAnimations();
     initNavbarTransition();
     initVideoPlayer();
+    loadLandingImages();
     if (window.initVehicleSelectors) window.initVehicleSelectors();
 });
 
@@ -611,4 +612,198 @@ function showNotification(message, type = 'info') {
         toast.style.transform = 'translateY(100px)';
         setTimeout(() => toast.remove(), 300);
     }, 3000);
+}
+
+// ===== DYNAMIC LANDING IMAGES LOADER =====
+async function loadLandingImages() {
+    try {
+        const response = await fetch('/api/landing/images');
+        if (!response.ok) throw new Error('Error loading images');
+        
+        const images = await response.json();
+        
+        // Separate images by type
+        const logoImage = images.find(img => img.type === 'logo' && img.is_active);
+        const aboutImage = images.find(img => img.type === 'about' && img.is_active);
+        const serviceImages = images.filter(img => img.type === 'service' && img.is_active);
+        const galleryImages = images.filter(img => img.type === 'gallery' && img.is_active);
+        const videoImages = images.filter(img => img.type === 'video' && img.is_active);
+        
+        // Load logo
+        if (logoImage) {
+            updateNavbarLogo(logoImage);
+        }
+
+        // Load about image
+        if (aboutImage) {
+            updateAboutImage(aboutImage);
+        }
+        
+        // Load services
+        if (serviceImages.length > 0) {
+            loadServiceCards(serviceImages);
+        }
+        
+        // Load gallery carousel
+        if (galleryImages.length > 0) {
+            loadGalleryCarousel(galleryImages);
+        }
+
+        // Load video stories
+        if (videoImages.length > 0) {
+            loadVideoStories(videoImages);
+        }
+    } catch (error) {
+        console.error('Error loading landing images:', error);
+        showToast('Error al cargar las imágenes', 'error');
+    }
+}
+
+function loadServiceCards(services) {
+    const container = document.getElementById('services-container');
+    if (!container) return;
+    
+    // Clear loading spinner
+    container.innerHTML = '';
+    
+    // Generate service cards
+    services.forEach((service, index) => {
+        const card = document.createElement('div');
+        card.className = 'service-card-premium';
+        card.innerHTML = `
+            <div class="card-image" style="background-image: url('${service.image_url}');">
+            </div>
+            <div class="card-content">
+                <div class="card-icon">🛠️</div>
+                <h3>${service.title}</h3>
+                <p>${service.description}</p>
+                <a href="#contacto" class="link-arrow">
+                    ${index === 0 ? 'Agendar Servicio' : index === 1 ? 'Ver Detalles' : 'Consultar'}
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+function loadGalleryItems(galleryImages) {
+    const container = document.getElementById('gallery-container');
+    if (!container) return;
+    
+    // Clear loading spinner
+    container.innerHTML = '';
+    
+    // Generate gallery items with alternating sizes
+    galleryImages.forEach((image, index) => {
+        const item = document.createElement('div');
+        
+        // First item: big, last item: wide, others: normal
+        let itemClass = 'success-item';
+        if (index === 0) {
+            itemClass += ' big';
+        } else if (index === galleryImages.length - 1 && galleryImages.length > 2) {
+            itemClass += ' wide';
+        }
+        
+        item.className = itemClass;
+        item.innerHTML = `
+            <img src="${image.image_url}" alt="${image.alt_text}" loading="lazy">
+            <div class="overlay-info">
+                <h3>${image.title}</h3>
+                <p>${image.description}</p>
+            </div>
+        `;
+        container.appendChild(item);
+    });
+}
+
+function updateAboutImage(image) {
+    const aboutImg = document.querySelector('.about-image img');
+    if (aboutImg) {
+        aboutImg.src = image.image_url;
+        aboutImg.alt = image.alt_text || 'Sobre Nosotros';
+    }
+}
+
+function loadGalleryCarousel(images) {
+    const container = document.getElementById('gallery-container');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    images.forEach(img => {
+        const item = document.createElement('div');
+        item.className = 'gallery-item-premium';
+        item.innerHTML = `
+            <div class="gallery-card">
+                <img src="${img.image_url}" alt="${img.alt_text}" loading="lazy">
+                <div class="gallery-info">
+                    <h3>${img.title}</h3>
+                    <p>${img.description || ''}</p>
+                </div>
+            </div>
+        `;
+        container.appendChild(item);
+    });
+
+    initCarouselLogic();
+}
+
+function initCarouselLogic() {
+    const track = document.getElementById('gallery-container');
+    const prevBtn = document.getElementById('gallery-prev');
+    const nextBtn = document.getElementById('gallery-next');
+    if (!track || !prevBtn || !nextBtn) return;
+
+    let position = 0;
+    const cardWidth = 320; // Aproximado con gap
+
+    nextBtn.addEventListener('click', () => {
+        const maxScroll = track.scrollWidth - track.parentElement.clientWidth;
+        position = Math.min(position + cardWidth, maxScroll);
+        track.style.transform = `translateX(-${position}px)`;
+    });
+
+    prevBtn.addEventListener('click', () => {
+        position = Math.max(position - cardWidth, 0);
+        track.style.transform = `translateX(-${position}px)`;
+    });
+}
+
+function loadVideoStories(videos) {
+    const container = document.getElementById('videos-container');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    videos.forEach(video => {
+        const card = document.createElement('div');
+        card.className = 'video-card-premium';
+        // Si es URL de Cloudinary, a veces se puede renderizar como video tag
+        const isVideo = video.image_url.match(/\.(mp4|webm|ogg|mov)$/i) || video.image_url.includes('/video/upload/');
+        
+        card.innerHTML = `
+            <div class="video-media-wrapper">
+                ${isVideo 
+                    ? `<video src="${video.image_url}" controls></video>`
+                    : `<img src="${video.image_url}" alt="${video.alt_text}">`
+                }
+            </div>
+            <div class="video-info-premium">
+                <h3>${video.title}</h3>
+                <p>${video.description || ''}</p>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+function updateNavbarLogo(logoImage) {
+    const logoContainer = document.querySelector('.navbar-logo');
+    if (!logoContainer) return;
+
+    const img = logoContainer.querySelector('img');
+    if (img) {
+        img.src = logoImage.image_url;
+        img.alt = logoImage.alt_text || 'Company Logo';
+    }
 }

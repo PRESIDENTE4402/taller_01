@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
             PermissionsSeeder::class,
             RepuestosSeeder::class,
             StaffSeeder::class,
-            // DailyActivitySeeder::class, // Run manually: php artisan db:seed --class=DailyActivitySeeder
+           
         ]);
     }
 }
