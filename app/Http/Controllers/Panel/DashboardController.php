@@ -71,8 +71,9 @@ class DashboardController extends Controller
         // 2. Tablas y Listados
 
         // Órdenes separadas por estado (con su última bitácora para observaciones)
+        // Órdenes separadas por estado (con su última bitácora para observaciones)
         $ordenesEnProceso = (clone $baseOrdenes)
-            ->with(['cliente', 'vehiculo.marca', 'vehiculo.modelo', 'bitacoras' => function ($q) {
+            ->with(['cliente', 'vehiculo.marca', 'vehiculo.modelo', 'sucursal', 'bitacoras' => function ($q) {
                 $q->latest()->limit(1);
             }])
             ->where('estado', 'en_proceso')
@@ -81,7 +82,7 @@ class DashboardController extends Controller
             ->get();
 
         $ordenesAbiertas = (clone $baseOrdenes)
-            ->with(['cliente', 'vehiculo.marca', 'vehiculo.modelo', 'bitacoras' => function ($q) {
+            ->with(['cliente', 'vehiculo.marca', 'vehiculo.modelo', 'sucursal', 'bitacoras' => function ($q) {
                 $q->latest()->limit(1);
             }])
             ->where('estado', 'abierta')
@@ -90,10 +91,19 @@ class DashboardController extends Controller
             ->get();
 
         $ordenesEsperaRepuesto = (clone $baseOrdenes)
-            ->with(['cliente', 'vehiculo.marca', 'vehiculo.modelo', 'bitacoras' => function ($q) {
+            ->with(['cliente', 'vehiculo.marca', 'vehiculo.modelo', 'sucursal', 'bitacoras' => function ($q) {
                 $q->latest()->limit(1);
             }])
             ->where('estado', 'espera_repuesto')
+            ->orderBy('updated_at', 'desc')
+            ->take(8)
+            ->get();
+
+        $ordenesFinalizadas = (clone $baseOrdenes)
+            ->with(['cliente', 'vehiculo.marca', 'vehiculo.modelo', 'sucursal', 'bitacoras' => function ($q) {
+                $q->latest()->limit(1);
+            }])
+            ->where('estado', 'finalizada')
             ->orderBy('updated_at', 'desc')
             ->take(8)
             ->get();
@@ -117,6 +127,7 @@ class DashboardController extends Controller
             'ordenesEnProceso',
             'ordenesAbiertas',
             'ordenesEsperaRepuesto',
+            'ordenesFinalizadas',
             'citasProximas',
             'isAdmin',
             'sucursalId'

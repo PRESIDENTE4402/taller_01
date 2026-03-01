@@ -63,6 +63,11 @@
             width: 5rem !important;
         }
 
+        /* Desactivar el clip de scroll para que escapen los tooltips al colapsar */
+        .sidebar-collapsed .sidebar-scroll {
+            overflow: visible !important;
+        }
+
         .sidebar-collapsed .menu-text,
         .sidebar-collapsed .logo-text,
         .sidebar-collapsed .section-title,
@@ -90,11 +95,8 @@
             position: relative;
         }
 
-        .sidebar-collapsed .sidebar-menu-btn::before,
-        .sidebar-collapsed .sidebar-menu-btn::after {
-            display: block !important;
-        }
-
+        body:not(.sidebar-collapsed-body) .sidebar-menu-btn:hover::before,
+        body:not(.sidebar-collapsed-body) .sidebar-menu-btn:hover::after,
         body:not(.sidebar-collapsed-body) .sidebar-menu-btn::before,
         body:not(.sidebar-collapsed-body) .sidebar-menu-btn::after {
             display: none !important;
@@ -244,9 +246,9 @@
                 @endcan
 
                 <a href="{{ route('panel.mantenimientos.imagenes_landing.index') }}"
-                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.mantenimientos.imagenes_landing.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
-                    <i class="fas fa-images w-5 text-center"></i>
-                    Imágenes Landing
+                    class="sidebar-menu-btn tooltip tooltip-right flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.mantenimientos.imagenes_landing.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors" data-tip="Imágenes Landing">
+                    <i class="fas fa-images w-5 text-center flex-shrink-0"></i>
+                    <span class="menu-text whitespace-nowrap overflow-hidden text-ellipsis">Imágenes Landing</span>
                 </a>
                 @endif
 

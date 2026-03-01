@@ -108,7 +108,13 @@
                                 <a href="{{ route('panel.operaciones.ordenes_trabajo.show', $orden->id) }}" class="font-bold text-blue-700 hover:underline text-lg">{{ $orden->vehiculo->placa }}</a>
                                 <span class="text-xs text-gray-400 font-medium">{{ $orden->vehiculo->marca->nombre }} {{ $orden->vehiculo->modelo->nombre }}</span>
                             </div>
-                            <p class="text-sm text-gray-500 mb-2"><i class="fas fa-user-circle mr-1"></i> {{ $orden->cliente->nombre_completo ?? $orden->cliente->empresa }} <span class="text-gray-300 mx-2">|</span> Hace {{ $orden->updated_at->diffForHumans() }}</p>
+                            <p class="text-sm text-gray-500 mb-2">
+                                <i class="fas fa-user-circle mr-1"></i> {{ $orden->cliente->nombre_completo ?? $orden->cliente->empresa }}
+                                <span class="text-gray-300 mx-2">|</span>
+                                <i class="fas fa-store text-[10px] mr-1"></i> {{ $orden->sucursal->nombre ?? 'Principal' }}
+                                <span class="text-gray-300 mx-2">|</span>
+                                Hace {{ $orden->updated_at->diffForHumans() }}
+                            </p>
 
                             {{-- Última Observación --}}
                             <div class="bg-gray-50 border-l-4 border-blue-400 p-3 rounded-r-lg mt-3">
@@ -151,7 +157,13 @@
                                 <a href="{{ route('panel.operaciones.ordenes_trabajo.show', $orden->id) }}" class="font-bold text-gray-700 hover:text-blue-600 hover:underline text-lg">{{ $orden->vehiculo->placa }}</a>
                                 <span class="text-xs text-gray-400 font-medium">{{ $orden->vehiculo->marca->nombre }} {{ $orden->vehiculo->modelo->nombre }}</span>
                             </div>
-                            <p class="text-sm text-gray-500 mb-2"><i class="fas fa-user-circle mr-1"></i> {{ $orden->cliente->nombre_completo ?? $orden->cliente->empresa }} <span class="text-gray-300 mx-2">|</span> Hace {{ $orden->updated_at->diffForHumans() }}</p>
+                            <p class="text-sm text-gray-500 mb-2">
+                                <i class="fas fa-user-circle mr-1"></i> {{ $orden->cliente->nombre_completo ?? $orden->cliente->empresa }}
+                                <span class="text-gray-300 mx-2">|</span>
+                                <i class="fas fa-store text-[10px] mr-1"></i> {{ $orden->sucursal->nombre ?? 'Principal' }}
+                                <span class="text-gray-300 mx-2">|</span>
+                                Hace {{ $orden->updated_at->diffForHumans() }}
+                            </p>
 
                             <div class="bg-white border-l-4 border-gray-300 p-3 rounded-r-lg mt-3 shadow-sm shadow-gray-100">
                                 <p class="text-xs text-gray-400 uppercase font-bold tracking-widest mb-1">Última Observación:</p>
@@ -192,7 +204,13 @@
                                 <a href="{{ route('panel.operaciones.ordenes_trabajo.show', $orden->id) }}" class="font-bold text-red-700 hover:underline text-lg">{{ $orden->vehiculo->placa }}</a>
                                 <span class="text-xs text-gray-400 font-medium">{{ $orden->vehiculo->marca->nombre }} {{ $orden->vehiculo->modelo->nombre }}</span>
                             </div>
-                            <p class="text-sm text-gray-500 mb-2"><i class="fas fa-user-circle mr-1"></i> {{ $orden->cliente->nombre_completo ?? $orden->cliente->empresa }} <span class="text-gray-300 mx-2">|</span> Hace {{ $orden->updated_at->diffForHumans() }}</p>
+                            <p class="text-sm text-gray-500 mb-2">
+                                <i class="fas fa-user-circle mr-1"></i> {{ $orden->cliente->nombre_completo ?? $orden->cliente->empresa }}
+                                <span class="text-gray-300 mx-2">|</span>
+                                <i class="fas fa-store text-[10px] mr-1"></i> {{ $orden->sucursal->nombre ?? 'Principal' }}
+                                <span class="text-gray-300 mx-2">|</span>
+                                Hace {{ $orden->updated_at->diffForHumans() }}
+                            </p>
 
                             <div class="bg-red-50 border-l-4 border-red-400 p-3 rounded-r-lg mt-3">
                                 <p class="text-xs text-red-500 uppercase font-bold tracking-widest mb-1">Motivo de la Pausa:</p>
@@ -212,6 +230,53 @@
                     @empty
                     <div class="text-center text-gray-400 py-6 italic border border-dashed border-gray-200 rounded-xl">
                         Ningún vehículo está frenado por falta de inventario en este momento.
+                    </div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+
+        {{-- 4. Vehículos Finalizados (Listos para Entrega) --}}
+        <div class="card bg-white shadow-lg border border-gray-100 mb-6">
+            <div class="card-body p-0">
+                <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-emerald-50/50 rounded-t-2xl">
+                    <h3 class="font-bold text-emerald-800 flex items-center gap-2"><i class="fas fa-check-circle"></i> Listos para Entregar al Cliente</h3>
+                </div>
+                <div class="p-4 grid grid-cols-1 gap-4">
+                    @forelse($ordenesFinalizadas as $orden)
+                    <div class="flex flex-col sm:flex-row gap-4 p-4 border border-emerald-100 hover:border-emerald-400 hover:shadow-md transition-all rounded-xl bg-white">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="badge badge-success text-white text-[10px] font-black tracking-widest uppercase">¡Terminado!</span>
+                                <a href="{{ route('panel.operaciones.ordenes_trabajo.show', $orden->id) }}" class="font-bold text-emerald-700 hover:underline text-lg">{{ $orden->vehiculo->placa }}</a>
+                                <span class="text-xs text-gray-400 font-medium">{{ $orden->vehiculo->marca->nombre }} {{ $orden->vehiculo->modelo->nombre }}</span>
+                            </div>
+                            <p class="text-sm text-gray-500 mb-2">
+                                <i class="fas fa-user-circle mr-1"></i> {{ $orden->cliente->nombre_completo ?? $orden->cliente->empresa }}
+                                <span class="text-gray-300 mx-2">|</span>
+                                <i class="fas fa-phone text-[10px] mr-1"></i> {{ $orden->cliente->telefono ?? 'S/N' }}
+                                <span class="text-gray-300 mx-2">|</span>
+                                <i class="fas fa-store text-[10px] mr-1"></i> {{ $orden->sucursal->nombre ?? 'Principal' }}
+                                <span class="text-gray-300 mx-2">|</span>
+                                Hace {{ $orden->updated_at->diffForHumans() }}
+                            </p>
+
+                            <div class="bg-emerald-50 border-l-4 border-emerald-400 p-3 rounded-r-lg mt-3">
+                                <p class="text-xs text-emerald-600 uppercase font-bold tracking-widest mb-1">Verificación final:</p>
+                                <p class="text-sm text-gray-700 italic">
+                                    Vehículo terminado y aparcado. Listo para lavarse y generar factura si aplica.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-center sm:border-l sm:border-emerald-100 sm:pl-4">
+                            <a href="{{ route('panel.operaciones.ordenes_trabajo.show', $orden->id) }}" class="btn bg-emerald-500 hover:bg-emerald-600 border-none text-white btn-sm rounded-lg hover:scale-105 transition-transform shadow-lg shadow-emerald-200">
+                                <i class="fas fa-flag-checkered mr-1"></i> Entregar Auto
+                            </a>
+                        </div>
+                    </div>
+                    @empty
+                    <div class="text-center text-gray-400 py-6 italic border border-dashed border-gray-200 rounded-xl">
+                        No hay vehículos listos esperando a ser recogidos.
                     </div>
                     @endforelse
                 </div>
