@@ -76,9 +76,9 @@ class CitaController extends Controller
             ->groupBy('estado')
             ->pluck('total', 'estado');
 
-        // 2. Count Today (Global or Filtered by Sucursal)
+        // 2. Count Today (Global or Filtered by Sucursal) - SOLO "Confirmadas" (Pendientes de recibir)
         $todayQuery = Cita::whereDate('fecha_programada', now()->toDateString())
-            ->whereNotIn('estado', ['cancelada', 'no_asistio']);
+            ->where('estado', 'confirmada');
 
         if ($sucursalId && $sucursalId !== 'all') {
             $todayQuery->where('sucursal_id', $sucursalId);
@@ -99,10 +99,10 @@ class CitaController extends Controller
 
         $capacities = [];
         foreach ($sucursalesData as $sucursal) {
-            // Contar ocupación para ese día
+            // Contar ocupación para ese día (solo cuentan confirmadas, en_taller, etc., NO pendientes)
             $ocupados = Cita::where('sucursal_id', $sucursal->id)
                 ->whereDate('fecha_programada', $capacityDate)
-                ->whereNotIn('estado', ['cancelada', 'no_asistio']) // Solo cuentan las activas
+                ->whereNotIn('estado', ['cancelada', 'no_asistio', 'pendiente']) // Pendientes no restan espacio
                 ->count();
 
             $capacities[] = [
@@ -195,22 +195,28 @@ class CitaController extends Controller
                     'hora' => 'required'
                 ]);
 
-                // 2. Cliente (Buscar por email/teléfono o Crear)
-                // Si el cliente ya existe por teléfono, actualizamos sus datos con los nuevos ingresados.
+                // 2. Evitar crear clientes duplicados
                 $telefono = trim($request->telefono_nuevo);
-                $cliente = Cliente::where('telefono', $telefono)->first();
+                $email = trim($request->email_nuevo);
 
-                if (!$cliente) {
-                    $cliente = new Cliente();
-                    $cliente->telefono = $telefono;
+                $clienteExistente = Cliente::where('telefono', $telefono)
+                    ->when($email !== '', function($query) use ($email) {
+                        return $query->orWhere('email', $email);
+                    })->first();
+
+                if ($clienteExistente) {
+                    DB::rollBack();
+                    return response()->json([
+                        'success' => false, 
+                        'message' => 'Ya existe un cliente registrado con este teléfono o correo (' . $clienteExistente->nombre_completo . '). Por favor cambia a la opción "Buscar Cliente".'
+                    ], 422);
                 }
 
+                // Generamos cliente 100% nuevo
+                $cliente = new Cliente();
+                $cliente->telefono = $telefono;
                 $cliente->nombre_completo = trim($request->nombre_nuevo);
-
-                // Handle Email: Empty string should be NULL to avoid Unique constraint checks on empty strings
-                $email = trim($request->email_nuevo);
                 $cliente->email = $email === '' ? null : $email;
-
                 $cliente->save();
 
                 $clienteId = $cliente->id;
@@ -400,6 +406,39 @@ class CitaController extends Controller
             ->get(['id', 'nombre_completo', 'telefono', 'email', 'nit', 'direccion', 'es_empresa', 'empresa']);
 
         return response()->json($clientes);
+    }
+
+    public function checkClientExists(Request $request)
+    {
+        $telefono = $request->query('telefono');
+        $email = $request->query('email');
+
+        if (!$telefono && !$email) {
+            return response()->json(['exists' => false]);
+        }
+
+        $query = Cliente::query();
+        
+        if ($telefono) {
+            $query->where('telefono', $telefono);
+        }
+        
+        if ($email) {
+            // We use orWhere inside a logical group to ensure it doesn't break other conditions if we add more
+            $query->orWhere(function($q) use ($email) {
+                if($email !== '') {
+                    $q->where('email', $email);
+                }
+            });
+        }
+
+        $cliente = $query->first(['id', 'nombre_completo', 'email', 'telefono']);
+
+        if ($cliente) {
+            return response()->json(['exists' => true, 'cliente' => $cliente]);
+        }
+
+        return response()->json(['exists' => false]);
     }
 
     public function searchVehicles(Request $request)

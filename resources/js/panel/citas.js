@@ -767,6 +767,7 @@ async function storeCita(e) {
             });
             closeManualCitaModal();
             loadCitas(); // Reload list
+            fetchCalendarCounts(); // Reload mini-calendar dots
         } else {
             Swal.fire('Error', result.message, 'error');
         }
@@ -868,8 +869,8 @@ function renderCitas(citas) {
     const grouped = groupByDate(citas);
 
     Object.keys(grouped).forEach(date => {
-        // Humanize Date Header
-        const dateObj = new Date(date);
+        // date viene en formato YYYY-MM-DD. Reemplazar '-' por '/' evita que JS asuma UTC a la medianoche.
+        const dateObj = new Date(date.replace(/-/g, '/'));
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         const dateString = dateObj.toLocaleDateString('es-ES', options);
 
@@ -999,6 +1000,11 @@ function openCitaModal(cita) {
             Swal.fire('Error', 'El cliente no tiene teléfono registrado', 'warning');
         }
     };
+    if (!cleanPhone || ['concretada', 'cancelada', 'no_asistio'].includes(cita.estado)) {
+        btnReminder.classList.add('opacity-50', 'pointer-events-none');
+    } else {
+        btnReminder.classList.remove('opacity-50', 'pointer-events-none');
+    }
 
     // ... (previous content) ...
 
@@ -1105,6 +1111,7 @@ async function updateStatus(newStatus) {
         if (result.success) {
             closeCitaModal();
             loadCitas();
+            fetchCalendarCounts();
             Swal.fire({
                 title: 'Actualizado',
                 text: 'El estado de la cita ha cambiado correctamente',
@@ -1153,7 +1160,13 @@ function updateCounters(counts, todayCount) {
 
 function groupByDate(citas) {
     return citas.reduce((groups, cita) => {
-        const date = cita.start.split('T')[0];
+        // Extraemos la fecha en timezona local para evitar el desfase de 1 día
+        const d = new Date(cita.start);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const date = `${y}-${m}-${day}`;
+        
         if (!groups[date]) {
             groups[date] = [];
         }
@@ -1259,4 +1272,90 @@ function updateCapacityWidget(capacities, dateStr) {
         `;
         container.appendChild(div);
     });
+}
+
+// ===== REAL-TIME CLIENT VALIDATION =====
+let checkClientTimeout;
+
+// Hook up to inputs for the modal new client
+document.addEventListener('DOMContentLoaded', () => {
+    const telefonoInput = document.querySelector('input[name="telefono_nuevo"]');
+    const emailInput = document.querySelector('input[name="email_nuevo"]');
+
+    if (telefonoInput) telefonoInput.addEventListener('input', debounceCheckClient);
+    if (emailInput) emailInput.addEventListener('input', debounceCheckClient);
+});
+
+function debounceCheckClient(e) {
+    if (document.getElementById('modoCreacion').value !== 'nuevo') return;
+    
+    clearTimeout(checkClientTimeout);
+    checkClientTimeout = setTimeout(() => validateClientExists(e.target), 800);
+}
+
+async function validateClientExists(inputEl) {
+    const telefono = document.querySelector('input[name="telefono_nuevo"]').value.trim();
+    const email = document.querySelector('input[name="email_nuevo"]').value.trim();
+
+    if (!telefono && !email) return;
+
+    try {
+        const url = `${window.APP_CONFIG.API_CHECK_CLIENT}?telefono=${encodeURIComponent(telefono)}&email=${encodeURIComponent(email)}`;
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.exists) {
+            Swal.fire({
+                title: 'Cliente ya registrado',
+                html: `
+                    <div class="mb-4 text-gray-600">
+                        Hemos detectado que estos datos de contacto ya pertenecen a:
+                    </div>
+                    <div class="p-4 bg-blue-50/50 rounded-2xl border border-blue-100 flex items-center justify-center gap-3 mb-4">
+                        <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xl shadow-inner">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="text-left">
+                           <div class="font-black text-lg text-gray-800">${data.cliente.nombre_completo}</div>
+                           <div class="text-xs font-bold text-gray-400 uppercase tracking-widest mt-0.5">Cliente Existente</div>
+                        </div>
+                    </div>
+                    <p class="text-sm font-medium text-gray-500 mb-1">Para evitar duplicados, cambia al modo búsqueda para continuar trabajando con esta cuenta.</p>
+                `,
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonColor: '#2563eb', 
+                cancelButtonColor: '#f3f4f6', 
+                confirmButtonText: '<i class="fas fa-search mr-1"></i> Sí, cambiar a Buscar Cliente',
+                cancelButtonText: '<span class="text-gray-600 font-bold">Seguir editando</span>',
+                reverseButtons: true,
+                customClass: {
+                    htmlContainer: 'px-2 pb-2',
+                    title: 'text-2xl font-black text-gray-800 -mb-2 mt-4',
+                    popup: 'rounded-3xl shadow-2xl border border-gray-100 p-2',
+                    confirmButton: 'rounded-xl font-bold px-6 py-3 shadow-lg shadow-blue-500/30 transition-all hover:scale-105',
+                    cancelButton: 'rounded-xl font-bold px-6 py-3 transition-colors hover:bg-gray-200',
+                    icon: 'scale-75'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.setCreationMode('buscar');
+                    const searchInput = document.getElementById('searchClientInput');
+                    if (searchInput) {
+                        searchInput.value = data.cliente.telefono || data.cliente.email;
+                        searchClient(searchInput.value); // Trigger immediate search instead of relying solely on debounce if available
+                    }
+                    
+                    document.querySelector('input[name="telefono_nuevo"]').value = '';
+                    document.querySelector('input[name="email_nuevo"]').value = '';
+                    document.querySelector('input[name="nombre_nuevo"]').value = '';
+                } else {
+                    inputEl.classList.add('ring-2', 'ring-red-400', 'border-red-400', 'text-red-600');
+                    setTimeout(() => inputEl.classList.remove('ring-2', 'ring-red-400', 'border-red-400', 'text-red-600'), 4000);
+                }
+            });
+        }
+    } catch (e) {
+        console.error("Error validando el cliente:", e);
+    }
 }
