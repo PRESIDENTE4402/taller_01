@@ -22,7 +22,10 @@ class BitacoraTrabajo extends Model
         'minutos_totales',
         'meta_minutos',
         'estado',
-        'notas_adicionales'
+        'notas_adicionales',
+        'estado_pago',
+        'pago_trabajador_id',
+        'monto_pago'
     ];
 
     protected $casts = [
@@ -43,5 +46,10 @@ class BitacoraTrabajo extends Model
     public function sucursal()
     {
         return $this->belongsTo(Sucursal::class);
+    }
+
+    public function pagoTrabajador()
+    {
+        return $this->belongsTo(PagoTrabajador::class, 'pago_trabajador_id');
     }
 }

@@ -273,6 +273,17 @@
                 @endcan
                 @endif
 
+                {{-- Sección Planilla --}}
+                @if(Gate::check('gestionar_planilla') || auth()->user()->hasRole('admin'))
+                <div class="px-3 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider section-title whitespace-nowrap overflow-hidden">Planilla</div>
+
+                <a href="{{ route('panel.planilla.pagos.index') }}"
+                    class="sidebar-menu-btn tooltip tooltip-right flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.planilla.pagos.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors" data-tip="Pago a Trabajadores">
+                    <i class="fas fa-money-bill-wave w-5 text-center flex-shrink-0"></i>
+                    <span class="menu-text whitespace-nowrap overflow-hidden text-ellipsis">Pago a Trabajadores</span>
+                </a>
+                @endif
+
                 {{-- Sección Seguridad --}}
                 @if(Gate::check('gestionar_roles') || Gate::check('gestionar_permisos') || Gate::check('gestionar_usuarios'))
                 <div class="px-3 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider section-title whitespace-nowrap overflow-hidden">Seguridad</div>

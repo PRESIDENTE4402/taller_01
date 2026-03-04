@@ -270,6 +270,15 @@ Route::middleware('auth')->group(function () {
                 Route::delete('/{id}', [App\Http\Controllers\Panel\AsistenciaController::class, 'destroy'])->name('destroy');
             });
         });
+        // Planilla (Pagos)
+        Route::prefix('planilla')->name('planilla.')->group(function () {
+            Route::prefix('pagos')->name('pagos.')->group(function () {
+                Route::get('/', [App\Http\Controllers\Panel\Planilla\PagoTrabajadorController::class, 'index'])->name('index');
+                Route::get('/list', [App\Http\Controllers\Panel\Planilla\PagoTrabajadorController::class, 'list'])->name('list');
+                Route::get('/trabajador-data/{userId}', [App\Http\Controllers\Panel\Planilla\PagoTrabajadorController::class, 'getTrabajadorData'])->name('trabajadorData');
+                Route::post('/', [App\Http\Controllers\Panel\Planilla\PagoTrabajadorController::class, 'store'])->name('store');
+            });
+        });
     });
 });
 

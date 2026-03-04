@@ -28,7 +28,7 @@ class AdminBrianSeeder extends Seeder
             'phone' => '0000-0000', // Teléfono placeholder
         ]);
 
-        $this->command->info('Usuario BRIAN creado correctamente.');
+        $this->command->info('Usuario Diego creado correctamente.');
 
         // Asignar Roles (Admin y Dueño)
         $rolAdmin = DB::table('roles')->where('slug', 'admin')->first();
