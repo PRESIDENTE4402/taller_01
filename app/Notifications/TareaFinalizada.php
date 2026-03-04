@@ -47,7 +47,7 @@ class TareaFinalizada extends Notification
 
         $url = '#';
         if ($this->tarea->orden_trabajo_id) {
-            $url = route('panel.ordenes_trabajo.show', $this->tarea->orden_trabajo_id);
+            $url = route('panel.operaciones.ordenes_trabajo.show', $this->tarea->orden_trabajo_id);
         }
 
         return [

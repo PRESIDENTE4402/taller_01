@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initOriginButtons();
     initStatusActions();
     initDetailStatusUpdates();
+    initNotesButtons();
 });
 
 function initStatusActions() {
@@ -285,4 +286,34 @@ window.guardarDiagnostico = async function () {
         console.error(error);
         Swal.fire('Error', 'No se pudo guardar el diagnóstico', 'error');
     }
+}
+
+function initNotesButtons() {
+    const buttons = document.querySelectorAll('.btn-view-notes');
+    buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const rawNotas = btn.getAttribute('data-notas');
+            // Escapar y reemplazar saltos de línea por tags HTML
+            const htmlNotas = rawNotas.replace(/\n/g, '<br>');
+
+            Swal.fire({
+                title: '<i class="fas fa-clipboard-list text-yellow-500 mb-2 text-4xl"></i><br><span class="text-xl font-black text-gray-800 uppercase">Notas del Mecánico</span>',
+                html: `
+                    <div class="bg-yellow-50 text-left p-5 rounded-xl border border-yellow-200 mt-4 shadow-inner">
+                        <div class="text-gray-700 text-sm font-medium leading-relaxed max-h-64 overflow-y-auto custom-scrollbar">
+                            ${htmlNotas}
+                        </div>
+                    </div>
+                `,
+                showConfirmButton: true,
+                confirmButtonText: '<i class="fas fa-check"></i> Entendido',
+                customClass: {
+                    htmlContainer: 'm-0',
+                    confirmButton: 'btn bg-gray-800 hover:bg-gray-900 border-none text-white rounded-xl w-full max-w-xs mt-4 font-bold shadow-lg shadow-gray-200',
+                    popup: 'rounded-3xl border border-gray-100 shadow-2xl p-6 bg-white'
+                },
+                buttonsStyling: false
+            });
+        });
+    });
 }

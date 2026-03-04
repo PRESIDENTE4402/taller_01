@@ -99,7 +99,14 @@
                         <tr class="hover:bg-blue-50/30 transition-colors group">
                             <td class="border-b border-gray-50 py-4">
                                 <div class="font-black text-gray-800 text-sm italic">{{ $task->descripcion }}</div>
-                                <div class="text-[9px] text-blue-500 font-black uppercase tracking-widest mt-0.5">{{ $task->tipo_actividad }}</div>
+                                <div class="flex items-center gap-2 mt-0.5">
+                                    <div class="text-[9px] text-blue-500 font-black uppercase tracking-widest">{{ $task->tipo_actividad }}</div>
+                                    @if($task->notas_adicionales)
+                                        <button type="button" class="btn-view-notes badge badge-xs bg-yellow-100 hover:bg-yellow-200 text-yellow-700 border-none px-2 cursor-pointer transition-colors shadow-sm" data-notas="{{ $task->notas_adicionales }}">
+                                            <i class="fas fa-comment-dots mr-1"></i> Ver Notas
+                                        </button>
+                                    @endif
+                                </div>
                             </td>
                             <td class="border-b border-gray-50">
                                 <div class="flex items-center gap-2">

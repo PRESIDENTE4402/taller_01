@@ -137,8 +137,8 @@
                                         <i class="fas fa-pause"></i> Pausar
                                     </button>
                                 @endif
-                                <button type="submit" name="estado" value="completado" class="btn btn-primary flex-1 shadow-sm"
-                                    onclick="return confirm('¿Confirmas que terminaste la tarea de forma definitiva?')">
+                                <button type="button" class="btn btn-primary flex-1 shadow-sm"
+                                    onclick="confirmarFinalizacion(this)">
                                     <i class="fas fa-check-double"></i> Finalizar
                                 </button>
                             </form>
@@ -207,10 +207,12 @@
                                         <td>
                                             <div class="font-medium text-gray-800">{{ $tarea->descripcion }}</div>
                                             @if($tarea->notas_adicionales)
-                                                <div class="tooltip" data-tip="{{ $tarea->notas_adicionales }}">
-                                                    <span class="text-xs text-blue-500 bg-blue-50 px-2 py-0.5 rounded cursor-help">
-                                                        <i class="fas fa-info-circle mr-1"></i>Con notas
-                                                    </span>
+                                                <div class="mt-1">
+                                                    <button type="button"
+                                                        class="btn-view-notes badge badge-xs bg-yellow-100 hover:bg-yellow-200 text-yellow-700 border-none px-2 cursor-pointer transition-colors shadow-sm"
+                                                        data-notas="{{ $tarea->notas_adicionales }}">
+                                                        <i class="fas fa-comment-dots mr-1"></i> Ver Notas
+                                                    </button>
                                                 </div>
                                             @endif
                                         </td>
@@ -232,14 +234,21 @@
                                             @endif
                                         </td>
                                         <td>
-                                            <div class="flex items-center gap-2">
-                                                <span
-                                                    class="font-bold {{ $tarea->meta_minutos && $tarea->minutos_totales > $tarea->meta_minutos ? 'text-red-500' : 'text-green-600' }}">
-                                                    {{ $tarea->minutos_totales }} min
-                                                </span>
-                                                @if($tarea->meta_minutos)
-                                                    <span class="text-xs text-gray-400">/ {{ $tarea->meta_minutos }} min meta</span>
-                                                @endif
+                                            <div class="flex flex-col gap-1">
+                                                <div class="flex items-center gap-2">
+                                                    <span
+                                                        class="font-bold {{ $tarea->meta_minutos && $tarea->minutos_totales > $tarea->meta_minutos ? 'text-red-500' : 'text-green-600' }}">
+                                                        Total: {{ $tarea->minutos_totales }} min
+                                                    </span>
+                                                    @if($tarea->meta_minutos)
+                                                        <span class="text-xs text-gray-400">/ Meta: {{ $tarea->meta_minutos }} min</span>
+                                                    @endif
+                                                </div>
+                                                <div class="text-[10px] text-gray-500 mt-1 space-y-0.5 leading-tight">
+                                                    <div><strong>Asignada:</strong> {{ $tarea->created_at->format('d M, H:i') }}</div>
+                                                    <div><strong>Iniciada:</strong> {{ $tarea->inicio ? $tarea->inicio->format('d M, H:i') : 'N/A' }}</div>
+                                                    <div><strong>Terminada:</strong> {{ $tarea->fin ? $tarea->fin->format('d M, H:i') : $tarea->updated_at->format('d M, H:i') }}</div>
+                                                </div>
                                             </div>
                                         </td>
                                     </tr>
@@ -261,3 +270,63 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        function confirmarFinalizacion(btn) {
+            Swal.fire({
+                title: '¿Finalizar Tarea?',
+                text: '¿Confirmas que terminaste la tarea de forma definitiva?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, finalizar',
+                cancelButtonText: 'No, cancelar',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-ghost hover:bg-gray-100'
+                },
+                buttonsStyling: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const form = btn.closest('form');
+                    const hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = 'estado';
+                    hiddenInput.value = 'completado';
+                    form.appendChild(hiddenInput);
+                    form.submit();
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const buttons = document.querySelectorAll('.btn-view-notes');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const rawNotas = btn.getAttribute('data-notas');
+                    // Escapar y reemplazar saltos de línea por tags HTML
+                    const htmlNotas = rawNotas.replace(/\n/g, '<br>');
+
+                    Swal.fire({
+                        title: '<i class="fas fa-clipboard-list text-yellow-500 mb-2 text-4xl"></i><br><span class="text-xl font-black text-gray-800 uppercase">Notas del Mecánico</span>',
+                        html: `
+                                <div class="bg-yellow-50 text-left p-5 rounded-xl border border-yellow-200 mt-4 shadow-inner">
+                                    <div class="text-gray-700 text-sm font-medium leading-relaxed max-h-64 overflow-y-auto custom-scrollbar">
+                                        ${htmlNotas}
+                                    </div>
+                                </div>
+                            `,
+                        showConfirmButton: true,
+                        confirmButtonText: '<i class="fas fa-check"></i> Entendido',
+                        customClass: {
+                            htmlContainer: 'm-0',
+                            confirmButton: 'btn bg-gray-800 hover:bg-gray-900 border-none text-white rounded-xl w-full max-w-xs mt-4 font-bold shadow-lg shadow-gray-200',
+                            popup: 'rounded-3xl border border-gray-100 shadow-2xl p-6 bg-white'
+                        },
+                        buttonsStyling: false
+                    });
+                });
+            });
+        });
+    </script>
+@endpush
