@@ -299,10 +299,42 @@ class OrdenTrabajoController extends Controller
                 'cantidad' => $request->cantidad,
                 'precio_unitario' => $request->precio_unitario,
                 'suministrado_por' => $request->suministrado_por ?? 'taller',
+                'estado' => $request->estado ?? 'pendiente', // Por defecto nacen pendientes de aprobación
                 'notas' => $request->notas
             ]);
 
-            return response()->json(['success' => true, 'message' => 'Detalle agregado', 'data' => $detalle]);
+            // Si se agrega un detalle extra mientras ya se estaba reparando, 
+            // el flujo manda a pausar la orden a espera de confirmación cliente
+            if ($orden->estado === 'en_proceso') {
+                $orden->estado = 'espera_aprobacion_adicional';
+                $orden->save();
+            }
+
+            return response()->json(['success' => true, 'message' => 'Detalle agregado con éxito', 'data' => $detalle]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function updateDetailStatus(Request $request, $id, $detail_id)
+    {
+        try {
+            $orden = OrdenTrabajo::findOrFail($id);
+            $detalle = $orden->detalles()->findOrFail($detail_id);
+
+            $detalle->estado = $request->estado; // 'aprobado', 'rechazado', 'pendiente'
+            $detalle->save();
+
+            // Lógica opcional: si todos fueron aprobados/rechazados y estaba en espera de aprobación adicional, devolver a en_proceso
+            if ($orden->estado === 'espera_aprobacion_adicional') {
+                $pendientes = $orden->detalles()->where('estado', 'pendiente')->count();
+                if ($pendientes === 0) {
+                    $orden->estado = 'en_proceso'; // Ya respondió a todos los adicionales
+                    $orden->save();
+                }
+            }
+
+            return response()->json(['success' => true, 'message' => 'Estado del ítem actualizado', 'data' => $detalle]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
@@ -329,6 +361,20 @@ class OrdenTrabajoController extends Controller
             }
 
             return response()->json(['success' => true, 'message' => 'Tarea asignada', 'data' => $tarea]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function updateDiagnostico(Request $request, $id)
+    {
+        try {
+            $orden = OrdenTrabajo::findOrFail($id);
+            $orden->diagnostico = $request->diagnostico;
+            $orden->diagnostico_final = $request->diagnostico_final;
+            $orden->save();
+
+            return response()->json(['success' => true, 'message' => 'Diagnóstico actualizado correctamente']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }

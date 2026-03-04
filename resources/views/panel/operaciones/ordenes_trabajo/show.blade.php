@@ -144,6 +144,33 @@
             </div>
         </div>
 
+        <!-- Section: Diagnostics (New) -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="p-5 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
+                <h3 class="font-black text-gray-700 flex items-center gap-2 uppercase text-xs tracking-widest">
+                    <i class="fas fa-microscope text-purple-500"></i> Diagnóstico Técnico
+                </h3>
+            </div>
+            <div class="p-5 space-y-4 bg-white">
+                <form id="form-diagnostico" class="space-y-4">
+                    @csrf
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest">Diagnóstico Inicial</label>
+                        <textarea id="val-diagnostico" name="diagnostico" class="textarea textarea-bordered w-full h-24 bg-gray-50 focus:bg-white text-gray-700 font-medium leading-relaxed border-gray-200" placeholder="Escriba el resultado de la revisión inicial antes de la reparación...">{{ $orden->diagnostico }}</textarea>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest">Diagnóstico Final (Conclusión)</label>
+                        <textarea id="val-diagnostico-final" name="diagnostico_final" class="textarea textarea-bordered w-full h-24 bg-gray-50 focus:bg-white text-gray-700 font-medium leading-relaxed border-gray-200" placeholder="Notas una vez concluido el trabajo...">{{ $orden->diagnostico_final }}</textarea>
+                    </div>
+                    <div class="flex justify-end mt-2">
+                        <button type="button" onclick="guardarDiagnostico()" class="btn btn-sm btn-outline border-purple-200 text-purple-600 hover:bg-purple-600 hover:text-white hover:border-purple-600 gap-2 font-black uppercase tracking-tighter shadow-sm">
+                            <i class="fas fa-save"></i> Guardar Diagnóstico
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <!-- Section: Parts / Inventory -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div class="p-5 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
@@ -162,6 +189,7 @@
                             <th>Origen</th>
                             <th>Cant.</th>
                             <th>P. Unit.</th>
+                            <th>Estado</th>
                             <th class="text-right">Total</th>
                             <th></th>
                         </tr>
@@ -169,10 +197,15 @@
                     <tbody id="parts-table-body">
                         @php $totalParts = 0; @endphp
                         @forelse($orden->detalles as $detalle)
-                        @php $itemTotal = $detalle->cantidad * $detalle->precio_unitario; $totalParts += $itemTotal; @endphp
-                        <tr class="hover:bg-gray-50 transition-colors">
+                        @php 
+                            $itemTotal = $detalle->cantidad * $detalle->precio_unitario; 
+                            if ($detalle->estado !== 'rechazado') {
+                                $totalParts += $itemTotal; 
+                            }
+                        @endphp
+                        <tr class="hover:bg-gray-50 transition-colors" data-detail-id="{{ $detalle->id }}">
                             <td>
-                                <div class="font-bold text-gray-700 text-sm">
+                                <div class="font-bold text-gray-700 text-sm {{ $detalle->estado === 'rechazado' ? 'line-through text-gray-400' : '' }}">
                                     {{ $detalle->repuesto ? $detalle->repuesto->nombre : $detalle->descripcion_manual }}
                                 </div>
                                 <div class="text-[10px] text-gray-400 uppercase font-bold">{{ $detalle->repuesto ? $detalle->repuesto->codigo : 'MANUAL' }}</div>
@@ -184,7 +217,16 @@
                             </td>
                             <td class="font-bold text-sm text-gray-600">{{ number_format($detalle->cantidad, 2) }}</td>
                             <td class="text-sm text-gray-500 font-mono">Q.{{ number_format($detalle->precio_unitario, 2) }}</td>
-                            <td class="text-right font-black text-gray-800 font-mono italic">Q.{{ number_format($itemTotal, 2) }}</td>
+                            <td>
+                                <select class="select select-xs select-bordered w-full max-w-[100px] status-detail-select font-bold text-[10px] uppercase {{ $detalle->estado == 'pendiente' ? 'text-orange-500' : ($detalle->estado == 'aprobado' ? 'text-green-600' : 'text-red-500') }}">
+                                    <option value="pendiente" {{ $detalle->estado == 'pendiente' ? 'selected' : '' }}>Pdte</option>
+                                    <option value="aprobado" {{ $detalle->estado == 'aprobado' ? 'selected' : '' }}>Aprob</option>
+                                    <option value="rechazado" {{ $detalle->estado == 'rechazado' ? 'selected' : '' }}>Rechaz</option>
+                                </select>
+                            </td>
+                            <td class="text-right font-black text-gray-800 font-mono italic {{ $detalle->estado === 'rechazado' ? 'line-through text-gray-400 opacity-50' : '' }}">
+                                Q.{{ number_format($itemTotal, 2) }}
+                            </td>
                             <td class="text-right">
                                 <button class="btn btn-ghost btn-xs text-gray-300 hover:text-red-500">
                                     <i class="fas fa-trash"></i>
@@ -230,6 +272,12 @@
                 <div class="divider"></div>
                 <button class="btn btn-primary w-full gap-2 shadow-lg shadow-blue-500/30">
                     <i class="fas fa-save"></i> Guardar Cambios
+                </button>
+                <button onclick="enviarCotizacion('{{ $orden->cliente->telefono ?? '' }}', '{{ route('panel.operaciones.ordenes_trabajo.print', $orden->id) }}', '{{ $orden->codigo_orden }}')" class="btn btn-warning w-full text-white gap-2 shadow-lg shadow-orange-500/30 font-black italic {{ $orden->detalles->where('estado', 'pendiente')->count() === 0 ? 'opacity-50' : '' }}">
+                    <i class="fas fa-paper-plane mr-1 text-xl"></i> Enviar Cotización 
+                    @if($orden->detalles->where('estado', 'pendiente')->count() > 0)
+                        <span class="badge badge-sm bg-white text-orange-600 border-none ml-1">{{ $orden->detalles->where('estado', 'pendiente')->count() }}</span>
+                    @endif
                 </button>
                 <button
                     class="btn btn-success w-full text-white gap-2 shadow-lg shadow-green-500/30 font-black italic btn-finalizar"

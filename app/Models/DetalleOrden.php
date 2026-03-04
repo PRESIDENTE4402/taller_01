@@ -18,7 +18,8 @@ class DetalleOrden extends Model
         'cantidad',
         'precio_unitario',
         'suministrado_por',
-        'notas'
+        'notas',
+        'estado'
     ];
 
     public function orden()
