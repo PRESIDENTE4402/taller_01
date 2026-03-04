@@ -400,6 +400,7 @@
         API_CITAS: "{{ route('panel.operaciones.citas.list') }}",
         API_UPDATE: "/panel/operaciones/citas",
         API_SEARCH_CLIENTS: "{{ route('panel.operaciones.citas.searchClients') }}",
+        API_CHECK_CLIENT: "{{ route('panel.operaciones.citas.checkClientExists') }}",
         API_GET_VEHICLES: "/panel/operaciones/citas/api/get-client-vehicles", 
         API_GET_BRANDS: "{{ route('panel.operaciones.citas.getBrands') }}",
         API_GET_MODELS: "/panel/mantenimientos/modelos/by-marca",

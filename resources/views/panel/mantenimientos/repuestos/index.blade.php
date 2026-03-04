@@ -5,47 +5,75 @@
 
 @section('content')
 
-    <div class="max-w-7xl mx-auto relative">
+    <div class="w-full max-w-[1920px] mx-auto px-4 lg:px-8 xl:px-12 2xl:px-16 relative flex flex-col lg:flex-row gap-8">
 
         {{-- Background Glow --}}
         <div class="absolute -top-10 -right-10 w-96 h-96 bg-cyan-900/10 rounded-full blur-3xl pointer-events-none"></div>
 
-        {{-- Header --}}
-        <div class="flex flex-col sm:flex-row justify-between items-center gap-6 mb-8 relative z-10">
-
-            <div class="relative w-full sm:w-80 group">
-                <div
-                    class="absolute -inset-0.5 bg-gradient-to-r from-cyan-300 to-blue-300 rounded-lg blur opacity-30 group-hover:opacity-75 transition duration-500">
+        {{-- Sidebar Categorías --}}
+        <aside class="w-full lg:w-72 flex-shrink-0 z-10">
+            <div class="bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white p-6 sticky top-8">
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
+                        <i class="fas fa-layer-group text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-black text-slate-800 tracking-tight leading-none mb-1">Categorías</h3>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Filtrar catálogo</p>
+                    </div>
                 </div>
-                <div class="relative flex items-center bg-white rounded-lg">
-                    <i class="fas fa-search absolute left-4 text-gray-400"></i>
-                    <input type="text" id="searchInput" placeholder="Buscar repuesto..."
-                        class="w-full py-3 pl-12 pr-4 bg-transparent border-none focus:ring-0 text-gray-700 placeholder-gray-400 font-medium rounded-lg"
-                        style="outline: none;">
+                
+                <div id="categoriasSidebarFilters" class="flex flex-col gap-2">
+                    <button onclick="filterByCategory('all')" id="btn-cat-all" class="cat-filter group px-5 py-3.5 rounded-2xl text-sm font-bold bg-blue-600 text-white shadow-lg shadow-blue-600/30 transition-all hover:-translate-y-0.5 active:scale-95 flex items-center justify-between w-full">
+                        <span class="relative z-10 truncate drop-shadow-sm">Todos los Repuestos</span>
+                        <div class="flex items-center gap-2 relative z-10">
+                            <span id="count-cat-all" class="text-[10px] font-black bg-white/30 text-white px-2 py-0.5 rounded-full transition-colors" data-count-id="all">0</span>
+                            <i class="fas fa-chevron-right text-[10px] opacity-70 group-hover:translate-x-1 transition-transform"></i>
+                        </div>
+                    </button>
+                    {{-- Dinámico via JS --}}
                 </div>
             </div>
+        </aside>
 
-            <button onclick="openModal()"
-                class="relative inline-flex items-center justify-center px-8 py-3 overflow-hidden font-bold text-white transition-all duration-300 bg-slate-900 rounded-lg group hover:scale-105 shadow-lg">
-                <span
-                    class="absolute top-0 right-0 inline-block w-4 h-4 transition-all duration-500 ease-in-out bg-cyan-500 rounded group-hover:-mr-4 group-hover:-mt-4">
-                    <span class="absolute top-0 right-0 w-5 h-5 rotate-45 translate-x-1/2 -translate-y-1/2 bg-white"></span>
-                </span>
-                <span
-                    class="absolute bottom-0 rotate-180 left-0 inline-block w-4 h-4 transition-all duration-500 ease-in-out bg-blue-600 rounded group-hover:-ml-4 group-hover:-mb-4">
-                    <span class="absolute top-0 right-0 w-5 h-5 rotate-45 translate-x-1/2 -translate-y-1/2 bg-white"></span>
-                </span>
-                <span
-                    class="absolute bottom-0 left-0 w-full h-full transition-all duration-500 ease-in-out delay-200 -translate-x-full bg-gradient-to-r from-blue-600 to-cyan-500 rounded-lg group-hover:translate-x-0"></span>
-                <span class="relative w-full text-left flex items-center gap-2">
-                    <i class="fas fa-plus"></i> Nuevo Repuesto
-                </span>
-            </button>
-        </div>
-
-        {{-- Grid --}}
-        <div id="repuestosGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 relative">
-        </div>
+        {{-- Area Principal --}}
+        <div class="flex-1 min-w-0">
+            {{-- Header --}}
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-6 mb-8 relative z-10">
+    
+                <div class="relative w-full sm:w-80 group">
+                    <div
+                        class="absolute -inset-0.5 bg-gradient-to-r from-cyan-300 to-blue-300 rounded-lg blur opacity-30 group-hover:opacity-75 transition duration-500">
+                    </div>
+                    <div class="relative flex items-center bg-white rounded-lg">
+                        <i class="fas fa-search absolute left-4 text-gray-400"></i>
+                        <input type="text" id="searchInput" placeholder="Buscar repuesto..."
+                            class="w-full py-3 pl-12 pr-4 bg-transparent border-none focus:ring-0 text-gray-700 placeholder-gray-400 font-medium rounded-lg"
+                            style="outline: none;">
+                    </div>
+                </div>
+    
+                <button onclick="openModal()"
+                    class="relative inline-flex items-center justify-center px-8 py-3 overflow-hidden font-bold text-white transition-all duration-300 bg-slate-900 rounded-lg group hover:scale-105 shadow-lg">
+                    <span
+                        class="absolute top-0 right-0 inline-block w-4 h-4 transition-all duration-500 ease-in-out bg-cyan-500 rounded group-hover:-mr-4 group-hover:-mt-4">
+                        <span class="absolute top-0 right-0 w-5 h-5 rotate-45 translate-x-1/2 -translate-y-1/2 bg-white"></span>
+                    </span>
+                    <span
+                        class="absolute bottom-0 rotate-180 left-0 inline-block w-4 h-4 transition-all duration-500 ease-in-out bg-blue-600 rounded group-hover:-ml-4 group-hover:-mb-4">
+                        <span class="absolute top-0 right-0 w-5 h-5 rotate-45 translate-x-1/2 -translate-y-1/2 bg-white"></span>
+                    </span>
+                    <span
+                        class="absolute bottom-0 left-0 w-full h-full transition-all duration-500 ease-in-out delay-200 -translate-x-full bg-gradient-to-r from-blue-600 to-cyan-500 rounded-lg group-hover:translate-x-0"></span>
+                    <span class="relative w-full text-left flex items-center gap-2">
+                        <i class="fas fa-plus"></i> Nuevo Repuesto
+                    </span>
+                </button>
+            </div>
+    
+            {{-- Grid --}}
+            <div id="repuestosGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-6 relative">
+            </div>
 
         {{-- Empty State --}}
         <div id="emptyState" class="hidden flex-col items-center justify-center py-20 text-center">
@@ -55,6 +83,8 @@
             <h3 class="text-slate-800 font-bold text-xl">Sin repuestos</h3>
             <p class="text-slate-500 text-sm mt-2">Registra tu inventario de productos.</p>
         </div>
+        
+        </div> {{-- Fin de Flex-1 Main Content --}}
     </div>
 
     {{-- Modal --}}

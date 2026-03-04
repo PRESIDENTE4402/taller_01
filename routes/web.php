@@ -77,6 +77,7 @@ Route::middleware('auth')->group(function () {
 
                 // APIs auxiliares para creación manual
                 Route::get('/api/search-clients', [App\Http\Controllers\Panel\CitaController::class, 'searchClients'])->name('searchClients');
+                Route::get('/api/check-client-exists', [App\Http\Controllers\Panel\CitaController::class, 'checkClientExists'])->name('checkClientExists');
                 Route::get('/api/search-vehicles', [App\Http\Controllers\Panel\CitaController::class, 'searchVehicles'])->name('searchVehicles');
                 Route::get('/api/get-client-vehicles/{clienteId}', [App\Http\Controllers\Panel\CitaController::class, 'getClientVehicles'])->name('getClientVehicles');
                 Route::get('/api/get-brands', [App\Http\Controllers\Panel\CitaController::class, 'getBrands'])->name('getBrands');
