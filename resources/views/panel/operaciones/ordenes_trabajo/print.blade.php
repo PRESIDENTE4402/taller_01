@@ -105,9 +105,9 @@
                         {{ $orden->cliente->nit ?? 'C/F' }}
                     </p>
                     @if($orden->cliente->es_empresa)
-                    <p><span class="font-bold text-gray-500 w-20 inline-block">Empresa:</span>
-                        {{ $orden->cliente->empresa }}
-                    </p>
+                        <p><span class="font-bold text-gray-500 w-20 inline-block">Empresa:</span>
+                            {{ $orden->cliente->empresa }}
+                        </p>
                     @endif
                 </div>
             </div>
@@ -161,44 +161,137 @@
             </div>
         </div>
 
+        <!-- Planificación y Costos (New) -->
+        @php 
+            $granTotal = 0;
+            
+            // Agrupar Mano de Obra
+            $totalManoObra = 0;
+            $descripcionesManoObra = [];
+            foreach($orden->bitacoras as $task) {
+                // Sumar todos los cobros menos los descuentos
+                $subt = floatval($task->precio_cliente ?? 0) - floatval($task->descuento_cliente ?? 0);
+                $totalManoObra += $subt;
+                $descripcionesManoObra[] = trim($task->descripcion);
+            }
+            $textoManoObra = count($descripcionesManoObra) > 0 ? implode(', ', $descripcionesManoObra) : '';
+            $granTotal += $totalManoObra;
+        @endphp
+
+        <div class="relative z-10 mb-8">
+            <h3 class="bg-slate-800 text-white text-xs font-black uppercase tracking-widest py-2 px-4 rounded-t-lg flex items-center gap-2">
+                <i class="fas fa-tools"></i> Presupuesto Estimado
+            </h3>
+            <div class="border border-gray-200 p-0 rounded-b-lg bg-white overflow-hidden shadow-sm">
+                <table class="w-full text-sm text-left" style="page-break-inside: auto;">
+                    <thead class="bg-gray-50 text-xs text-gray-500 uppercase font-black border-b border-gray-200">
+                        <tr>
+                            <th class="px-4 py-3">Descripción</th>
+                            <th class="px-4 py-3 text-center">Tipo</th>
+                            <th class="px-4 py-3 text-right">Cant.</th>
+                            <th class="px-4 py-3 text-right">Precio Unitario</th>
+                            <th class="px-4 py-3 text-right">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        
+                        <!-- Mano de Obra Consolidada -->
+                        @if($totalManoObra > 0 || count($descripcionesManoObra) > 0)
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3 font-medium text-gray-800">
+                                <span class="font-bold">Servicios de Mano de Obra</span>
+                                <div class="text-[10px] text-gray-500 mt-0.5 leading-tight italic">{{ $textoManoObra }}</div>
+                            </td>
+                            <td class="px-4 py-3 text-center text-[10px] text-blue-600 font-bold uppercase tracking-widest align-top">Servicio</td>
+                            <td class="px-4 py-3 text-right text-gray-500 font-mono align-top">1.00</td>
+                            <td class="px-4 py-3 text-right text-gray-500 font-mono align-top">Q.{{ number_format($totalManoObra, 2) }}</td>
+                            <td class="px-4 py-3 text-right font-black text-gray-800 font-mono align-top">Q.{{ number_format($totalManoObra, 2) }}</td>
+                        </tr>
+                        @endif
+
+                        <!-- Repuestos -->
+                        @foreach($orden->detalles->where('estado', '!=', 'rechazado') as $pieza)
+                        @php 
+                            $precioUnitario = floatval($pieza->precio_unitario ?? 0);
+                            // Si lo trae el cliente o es de rechazo interno se puede ajustar.
+                            if ($pieza->suministrado_por == 'cliente') {
+                                $precioUnitario = 0;
+                            }
+                            $subtotalRep = floatval($pieza->cantidad ?? 1) * $precioUnitario;
+                            $granTotal += $subtotalRep;
+                        @endphp
+                        <tr class="hover:bg-gray-50" style="page-break-inside: avoid;">
+                            <td class="px-4 py-3 font-medium text-gray-800 align-top">
+                                {{ $pieza->repuesto ? $pieza->repuesto->nombre : $pieza->descripcion_manual }}
+                            </td>
+                            <td class="px-4 py-3 text-center text-[10px] {{ $pieza->suministrado_por == 'cliente' ? 'text-green-600' : 'text-orange-600' }} font-bold uppercase tracking-widest align-top">
+                                Repuesto {{ $pieza->suministrado_por == 'cliente' ? '(Cliente)' : '' }}
+                            </td>
+                            <td class="px-4 py-3 text-right text-gray-500 font-mono align-top">{{ number_format($pieza->cantidad ?? 1, 2) }}</td>
+                            <td class="px-4 py-3 text-right text-gray-500 font-mono align-top">Q.{{ number_format($precioUnitario, 2) }}</td>
+                            <td class="px-4 py-3 text-right font-black text-gray-800 font-mono align-top">Q.{{ number_format($subtotalRep, 2) }}</td>
+                        </tr>
+                        @endforeach
+                        
+                        @if($orden->bitacoras->isEmpty() && $orden->detalles->isEmpty())
+                        <tr>
+                            <td colspan="5" class="px-4 py-6 text-center text-gray-400 font-medium italic">En evaluación, ingrese repuestos y mano de obra a facturar.</td>
+                        </tr>
+                        @endif
+                    </tbody>
+                    @if($granTotal > 0)
+                    <tfoot class="bg-blue-50/50 border-t-2 border-slate-800">
+                        <tr>
+                            <td colspan="4" class="px-4 py-4 text-right font-black text-slate-800 uppercase tracking-widest text-xs">Total Estimado</td>
+                            <td class="px-4 py-4 text-right font-black text-blue-700 font-mono text-xl">Q.{{ number_format($granTotal, 2) }}</td>
+                        </tr>
+                    </tfoot>
+                    @endif
+                </table>
+            </div>
+            @if($granTotal > 0)
+            <p class="text-[9px] text-gray-400 mt-1 italic text-right">* Precios sujetos a modificación si se encuentran daños mecánicos/eléctricos ocultos durante el desarme inicial.</p>
+            @endif
+        </div>
+
         <!-- Inventory Checklist -->
         @php
-        $inventario = $orden->inventario_recepcion;
-        if (is_string($inventario)) {
-        $inventario = json_decode($inventario, true);
-        }
+            $inventario = $orden->inventario_recepcion;
+            if (is_string($inventario)) {
+                $inventario = json_decode($inventario, true);
+            }
         @endphp
 
         @if(is_array($inventario) && count($inventario) > 0)
-        <div class="relative z-10 mb-8 page-break-inside-avoid">
-            <h3 class="text-xs font-black text-gray-500 uppercase tracking-widest border-b-2 border-gray-200 pb-1 mb-4">
-                Inventario de Recepción
-            </h3>
-            <div class="grid grid-cols-3 gap-2 text-xs">
-                @foreach($inventario as $key => $val)
-                @if(is_array($val))
-                <!-- Special cases like documents -->
-                @foreach($val as $subKey => $subVal)
-                <div class="flex items-center gap-2">
-                    <i class="far {{ $subVal ? 'fa-check-square text-blue-900' : 'fa-square text-gray-300' }}"></i>
-                    <span class="uppercase font-semibold {{ $subVal ? 'text-gray-800' : 'text-gray-400' }}">
-                        {{ str_replace('_', ' ', $key) }} ({{ $subKey }})
-                    </span>
+            <div class="relative z-10 mb-8 page-break-inside-avoid">
+                <h3 class="text-xs font-black text-gray-500 uppercase tracking-widest border-b-2 border-gray-200 pb-1 mb-4">
+                    Inventario de Recepción
+                </h3>
+                <div class="grid grid-cols-3 gap-2 text-xs">
+                    @foreach($inventario as $key => $val)
+                        @if(is_array($val))
+                            <!-- Special cases like documents -->
+                            @foreach($val as $subKey => $subVal)
+                                <div class="flex items-center gap-2">
+                                    <i class="far {{ $subVal ? 'fa-check-square text-blue-900' : 'fa-square text-gray-300' }}"></i>
+                                    <span class="uppercase font-semibold {{ $subVal ? 'text-gray-800' : 'text-gray-400' }}">
+                                        {{ str_replace('_', ' ', $key) }} ({{ $subKey }})
+                                    </span>
+                                </div>
+                            @endforeach
+                        @else
+                            <div class="flex items-center gap-2">
+                                <i
+                                    class="far {{ ($val == 1 || $val === 'true') ? 'fa-check-square text-blue-900' : 'fa-square text-gray-300' }}"></i>
+                                <span
+                                    class="uppercase font-semibold {{ ($val == 1 || $val === 'true') ? 'text-gray-800' : 'text-gray-400' }}">
+                                    {{ str_replace('_', ' ', $key) }}
+                                </span>
+                            </div>
+                        @endif
+                    @endforeach
                 </div>
-                @endforeach
-                @else
-                <div class="flex items-center gap-2">
-                    <i
-                        class="far {{ ($val == 1 || $val === 'true') ? 'fa-check-square text-blue-900' : 'fa-square text-gray-300' }}"></i>
-                    <span
-                        class="uppercase font-semibold {{ ($val == 1 || $val === 'true') ? 'text-gray-800' : 'text-gray-400' }}">
-                        {{ str_replace('_', ' ', $key) }}
-                    </span>
-                </div>
-                @endif
-                @endforeach
             </div>
-        </div>
         @endif
 
         <!-- Damage Report (Visual) -->
@@ -208,26 +301,26 @@
             </h3>
             <div class="grid grid-cols-2 gap-4">
                 @if($orden->danos_imagen_url)
-                <div class="border border-gray-200 rounded-lg p-1">
-                    <p class="text-[10px] text-center text-gray-400 mb-1 uppercase font-bold">Diagrama de Daños</p>
-                    <img src="{{ $orden->danos_imagen_url }}" class="w-full h-auto object-contain bg-gray-50 rounded">
-                </div>
+                    <div class="border border-gray-200 rounded-lg p-1">
+                        <p class="text-[10px] text-center text-gray-400 mb-1 uppercase font-bold">Diagrama de Daños</p>
+                        <img src="{{ $orden->danos_imagen_url }}" class="w-full h-auto object-contain bg-gray-50 rounded">
+                    </div>
                 @endif
 
                 @if($orden->archivos->count() > 0)
-                <div class="border border-gray-200 rounded-lg p-1">
-                    <p class="text-[10px] text-center text-gray-400 mb-1 uppercase font-bold">Evidencia Fotográfica</p>
-                    <div class="grid grid-cols-3 gap-1">
-                        @foreach($orden->archivos->take(6) as $archivo)
-                        <img src="{{ asset($archivo->url) }}"
-                            class="w-full h-20 object-cover rounded border border-gray-100">
-                        @endforeach
+                    <div class="border border-gray-200 rounded-lg p-1">
+                        <p class="text-[10px] text-center text-gray-400 mb-1 uppercase font-bold">Evidencia Fotográfica</p>
+                        <div class="grid grid-cols-3 gap-1">
+                            @foreach($orden->archivos->take(6) as $archivo)
+                                <img src="{{ asset($archivo->url) }}"
+                                    class="w-full h-20 object-cover rounded border border-gray-100">
+                            @endforeach
+                        </div>
+                        @if($orden->archivos->count() > 6)
+                            <p class="text-[10px] text-center mt-1 text-gray-400">+ {{ $orden->archivos->count() - 6 }} fotos
+                                adicionales</p>
+                        @endif
                     </div>
-                    @if($orden->archivos->count() > 6)
-                    <p class="text-[10px] text-center mt-1 text-gray-400">+ {{ $orden->archivos->count() - 6 }} fotos
-                        adicionales</p>
-                    @endif
-                </div>
                 @endif
             </div>
         </div>
@@ -246,7 +339,7 @@
                 <p class="font-bold text-gray-800">{{ $orden->receptor->name ?? 'Asesor de Servicio' }}</p>
                 <p class="text-xs text-gray-400 uppercase tracking-wider mt-1">Firma de Receptor</p>
                 <p class="text-[10px] text-gray-400 mt-2">
-                    TECNIMECÁNICA CALIFORNIA - El arte de la ingeniería alemana.
+                    TECNIMECÁNIC A CALIFORNIA - El arte de la ingeniería alemana.
                 </p>
             </div>
         </div>

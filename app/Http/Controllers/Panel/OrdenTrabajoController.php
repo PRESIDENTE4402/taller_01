@@ -293,6 +293,32 @@ class OrdenTrabajoController extends Controller
     {
         try {
             $orden = OrdenTrabajo::findOrFail($id);
+
+            // 1. Check stock si es del taller y viene de inventario
+            if ($request->suministrado_por === 'taller' && $request->repuesto_id) {
+                $repuesto = \App\Models\Repuesto::find($request->repuesto_id);
+                if ($repuesto) {
+                    if ($repuesto->stock_actual < $request->cantidad) {
+                        return response()->json(['success' => false, 'message' => "Stock físico insuficiente en el taller. Solo te quedan {$repuesto->stock_actual} unidades de {$repuesto->nombre}."], 400);
+                    }
+
+                    // Descontar inmediatamente para reservar
+                    $repuesto->stock_actual -= $request->cantidad;
+                    $repuesto->save();
+
+                    // Crear movimiento de salida
+                    \Illuminate\Support\Facades\DB::table('movimientos_inventario')->insert([
+                        'repuesto_id' => $repuesto->id,
+                        'user_id' => \Illuminate\Support\Facades\Auth::id() ?? 1,
+                        'cantidad' => $request->cantidad,
+                        'tipo' => 'salida',
+                        'motivo' => "Despacho a Orden de Trabajo: {$orden->codigo_orden}",
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
+                }
+            }
+
             $detalle = $orden->detalles()->create([
                 'repuesto_id' => $request->repuesto_id,
                 'descripcion_manual' => $request->descripcion_manual,
@@ -322,6 +348,48 @@ class OrdenTrabajoController extends Controller
             $orden = OrdenTrabajo::findOrFail($id);
             $detalle = $orden->detalles()->findOrFail($detail_id);
 
+            // Logica de Devolución o Reasignación de Stock
+            if ($request->estado === 'rechazado' && $detalle->estado !== 'rechazado') {
+                // Return stock
+                if ($detalle->suministrado_por === 'taller' && $detalle->repuesto_id) {
+                    $repuesto = \App\Models\Repuesto::find($detalle->repuesto_id);
+                    if ($repuesto) {
+                        $repuesto->stock_actual += $detalle->cantidad;
+                        $repuesto->save();
+                        \Illuminate\Support\Facades\DB::table('movimientos_inventario')->insert([
+                            'repuesto_id' => $repuesto->id,
+                            'user_id' => \Illuminate\Support\Facades\Auth::id() ?? 1,
+                            'cantidad' => $detalle->cantidad,
+                            'tipo' => 'entrada',
+                            'motivo' => "Devolución por repuesto rechazado en OT: {$orden->codigo_orden}",
+                            'created_at' => now(),
+                            'updated_at' => now()
+                        ]);
+                    }
+                }
+            } elseif ($detalle->estado === 'rechazado' && $request->estado !== 'rechazado') {
+                // Re-deduct stock
+                if ($detalle->suministrado_por === 'taller' && $detalle->repuesto_id) {
+                    $repuesto = \App\Models\Repuesto::find($detalle->repuesto_id);
+                    if ($repuesto && $repuesto->stock_actual < $detalle->cantidad) {
+                        return response()->json(['success' => false, 'message' => "Stock insuficiente para reactivar el ítem. Quedan: {$repuesto->stock_actual}"], 400);
+                    }
+                    if ($repuesto) {
+                        $repuesto->stock_actual -= $detalle->cantidad;
+                        $repuesto->save();
+                        \Illuminate\Support\Facades\DB::table('movimientos_inventario')->insert([
+                            'repuesto_id' => $repuesto->id,
+                            'user_id' => \Illuminate\Support\Facades\Auth::id() ?? 1,
+                            'cantidad' => $detalle->cantidad,
+                            'tipo' => 'salida',
+                            'motivo' => "Reasignación de estado final en OT: {$orden->codigo_orden}",
+                            'created_at' => now(),
+                            'updated_at' => now()
+                        ]);
+                    }
+                }
+            }
+
             $detalle->estado = $request->estado; // 'aprobado', 'rechazado', 'pendiente'
             $detalle->save();
 
@@ -340,6 +408,100 @@ class OrdenTrabajoController extends Controller
         }
     }
 
+    public function updateDetail(Request $request, $id, $detail_id)
+    {
+        try {
+            $orden = OrdenTrabajo::findOrFail($id);
+            $detalle = $orden->detalles()->findOrFail($detail_id);
+
+            // Ajuste de stock si cambia la cantidad y está como taller y no rechazado
+            if ($request->has('cantidad') && $detalle->suministrado_por === 'taller' && $detalle->repuesto_id && $detalle->estado !== 'rechazado') {
+                $diferencia = $request->cantidad - $detalle->cantidad;
+                if ($diferencia != 0) {
+                    $repuesto = \App\Models\Repuesto::find($detalle->repuesto_id);
+                    if ($diferencia > 0) {
+                        // Necesita más stock
+                        if ($repuesto && $repuesto->stock_actual < $diferencia) {
+                            return response()->json(['success' => false, 'message' => "Stock insuficiente para aumentar la cantidad. Quedan: {$repuesto->stock_actual}"], 400);
+                        }
+                        if ($repuesto) {
+                            $repuesto->stock_actual -= $diferencia;
+                            $repuesto->save();
+                            \Illuminate\Support\Facades\DB::table('movimientos_inventario')->insert([
+                                'repuesto_id' => $repuesto->id,
+                                'user_id' => \Illuminate\Support\Facades\Auth::id() ?? 1,
+                                'cantidad' => $diferencia,
+                                'tipo' => 'salida',
+                                'motivo' => "Suma de cantidad al editar en OT: {$orden->codigo_orden}",
+                                'created_at' => now(),
+                                'updated_at' => now()
+                            ]);
+                        }
+                    } elseif ($diferencia < 0) {
+                        // Devuelve stock
+                        $absDif = abs($diferencia);
+                        if ($repuesto) {
+                            $repuesto->stock_actual += $absDif;
+                            $repuesto->save();
+                            \Illuminate\Support\Facades\DB::table('movimientos_inventario')->insert([
+                                'repuesto_id' => $repuesto->id,
+                                'user_id' => \Illuminate\Support\Facades\Auth::id() ?? 1,
+                                'cantidad' => $absDif,
+                                'tipo' => 'entrada',
+                                'motivo' => "Resta de cantidad al editar en OT: {$orden->codigo_orden}",
+                                'created_at' => now(),
+                                'updated_at' => now()
+                            ]);
+                        }
+                    }
+                }
+            }
+
+            // Permitimos solo ciertos campos si se necesita
+            $detalle->update([
+                'descripcion_manual' => $request->descripcion_manual,
+                'cantidad' => $request->cantidad,
+                'precio_unitario' => $request->precio_unitario,
+                'suministrado_por' => $request->suministrado_por ?? $detalle->suministrado_por,
+            ]);
+
+            return response()->json(['success' => true, 'message' => 'Repuesto actualizado con éxito', 'data' => $detalle]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function deleteDetail($id, $detail_id)
+    {
+        try {
+            $orden = OrdenTrabajo::findOrFail($id);
+            $detalle = $orden->detalles()->findOrFail($detail_id);
+
+            if ($detalle->suministrado_por === 'taller' && $detalle->repuesto_id && $detalle->estado !== 'rechazado') {
+                $repuesto = \App\Models\Repuesto::find($detalle->repuesto_id);
+                if ($repuesto) {
+                    $repuesto->stock_actual += $detalle->cantidad;
+                    $repuesto->save();
+                    \Illuminate\Support\Facades\DB::table('movimientos_inventario')->insert([
+                        'repuesto_id' => $repuesto->id,
+                        'user_id' => \Illuminate\Support\Facades\Auth::id() ?? 1,
+                        'cantidad' => $detalle->cantidad,
+                        'tipo' => 'entrada',
+                        'motivo' => "Devolución por repuesto eliminado de OT: {$orden->codigo_orden}",
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
+                }
+            }
+
+            $detalle->delete();
+
+            return response()->json(['success' => true, 'message' => 'Repuesto eliminado con éxito']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
     // Method to add Task (Bitacora) via AJAX
     public function addTask(Request $request, $id)
     {
@@ -351,7 +513,12 @@ class OrdenTrabajoController extends Controller
                 'tipo_actividad' => 'mecanica',
                 'descripcion' => $request->descripcion,
                 'meta_minutos' => $request->meta_minutos,
-                'estado' => 'en_pausa' // Default planned
+                'estado' => 'en_pausa', // Default planned
+                'precio_cliente' => $request->precio_cliente ?? 0,
+                'tipo_pago_mecanico' => $request->tipo_pago_mecanico ?? 'porcentaje',
+                'valor_pago_mecanico' => $request->valor_pago_mecanico ?? 0,
+                'descuento_cliente' => $request->descuento_cliente ?? 0,
+                'motivo_descuento' => $request->motivo_descuento ?? null
             ]);
 
             // Al asignar la primera tarea, podríamos pasar a "en_proceso" automáticamente
@@ -361,6 +528,42 @@ class OrdenTrabajoController extends Controller
             }
 
             return response()->json(['success' => true, 'message' => 'Tarea asignada', 'data' => $tarea]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function updateTask(Request $request, $id, $task_id)
+    {
+        try {
+            $orden = OrdenTrabajo::findOrFail($id);
+            $tarea = $orden->bitacoras()->findOrFail($task_id);
+
+            $tarea->update([
+                'user_id' => $request->user_id,
+                'descripcion' => $request->descripcion,
+                'meta_minutos' => $request->meta_minutos,
+                'precio_cliente' => $request->precio_cliente ?? 0,
+                'tipo_pago_mecanico' => $request->tipo_pago_mecanico ?? 'porcentaje',
+                'valor_pago_mecanico' => $request->valor_pago_mecanico ?? 0,
+                'descuento_cliente' => $request->descuento_cliente ?? 0,
+                'motivo_descuento' => $request->motivo_descuento ?? null
+            ]);
+
+            return response()->json(['success' => true, 'message' => 'Tarea actualizada']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function deleteTask($id, $task_id)
+    {
+        try {
+            $orden = OrdenTrabajo::findOrFail($id);
+            $tarea = $orden->bitacoras()->findOrFail($task_id);
+            $tarea->delete();
+
+            return response()->json(['success' => true, 'message' => 'Tarea eliminada']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
@@ -787,5 +990,79 @@ class OrdenTrabajoController extends Controller
         ])->findOrFail($id);
 
         return view('panel.operaciones.ordenes_trabajo.print', compact('orden'));
+    }
+    public function searchRepuestos(Request $request)
+    {
+        $term = $request->term;
+        $repuestos = \App\Models\Repuesto::with('categoria')
+            ->where(function ($query) use ($term) {
+                $query->where('nombre', 'LIKE', "%$term%")
+                    ->orWhere('codigo_interno', 'LIKE', "%$term%");
+            })
+            ->take(20) // un limite para que sea ágil
+            ->get();
+
+        $data = $repuestos->map(function ($r) {
+            return [
+                'id' => $r->id,
+                'nombre' => $r->nombre,
+                'codigo' => $r->codigo_interno,
+                'precio' => $r->precio_venta,
+                'categoria' => $r->categoria ? $r->categoria->nombre : 'Sin Categoría',
+                'texto' => $r->codigo_interno . ' - ' . $r->nombre . ' (Q.' . number_format($r->precio_venta, 2) . ')'
+            ];
+        });
+
+        return response()->json($data);
+    }
+
+    public function storeFastRepuesto(Request $request)
+    {
+        try {
+            $request->validate([
+                'nombre' => 'required|string',
+                'precio_venta' => 'required|numeric',
+                'stock_actual' => 'required|numeric',
+            ]);
+
+            $codigo = 'RP-' . strtoupper(substr(uniqid(), -5));
+            $sucursal_id = Auth::user()->sucursales->first()?->id ?? 1;
+
+            $repuesto = \App\Models\Repuesto::create([
+                'sucursal_id' => $sucursal_id,
+                'codigo_interno' => $codigo,
+                'nombre' => strtoupper($request->nombre),
+                'precio_venta' => $request->precio_venta,
+                'precio_costo' => $request->precio_venta * 0.7, // Costo dummy por defecto
+                'stock_actual' => $request->stock_actual,
+                'stock_minimo' => 1,
+                'categoria_id' => null, // Permite nulo si no se especifica
+                'unidad_medida' => 'unidad'
+            ]);
+
+            // Crear movimiento de entrada para el inventario inicial
+            \Illuminate\Support\Facades\DB::table('movimientos_inventario')->insert([
+                'repuesto_id' => $repuesto->id,
+                'user_id' => Auth::id() ?? 1,
+                'cantidad' => $request->stock_actual,
+                'tipo' => 'entrada',
+                'motivo' => "Ingreso rápido desde ventana de Orden de Trabajo",
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pieza agregada con éxito al inventario maestro.',
+                'repuesto' => [
+                    'id' => $repuesto->id,
+                    'nombre' => $repuesto->nombre,
+                    'codigo' => $repuesto->codigo_interno,
+                    'precio' => $repuesto->precio_venta
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 }

@@ -33,7 +33,10 @@ class OrdenTrabajo extends Model
         'diagnostico_final',
         'conteo_reprogramaciones',
         'estado',
-        'total_estimado'
+        'total_estimado',
+        'total_mano_obra',
+        'descuento_mano_obra',
+        'motivo_descuento'
     ];
 
     protected $casts = [

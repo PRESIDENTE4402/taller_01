@@ -505,7 +505,7 @@
                                 <div>
                                     <strong>Carlos Mendoza</strong>
                                     <p>Certificado BMW Nivel 3</p>
-                                    <a href="tel:+56912345678" class="link-text">Contactar</a>
+                                    <a href="tel:+50233970345" class="link-text">Contactar</a>
                                 </div>
                             </div>
                         </div>
@@ -542,7 +542,7 @@
             <div>
                 <h4>Contacto</h4>
                 <ul>
-                    <li><a href="tel:+56912345678">+56 9 1234 5678</a></li>
+                    <li><a href="tel:+50233970345">502 33970345</a></li>
                     <li><a href="mailto:info@tecnimecanica.cl">info@tecnimecanica.cl</a></li>
                     <li>Lun-Vie: 8:00 - 18:00</li>
                     <li>Sab: 9:00 - 14:00</li>
@@ -578,7 +578,7 @@
     <!-- ===== FLOATING ACTION BUTTONS (FAB) ===== -->
     <div class="fab-container">
         <!-- WhatsApp Button -->
-        <a href="https://wa.me/56912345678" target="_blank" class="fab-btn whatsapp">
+        <a href="https://wa.me/50233970345" target="_blank" class="fab-btn whatsapp">
             <i class="fab fa-whatsapp"></i>
             <span>WhatsApp</span>
         </a>

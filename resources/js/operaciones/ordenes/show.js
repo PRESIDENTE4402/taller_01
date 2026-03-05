@@ -1,10 +1,16 @@
 document.addEventListener('DOMContentLoaded', () => {
     initTaskForm();
     initPartForm();
+    initPartEditForm();
+    initRepuestoSearch();
+    initFastRepuestoForm(); // New
     initOriginButtons();
     initStatusActions();
     initDetailStatusUpdates();
+    initDeletePartButtons();
     initNotesButtons();
+    initEditTaskForm();
+    initDeleteTaskButtons();
 });
 
 function initStatusActions() {
@@ -17,7 +23,13 @@ function initStatusActions() {
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Sí, finalizar',
-                cancelButtonText: 'Cancelar'
+                cancelButtonText: 'Cancelar',
+                customClass: {
+                    confirmButton: 'btn bg-green-600 hover:bg-green-700 text-white border-none rounded-xl ml-2 shadow-lg shadow-green-500/30',
+                    cancelButton: 'btn btn-ghost border border-gray-200 hover:bg-gray-100 text-gray-600 rounded-xl font-bold',
+                    popup: 'rounded-3xl shadow-2xl border border-gray-100 bg-white p-6'
+                },
+                buttonsStyling: false
             });
 
             if (isConfirmed) {
@@ -42,13 +54,40 @@ async function updateStatus(nuevoEstado) {
 
         const data = await response.json();
         if (data.success) {
-            Swal.fire('¡Éxito!', data.message, 'success').then(() => window.location.reload());
+            Swal.fire({
+                title: '¡Éxito!',
+                text: data.message,
+                icon: 'success',
+                customClass: {
+                    confirmButton: 'btn bg-blue-600 hover:bg-blue-700 text-white border-none rounded-xl',
+                    popup: 'rounded-3xl shadow-2xl border border-gray-100 bg-white p-6'
+                },
+                buttonsStyling: false
+            }).then(() => window.location.reload());
         } else {
-            Swal.fire('Error', data.message, 'error');
+            Swal.fire({
+                title: 'Error',
+                text: data.message,
+                icon: 'error',
+                customClass: {
+                    confirmButton: 'btn bg-gray-800 text-white rounded-xl',
+                    popup: 'rounded-3xl shadow-2xl bg-white p-6'
+                },
+                buttonsStyling: false
+            });
         }
     } catch (error) {
         console.error(error);
-        Swal.fire('Error', 'No se pudo actualizar el estado', 'error');
+        Swal.fire({
+            title: 'Error',
+            text: 'No se pudo actualizar el estado',
+            icon: 'error',
+            customClass: {
+                confirmButton: 'btn bg-gray-800 text-white rounded-xl',
+                popup: 'rounded-3xl shadow-2xl bg-white p-6'
+            },
+            buttonsStyling: false
+        });
     }
 }
 
@@ -77,17 +116,38 @@ function initTaskForm() {
                     title: '¡Tarea Asignada!',
                     icon: 'success',
                     timer: 1500,
-                    showConfirmButton: false
+                    showConfirmButton: false,
+                    customClass: {
+                        popup: 'rounded-3xl shadow-2xl border border-gray-100 bg-white p-6'
+                    }
                 });
                 document.getElementById('modal-task').close();
                 form.reset();
                 window.location.reload(); // Re-render for simplicity or append row
             } else {
-                Swal.fire('Error', data.message, 'error');
+                Swal.fire({
+                    title: 'Error',
+                    text: data.message,
+                    icon: 'error',
+                    customClass: {
+                        confirmButton: 'btn bg-gray-800 text-white rounded-xl',
+                        popup: 'rounded-3xl shadow-2xl bg-white p-6'
+                    },
+                    buttonsStyling: false
+                });
             }
         } catch (error) {
             console.error(error);
-            Swal.fire('Error', 'No se pudo comunicar con el servidor', 'error');
+            Swal.fire({
+                title: 'Error',
+                text: 'No se pudo comunicar con el servidor',
+                icon: 'error',
+                customClass: {
+                    confirmButton: 'btn bg-gray-800 text-white rounded-xl',
+                    popup: 'rounded-3xl shadow-2xl bg-white p-6'
+                },
+                buttonsStyling: false
+            });
         }
     });
 }
@@ -117,17 +177,38 @@ function initPartForm() {
                     title: '¡Repuesto Agregado!',
                     icon: 'success',
                     timer: 1500,
-                    showConfirmButton: false
+                    showConfirmButton: false,
+                    customClass: {
+                        popup: 'rounded-3xl shadow-2xl border border-gray-100 bg-white p-6'
+                    }
                 });
                 document.getElementById('modal-part').close();
                 form.reset();
-                window.location.reload();
+                await reloadTableParts();
             } else {
-                Swal.fire('Error', data.message, 'error');
+                Swal.fire({
+                    title: 'Error',
+                    text: data.message,
+                    icon: 'error',
+                    customClass: {
+                        confirmButton: 'btn bg-gray-800 text-white rounded-xl',
+                        popup: 'rounded-3xl shadow-2xl bg-white p-6'
+                    },
+                    buttonsStyling: false
+                });
             }
         } catch (error) {
             console.error(error);
-            Swal.fire('Error', 'No se pudo comunicar con el servidor', 'error');
+            Swal.fire({
+                title: 'Error',
+                text: 'No se pudo comunicar con el servidor',
+                icon: 'error',
+                customClass: {
+                    confirmButton: 'btn bg-gray-800 text-white rounded-xl',
+                    popup: 'rounded-3xl shadow-2xl bg-white p-6'
+                },
+                buttonsStyling: false
+            });
         }
     });
 }
@@ -141,6 +222,17 @@ function initOriginButtons() {
             buttons.forEach(b => b.classList.remove('btn-active', 'bg-opacity-20'));
             btn.classList.add('btn-active', 'bg-opacity-20');
             input.value = btn.dataset.value;
+        });
+    });
+
+    const editButtons = document.querySelectorAll('.btn-origin-edit');
+    const editInput = document.querySelector('#edit_suministrado_por');
+
+    editButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            editButtons.forEach(b => b.classList.remove('btn-active', 'bg-opacity-20'));
+            btn.classList.add('btn-active', 'bg-opacity-20');
+            editInput.value = btn.dataset.value;
         });
     });
 }
@@ -167,16 +259,250 @@ function initDetailStatusUpdates() {
 
                 const data = await response.json();
                 if (data.success) {
-                    window.location.reload();
+                    // Update UI without reload
+                    updateRowAppearance(tr, nuevoEstado);
+                    updateTotalParts();
                 } else {
-                    Swal.fire('Error', data.message, 'error');
+                    Swal.fire({
+                        title: 'Error',
+                        text: data.message,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn bg-gray-800 text-white rounded-xl',
+                            popup: 'rounded-3xl shadow-2xl bg-white p-6'
+                        },
+                        buttonsStyling: false
+                    });
                 }
             } catch (error) {
                 console.error(error);
-                Swal.fire('Error', 'No se pudo actualizar el estado', 'error');
+                Swal.fire({
+                    title: 'Error',
+                    text: 'No se pudo actualizar el estado',
+                    icon: 'error',
+                    customClass: {
+                        confirmButton: 'btn bg-gray-800 text-white rounded-xl',
+                        popup: 'rounded-3xl shadow-2xl bg-white p-6'
+                    },
+                    buttonsStyling: false
+                });
             }
         });
     });
+}
+
+function updateRowAppearance(tr, estado) {
+    const descDiv = tr.querySelector('td:nth-child(1) .font-bold');
+    const totalDiv = tr.querySelector('td:nth-child(6)');
+    const select = tr.querySelector('.status-detail-select');
+
+    // Reset properties
+    descDiv.classList.remove('line-through', 'text-gray-400');
+    totalDiv.classList.remove('line-through', 'text-gray-400', 'opacity-50');
+    select.classList.remove('text-orange-500', 'text-green-600', 'text-red-500');
+
+    if (estado === 'rechazado') {
+        descDiv.classList.add('line-through', 'text-gray-400');
+        totalDiv.classList.add('line-through', 'text-gray-400', 'opacity-50');
+        select.classList.add('text-red-500');
+    } else if (estado === 'aprobado') {
+        select.classList.add('text-green-600');
+    } else {
+        select.classList.add('text-orange-500');
+    }
+}
+
+function updateTotalParts() {
+    let sumParts = 0;
+    const rows = document.querySelectorAll('#parts-table-body tr.hover\\:bg-gray-50');
+    rows.forEach(tr => {
+        const select = tr.querySelector('.status-detail-select');
+        if (select && select.value !== 'rechazado') {
+            const qtyText = tr.querySelector('td:nth-child(3)').textContent;
+            const priceText = tr.querySelector('td:nth-child(4)').textContent.replace('Q.', '').replace(/,/g, '');
+            const qty = parseFloat(qtyText);
+            const price = parseFloat(priceText);
+
+            if (!isNaN(qty) && !isNaN(price)) {
+                sumParts += (qty * price);
+            }
+        }
+    });
+
+    // Update tfoot
+    const tfootTotal = document.getElementById('tfoot-total');
+    if (tfootTotal) {
+        tfootTotal.textContent = 'Q.' + sumParts.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    // Update sidebar
+    const sidebarPartsTotal = document.getElementById('sidebar-total-parts');
+    if (sidebarPartsTotal) {
+        sidebarPartsTotal.textContent = 'Q.' + sumParts.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+    const sidebarTotalMain = document.getElementById('sidebar-total-main');
+    if (sidebarTotalMain) {
+        sidebarTotalMain.textContent = 'Q.' + sumParts.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+}
+
+function initDeletePartButtons() {
+    const buttons = document.querySelectorAll('.btn-delete-part');
+    buttons.forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const tr = e.target.closest('tr');
+            const detailId = tr.dataset.detailId;
+            const url = window.location.pathname + '/details/' + detailId;
+
+            const { isConfirmed } = await Swal.fire({
+                title: '¿Eliminar repuesto?',
+                text: 'Esta acción no se puede deshacer.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar',
+                customClass: {
+                    confirmButton: 'btn bg-red-600 hover:bg-red-700 text-white border-none rounded-xl ml-2 shadow-lg shadow-red-500/30',
+                    cancelButton: 'btn btn-ghost border border-gray-200 hover:bg-gray-100 text-gray-600 rounded-xl font-bold',
+                    popup: 'rounded-3xl shadow-2xl border border-gray-100 bg-white p-6'
+                },
+                buttonsStyling: false
+            });
+
+            if (isConfirmed) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    const data = await response.json();
+                    if (data.success) {
+                        tr.remove();
+                        updateTotalParts();
+                        Swal.fire({
+                            title: '¡Eliminado!',
+                            icon: 'success',
+                            timer: 1500,
+                            showConfirmButton: false,
+                            customClass: {
+                                popup: 'rounded-3xl shadow-2xl border border-gray-100 bg-white p-6'
+                            }
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error',
+                            text: data.message,
+                            icon: 'error',
+                            customClass: {
+                                confirmButton: 'btn bg-gray-800 text-white rounded-xl',
+                                popup: 'rounded-3xl shadow-2xl bg-white p-6'
+                            },
+                            buttonsStyling: false
+                        });
+                    }
+                } catch (error) {
+                    console.error(error);
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'No se pudo eliminar el repuesto',
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn bg-gray-800 text-white rounded-xl',
+                            popup: 'rounded-3xl shadow-2xl bg-white p-6'
+                        },
+                        buttonsStyling: false
+                    });
+                }
+            }
+        });
+    });
+}
+
+function initPartEditForm() {
+    const form = document.getElementById('form-edit-part');
+    if (!form) return;
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const detailId = document.getElementById('edit_part_id').value;
+        const url = window.location.pathname + '/details/' + detailId;
+
+        // Build JSON payload since it's a PUT request
+        const payload = {
+            suministrado_por: document.getElementById('edit_suministrado_por').value,
+            descripcion_manual: document.getElementById('edit_descripcion_manual').value,
+            cantidad: document.getElementById('edit_cantidad').value,
+            precio_unitario: document.getElementById('edit_precio_unitario').value
+        };
+
+        try {
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+            document.getElementById('modal-edit-part').close();
+            if (data.success) {
+                Swal.fire({
+                    title: '¡Repuesto Actualizado!',
+                    icon: 'success',
+                    timer: 1500,
+                    showConfirmButton: false,
+                    customClass: {
+                        popup: 'rounded-3xl shadow-2xl border border-gray-100 bg-white p-6'
+                    }
+                });
+                await reloadTableParts();
+            } else {
+                Swal.fire({
+                    title: 'Error',
+                    text: data.message,
+                    icon: 'error',
+                    customClass: {
+                        confirmButton: 'btn bg-gray-800 text-white rounded-xl',
+                        popup: 'rounded-3xl shadow-2xl bg-white p-6'
+                    },
+                    buttonsStyling: false
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            Swal.fire({
+                title: 'Error',
+                text: 'No se pudo comunicar con el servidor',
+                icon: 'error',
+                customClass: {
+                    confirmButton: 'btn bg-gray-800 text-white rounded-xl',
+                    popup: 'rounded-3xl shadow-2xl bg-white p-6'
+                },
+                buttonsStyling: false
+            });
+        }
+    });
+}
+
+window.openEditPartModal = function (detailId, origen, descripcion, cantidad, precio) {
+    document.getElementById('edit_part_id').value = detailId;
+    document.getElementById('edit_descripcion_manual').value = descripcion;
+    document.getElementById('edit_cantidad').value = cantidad;
+    document.getElementById('edit_precio_unitario').value = precio;
+    document.getElementById('edit_suministrado_por').value = origen;
+
+    const editButtons = document.querySelectorAll('.btn-origin-edit');
+    editButtons.forEach(b => b.classList.remove('btn-active', 'bg-opacity-20'));
+    document.querySelector(`.btn-origin-edit[data-value="${origen}"]`).classList.add('btn-active', 'bg-opacity-20');
+
+    document.getElementById('modal-edit-part').showModal();
 }
 
 window.enviarCotizacion = function (telefono, linkPdf, codigoOrden) {
@@ -216,10 +542,10 @@ window.enviarCotizacion = function (telefono, linkPdf, codigoOrden) {
                 }
 
                 const mensaje = encodeURIComponent(
-                    `*Taller Mecánico - Cotización Orden #${codigoOrden}*\n\n` +
-                    `Hola! Te enviamos una actualización/cotización sobre los servicios de tu vehículo.\n\n` +
-                    `📄 *Puedes ver y descargar el detalle completo aquí:*\n${linkPdf}\n\n` +
-                    `¡Quedamos a la espera de tu confirmación para proceder!`
+                    `*Taller Mecánico - Cotización Orden #${codigoOrden}* 🚘\n\n` +
+                    `¡Hola! 👨‍🔧 Te enviamos una actualización/cotización sobre los servicios de tu vehículo.\n\n` +
+                    `📄 *Puedes ver el detalle completo de la orden aquí:*\n${linkPdf}\n\n` +
+                    `¡Quedamos a la espera de tu confirmación para proceder! ✅`
                 );
 
                 window.open(`https://wa.me/${numeroLimpio}?text=${mensaje}`, '_blank');
@@ -238,9 +564,9 @@ window.enviarCotizacion = function (telefono, linkPdf, codigoOrden) {
                     }
                 }).then(() => {
                     Swal.fire({
-                        title: 'Enviado',
-                        text: 'La cotización PDF fue enviada al correo registrado del cliente.',
-                        icon: 'success',
+                        title: 'Aviso',
+                        text: 'La cotización debe ser confirmada. Funcionalidad de correos programada para la próxima actualización de tu sistema.',
+                        icon: 'info',
                         customClass: {
                             confirmButton: 'btn bg-blue-600 hover:bg-blue-700 text-white border-none rounded-xl'
                         },
@@ -248,6 +574,197 @@ window.enviarCotizacion = function (telefono, linkPdf, codigoOrden) {
                     });
                 });
             });
+        }
+    });
+}
+
+function initRepuestoSearch() {
+    const searchInput = document.getElementById('busqueda-repuesto');
+    const sugerenciasUl = document.getElementById('lista-sugerencias-repuestos');
+    const hiddenRepuestoId = document.getElementById('repuesto_id_hidden');
+    const manualDescInput = document.querySelector('input[name="descripcion_manual"]');
+    const precioInput = document.querySelector('input[name="precio_unitario"]');
+    // Ruta limpia extraida de la url, cortando el ID de orden original si existe.
+    // Ej: /panel/operaciones/ordenes-trabajo/12 -> /panel/operaciones/ordenes-trabajo/api/search-repuestos
+    const baseUrl = window.location.pathname.replace(/\/\d+$/, '');
+    const apiRoute = baseUrl + '/api/search-repuestos';
+
+    if (!searchInput) return;
+
+    let timeoutId;
+
+    searchInput.addEventListener('input', (e) => {
+        clearTimeout(timeoutId);
+        const term = e.target.value.trim();
+
+        if (term.length < 2) {
+            sugerenciasUl.classList.add('hidden');
+            sugerenciasUl.innerHTML = '';
+            hiddenRepuestoId.value = '';
+            manualDescInput.value = searchInput.value; // si escribe algo y no lo elige, se asume manual
+            return;
+        }
+
+        timeoutId = setTimeout(async () => {
+            try {
+                const response = await fetch(`${apiRoute}?term=${term}`);
+                const data = await response.json();
+
+                if (data.length > 0) {
+                    // Agrupar por categoria
+                    const grouped = data.reduce((acc, curr) => {
+                        if (!acc[curr.categoria]) acc[curr.categoria] = [];
+                        acc[curr.categoria].push(curr);
+                        return acc;
+                    }, {});
+
+                    let html = '';
+                    for (const [cat, items] of Object.entries(grouped)) {
+                        html += `<li class="px-4 py-1.5 bg-gray-100 border-y border-gray-200 text-[10px] uppercase font-black tracking-widest text-gray-400 sticky top-0 z-10"><i class="fas fa-tag mr-1"></i> ${cat}</li>`;
+                        items.forEach(item => {
+                            html += `
+                                <li class="px-4 py-2 cursor-pointer hover:bg-blue-50 border-b border-gray-50 last:border-0 suggestion-item flex justify-between items-center transition-colors"
+                                    data-id="${item.id}"
+                                    data-nombre="${item.nombre}"
+                                    data-precio="${item.precio}"
+                                    data-codigo="${item.codigo}">
+                                    <div>
+                                        <div class="font-bold text-xs text-gray-700">${item.nombre}</div>
+                                        <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">${item.codigo}</div>
+                                    </div>
+                                    <div class="font-mono font-bold text-sm text-blue-600">Q.${parseFloat(item.precio).toFixed(2)}</div>
+                                </li>
+                            `;
+                        });
+                    }
+                    sugerenciasUl.innerHTML = html;
+                    sugerenciasUl.classList.remove('hidden');
+
+                    // Click en las descripciones
+                    document.querySelectorAll('.suggestion-item').forEach(li => {
+                        li.addEventListener('click', () => {
+                            searchInput.value = li.dataset.nombre;
+                            hiddenRepuestoId.value = li.dataset.id;
+                            manualDescInput.value = ''; // limpiar descripción manual ya que usará repuesto de stock
+                            // Set precio e inutilizar description manual temporalmente o permitir al form guardar ambos, 
+                            // pero el backend da prioridad al id si existe.
+                            if (precioInput && li.dataset.precio > 0) {
+                                precioInput.value = parseFloat(li.dataset.precio).toFixed(2);
+                            }
+                            sugerenciasUl.classList.add('hidden');
+                        });
+                    });
+
+                } else {
+                    sugerenciasUl.innerHTML = '<li class="px-4 py-4 text-sm text-gray-400 font-medium italic text-center">No se encontraron repuestos en este inventario. Puedes crearlo manualmente abajo.</li>';
+                    sugerenciasUl.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }, 300); // Debounce de 300ms
+    });
+
+    // Ocultar si se hace click fuera
+    document.addEventListener('click', (e) => {
+        if (!searchInput.contains(e.target) && !sugerenciasUl.contains(e.target)) {
+            sugerenciasUl.classList.add('hidden');
+        }
+    });
+}
+
+function initFastRepuestoForm() {
+    const form = document.getElementById('form-fast-repuesto');
+    if (!form) return;
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const payload = {
+            nombre: document.getElementById('fast_nombre').value,
+            precio_venta: document.getElementById('fast_precio').value,
+            stock_actual: document.getElementById('fast_stock').value
+        };
+
+        const baseUrl = window.location.pathname.replace(/\/\d+$/, '');
+        const apiRoute = baseUrl + '/api/fast-repuesto';
+
+        // Change button state
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const ogText = submitBtn.innerText;
+        submitBtn.innerHTML = '<span class="loading loading-spinner"></span> Guardando...';
+        submitBtn.disabled = true;
+
+        try {
+            const response = await fetch(apiRoute, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                Swal.fire({
+                    title: '¡Pieza Creada!',
+                    text: data.message,
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false,
+                    customClass: { popup: 'rounded-3xl shadow-2xl border border-gray-100 bg-white p-6' }
+                });
+
+                // Set into search
+                document.getElementById('busqueda-repuesto').value = data.repuesto.nombre;
+                document.getElementById('repuesto_id_hidden').value = data.repuesto.id;
+                document.querySelector('input[name="descripcion_manual"]').value = ''; // Clean
+
+                // Select Taller mode dynamically if it exists
+                document.querySelectorAll('.btn-origin').forEach(b => b.classList.remove('btn-active', 'bg-opacity-20'));
+                const tallerBtn = document.querySelector('.btn-origin[data-value="taller"]');
+                if (tallerBtn) {
+                    tallerBtn.classList.add('btn-active', 'bg-opacity-20');
+                    document.querySelector('input[name="suministrado_por"]').value = 'taller';
+                }
+
+                // Set Unit Price
+                const precioInput = document.querySelector('input[name="precio_unitario"]');
+                if (precioInput) {
+                    precioInput.value = parseFloat(data.repuesto.precio).toFixed(2);
+                }
+
+                document.getElementById('modal-fast-repuesto').close();
+                form.reset();
+            } else {
+                Swal.fire({
+                    title: 'Error',
+                    text: data.message,
+                    icon: 'error',
+                    customClass: {
+                        confirmButton: 'btn bg-gray-800 text-white rounded-xl',
+                        popup: 'rounded-3xl shadow-2xl bg-white p-6'
+                    },
+                    buttonsStyling: false
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            Swal.fire({
+                title: 'Error',
+                text: 'No se pudo crear el repuesto rápido',
+                icon: 'error',
+                customClass: {
+                    confirmButton: 'btn bg-gray-800 text-white rounded-xl',
+                    popup: 'rounded-3xl shadow-2xl bg-white p-6'
+                },
+                buttonsStyling: false
+            });
+        } finally {
+            submitBtn.innerText = ogText;
+            submitBtn.disabled = false;
         }
     });
 }
@@ -316,4 +833,177 @@ function initNotesButtons() {
             });
         });
     });
+}
+
+window.openEditTaskModal = function (taskId, userId, descripcion, metaMinutos, precioCliente, descuentoCliente, motivoDescuento, tipoPago, valorPago) {
+    document.getElementById('edit-task-id').value = taskId;
+    document.getElementById('edit-task-user_id').value = userId;
+    document.getElementById('edit-task-descripcion').value = descripcion;
+    document.getElementById('edit-task-meta_minutos').value = metaMinutos || 0;
+    document.getElementById('edit-task-precio').value = precioCliente || 0;
+    document.getElementById('edit-task-descuento').value = descuentoCliente || 0;
+    document.getElementById('edit-task-motivo_descuento').value = motivoDescuento;
+    document.getElementById('edit-task-tipo_pago').value = tipoPago || 'porcentaje';
+    document.getElementById('edit-task-valor_pago').value = valorPago || 0;
+    document.getElementById('modal-edit-task').showModal();
+};
+
+function initEditTaskForm() {
+    const form = document.getElementById('form-edit-task');
+    if (!form) return;
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const taskId = document.getElementById('edit-task-id').value;
+        const formData = new FormData(form);
+        const url = window.location.pathname + '/tasks/' + taskId;
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST', // Usamos POST porque _method=PUT ya va en FormData
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+
+            document.getElementById('modal-edit-task').close();
+
+            if (data.success) {
+                Swal.fire({
+                    title: '¡Tarea Actualizada!',
+                    icon: 'success',
+                    timer: 1500,
+                    showConfirmButton: false,
+                    customClass: { popup: 'rounded-3xl shadow-2xl border border-gray-100 bg-white p-6' }
+                });
+
+                // Actualizar la fila discretamente
+                const btn = document.querySelector(`.btn-delete-task[data-task-id="${taskId}"]`);
+                if (btn) {
+                    const tr = btn.closest('tr');
+                    const nuevaDesc = document.getElementById('edit-task-descripcion').value;
+                    const descDiv = tr.querySelector('.font-black.text-gray-800.text-sm.italic');
+                    if (descDiv) descDiv.innerText = nuevaDesc;
+
+                    const nuevoMinutos = document.getElementById('edit-task-meta_minutos').value;
+                    const minSpan = tr.querySelector('.badge-ghost.font-mono');
+                    if (minSpan) minSpan.innerText = nuevoMinutos + ' MIN';
+                }
+            } else {
+                Swal.fire({
+                    title: 'Error',
+                    text: data.message,
+                    icon: 'error',
+                    customClass: { confirmButton: 'btn bg-gray-800 text-white rounded-xl', popup: 'rounded-3xl shadow-2xl bg-white p-6' },
+                    buttonsStyling: false
+                });
+            }
+        } catch (error) {
+            document.getElementById('modal-edit-task').close();
+            console.error(error);
+            Swal.fire({
+                title: 'Error',
+                text: 'No se pudo comunicar con el servidor',
+                icon: 'error',
+                customClass: { confirmButton: 'btn bg-gray-800 text-white rounded-xl', popup: 'rounded-3xl shadow-2xl bg-white p-6' },
+                buttonsStyling: false
+            });
+        }
+    });
+}
+
+function initDeleteTaskButtons() {
+    const btns = document.querySelectorAll('.btn-delete-task');
+    btns.forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const taskId = e.currentTarget.closest('button').dataset.taskId;
+            const url = window.location.pathname + '/tasks/' + taskId;
+
+            const { isConfirmed } = await Swal.fire({
+                title: '¿Eliminar tarea?',
+                text: 'Se borrará por completo y sus cobros.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar',
+                customClass: {
+                    confirmButton: 'btn bg-red-600 hover:bg-red-700 text-white border-none rounded-xl ml-2 shadow-lg shadow-red-500/30',
+                    cancelButton: 'btn btn-ghost border border-gray-200 hover:bg-gray-100 text-gray-600 rounded-xl font-bold',
+                    popup: 'rounded-3xl shadow-2xl border border-gray-100 bg-white p-6'
+                },
+                buttonsStyling: false
+            });
+
+            if (isConfirmed) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    const data = await response.json();
+                    if (data.success) {
+                        e.currentTarget.closest('tr').remove(); // remove row from table without reload
+                        Swal.fire({
+                            title: '¡Eliminada!',
+                            icon: 'success',
+                            timer: 1500,
+                            showConfirmButton: false,
+                            customClass: { popup: 'rounded-3xl shadow-2xl border border-gray-100 bg-white p-6' }
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error',
+                            text: data.message,
+                            icon: 'error',
+                            customClass: { confirmButton: 'btn bg-gray-800 text-white rounded-xl', popup: 'rounded-3xl shadow-2xl bg-white p-6' },
+                            buttonsStyling: false
+                        });
+                    }
+                } catch (error) {
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Error de servidor',
+                        icon: 'error',
+                        customClass: { confirmButton: 'btn bg-gray-800 text-white rounded-xl', popup: 'rounded-3xl shadow-2xl bg-white p-6' },
+                        buttonsStyling: false
+                    });
+                }
+            }
+        });
+    });
+}
+
+async function reloadTableParts() {
+    try {
+        const response = await fetch(window.location.href);
+        const html = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+
+        const replaceElement = (id) => {
+            const curr = document.getElementById(id);
+            const next = doc.getElementById(id);
+            if (curr && next) curr.innerHTML = next.innerHTML;
+        };
+
+        replaceElement('parts-table-body');
+        replaceElement('tfoot-total');
+        replaceElement('sidebar-total-parts');
+        replaceElement('sidebar-total-main');
+
+        // Re-bind events to new elements
+        initDetailStatusUpdates();
+        initDeletePartButtons();
+    } catch (err) {
+        console.error('Error reloading table', err);
+        window.location.reload(); // fallback
+    }
 }

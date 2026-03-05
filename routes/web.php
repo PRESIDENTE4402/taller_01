@@ -93,6 +93,8 @@ Route::middleware('auth')->group(function () {
 
 
             Route::prefix('ordenes-trabajo')->name('ordenes_trabajo.')->group(function () {
+                Route::get('/api/search-repuestos', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'searchRepuestos'])->name('searchRepuestos');
+                Route::post('/api/fast-repuesto', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'storeFastRepuesto'])->name('fastRepuesto'); // NUEVO REPUESTO EXPRÉS
                 Route::get('/', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'index'])->name('index');
                 Route::get('/dashboard', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'dashboard'])->name('dashboard'); // New Dashboard
                 Route::get('/list', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'list'])->name('list');
@@ -106,8 +108,12 @@ Route::middleware('auth')->group(function () {
                 Route::put('/{id}/status', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'updateStatus'])->name('status.update');
                 Route::put('/{id}/diagnostico', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'updateDiagnostico'])->name('diagnostico.update');
                 Route::post('/{id}/details', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'addDetail'])->name('details.store');
+                Route::put('/{id}/details/{detail_id}', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'updateDetail'])->name('details.update');
+                Route::delete('/{id}/details/{detail_id}', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'deleteDetail'])->name('details.destroy');
                 Route::put('/{id}/details/{detail_id}/status', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'updateDetailStatus'])->name('details.status.update');
                 Route::post('/{id}/tasks', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'addTask'])->name('tasks.store');
+                Route::put('/{id}/tasks/{task_id}', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'updateTask'])->name('tasks.update');
+                Route::delete('/{id}/tasks/{task_id}', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'deleteTask'])->name('tasks.destroy');
                 Route::put('/citas/{id}/cancel', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'cancelCita'])->name('citas.cancel');
             });
         });

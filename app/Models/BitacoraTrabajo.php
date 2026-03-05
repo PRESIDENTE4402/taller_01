@@ -23,6 +23,11 @@ class BitacoraTrabajo extends Model
         'meta_minutos',
         'estado',
         'notas_adicionales',
+        'precio_cliente',
+        'tipo_pago_mecanico',
+        'valor_pago_mecanico',
+        'descuento_cliente',
+        'motivo_descuento',
         'estado_pago',
         'pago_trabajador_id',
         'monto_pago'
