@@ -19,6 +19,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Fix para cURL error 60 (SSL certificate problem) en entorno local Windows/XAMPP
+        if (file_exists(base_path('cacert.pem'))) {
+            putenv('SSL_CERT_FILE=' . base_path('cacert.pem'));
+        }
+
         if (str_contains(request()->header('host'), 'ngrok-free.app')) {
             \URL::forceScheme('https');
         }

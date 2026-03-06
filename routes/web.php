@@ -288,7 +288,11 @@ Route::middleware('auth')->group(function () {
                 Route::get('/', [App\Http\Controllers\Panel\Planilla\PagoTrabajadorController::class, 'index'])->name('index');
                 Route::get('/list', [App\Http\Controllers\Panel\Planilla\PagoTrabajadorController::class, 'list'])->name('list');
                 Route::get('/trabajador-data/{userId}', [App\Http\Controllers\Panel\Planilla\PagoTrabajadorController::class, 'getTrabajadorData'])->name('trabajadorData');
+                Route::get('/trabajador-data-edit/{pagoId}', [App\Http\Controllers\Panel\Planilla\PagoTrabajadorController::class, 'getTrabajadorDataEdit'])->name('trabajadorDataEdit');
                 Route::post('/', [App\Http\Controllers\Panel\Planilla\PagoTrabajadorController::class, 'store'])->name('store');
+                Route::put('/{id}', [App\Http\Controllers\Panel\Planilla\PagoTrabajadorController::class, 'update'])->name('update');
+                Route::delete('/{id}', [App\Http\Controllers\Panel\Planilla\PagoTrabajadorController::class, 'destroy'])->name('destroy');
+                Route::get('/{id}/detalles', [App\Http\Controllers\Panel\Planilla\PagoTrabajadorController::class, 'detalles'])->name('detalles');
             });
         });
     });

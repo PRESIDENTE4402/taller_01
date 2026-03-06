@@ -14,8 +14,11 @@ class PagoTrabajador extends Model
         'fecha_pago',
         'fecha_inicio_periodo',
         'fecha_fin_periodo',
+        'sueldo_base',
+        'descuentos',
         'metodo_pago',
-        'observaciones'
+        'observaciones',
+        'modificado'
     ];
 
     protected $casts = [

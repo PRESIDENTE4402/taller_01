@@ -13,14 +13,31 @@ use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
         // Determinar si es admin y la sucursal activa
         $isAdmin = $user->hasRole('admin');
+
+        // Permitir cambiar sucursal vía query string
+        if ($request->has('sucursal_id')) {
+            $sid = $request->input('sucursal_id');
+            if ($sid === 'all' && $isAdmin) {
+                session(['sucursal_id' => 'all']);
+            } elseif ($sid && $sid !== 'all') {
+                $canAccess = $isAdmin || $user->sucursales->contains($sid);
+                if ($canAccess) {
+                    session(['sucursal_id' => $sid]);
+                }
+            }
+        }
+
         $sucursalId = session('sucursal_id') ?? $user->sucursales->first()?->id;
+
+        // Lista de sucursales para el selector
+        $sucursales = $isAdmin ? \App\Models\Sucursal::where('activa', true)->get() : $user->sucursales;
 
         // Base Queries con filtrado de sucursal si aplica
         $baseCitas = Cita::query();
@@ -28,18 +45,28 @@ class DashboardController extends Controller
         $baseVehiculos = Vehiculo::query();
         $baseUsers = User::query();
 
-        if (!$isAdmin && $sucursalId) {
+        // Aplicar filtros de sucursal
+        if ($sucursalId && $sucursalId !== 'all') {
             $baseCitas->where('sucursal_id', $sucursalId);
             $baseOrdenes->where('sucursal_id', $sucursalId);
 
-            // Vehículos que tengan órdenes en esta sucursal o pertenezcan a clientes de esta sucursal (simplificado: basados en historial de órdenes)
             $baseVehiculos->whereHas('ordenes', function ($q) use ($sucursalId) {
                 $q->where('sucursal_id', $sucursalId);
             });
 
-            // Trabajadores de la sucursal
             $baseUsers->whereHas('sucursales', function ($q) use ($sucursalId) {
                 $q->where('sucursales.id', $sucursalId);
+            });
+        } elseif (!$isAdmin) {
+            // Si no es admin y no tiene nada en sesión (raro), forzar sus propias sucursales
+            $userSids = $user->sucursales->pluck('id');
+            $baseCitas->whereIn('sucursal_id', $userSids);
+            $baseOrdenes->whereIn('sucursal_id', $userSids);
+            $baseVehiculos->whereHas('ordenes', function ($q) use ($userSids) {
+                $q->whereIn('sucursal_id', $userSids);
+            });
+            $baseUsers->whereHas('sucursales', function ($q) use ($userSids) {
+                $q->whereIn('sucursales.id', $userSids);
             });
         }
 
@@ -73,36 +100,60 @@ class DashboardController extends Controller
         // Órdenes separadas por estado (con su última bitácora para observaciones)
         // Órdenes separadas por estado (con su última bitácora para observaciones)
         $ordenesEnProceso = (clone $baseOrdenes)
-            ->with(['cliente', 'vehiculo.marca', 'vehiculo.modelo', 'sucursal', 'bitacoras' => function ($q) {
-                $q->latest()->limit(1);
-            }])
+            ->with([
+                'cliente',
+                'vehiculo.marca',
+                'vehiculo.modelo',
+                'sucursal',
+                'bitacoras' => function ($q) {
+                    $q->latest()->limit(1);
+                }
+            ])
             ->where('estado', 'en_proceso')
             ->orderBy('updated_at', 'desc')
             ->take(8)
             ->get();
 
         $ordenesAbiertas = (clone $baseOrdenes)
-            ->with(['cliente', 'vehiculo.marca', 'vehiculo.modelo', 'sucursal', 'bitacoras' => function ($q) {
-                $q->latest()->limit(1);
-            }])
+            ->with([
+                'cliente',
+                'vehiculo.marca',
+                'vehiculo.modelo',
+                'sucursal',
+                'bitacoras' => function ($q) {
+                    $q->latest()->limit(1);
+                }
+            ])
             ->where('estado', 'abierta')
             ->orderBy('updated_at', 'desc')
             ->take(8)
             ->get();
 
         $ordenesEsperaRepuesto = (clone $baseOrdenes)
-            ->with(['cliente', 'vehiculo.marca', 'vehiculo.modelo', 'sucursal', 'bitacoras' => function ($q) {
-                $q->latest()->limit(1);
-            }])
+            ->with([
+                'cliente',
+                'vehiculo.marca',
+                'vehiculo.modelo',
+                'sucursal',
+                'bitacoras' => function ($q) {
+                    $q->latest()->limit(1);
+                }
+            ])
             ->where('estado', 'espera_repuesto')
             ->orderBy('updated_at', 'desc')
             ->take(8)
             ->get();
 
         $ordenesFinalizadas = (clone $baseOrdenes)
-            ->with(['cliente', 'vehiculo.marca', 'vehiculo.modelo', 'sucursal', 'bitacoras' => function ($q) {
-                $q->latest()->limit(1);
-            }])
+            ->with([
+                'cliente',
+                'vehiculo.marca',
+                'vehiculo.modelo',
+                'sucursal',
+                'bitacoras' => function ($q) {
+                    $q->latest()->limit(1);
+                }
+            ])
             ->where('estado', 'finalizada')
             ->orderBy('updated_at', 'desc')
             ->take(8)
@@ -122,9 +173,11 @@ class DashboardController extends Controller
             ->whereHas('roles', function ($q) {
                 $q->whereIn('slug', ['mecanico', 'tecnico', 'ayudante']);
             })
-            ->with(['bitacoras' => function ($q) {
-                $q->latest()->limit(1);
-            }])
+            ->with([
+                'bitacoras' => function ($q) {
+                    $q->latest()->limit(1);
+                }
+            ])
             ->get()
             ->map(function ($mecanico) {
                 $ultimaBitacora = $mecanico->bitacoras->first();
@@ -147,7 +200,8 @@ class DashboardController extends Controller
             'citasProximas',
             'mecanicos',
             'isAdmin',
-            'sucursalId'
+            'sucursalId',
+            'sucursales'
         ));
     }
 }
