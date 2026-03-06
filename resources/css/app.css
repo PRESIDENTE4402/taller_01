@@ -4164,6 +4164,11 @@ footer a:hover {
     color: white;
 }
 
+/* Ensure greeting text remains readable on dark navbar */
+.navbar.scrolled .user-greeting {
+    color: white;
+}
+
 .navbar.scrolled .navbar-link:hover {
     color: var(--m-red);
 }

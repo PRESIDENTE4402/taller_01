@@ -127,6 +127,67 @@
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
         }
+
+        /* Ajustes para los controles de usuario autenticado */
+        .navbar-nav .user-action-wrapper {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .navbar-nav .user-greeting {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #111;
+            white-space: nowrap;
+        }
+
+        .navbar-nav .user-action-pill {
+            display: inline-flex;
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            background-color: rgba(255, 255, 255, 0.85);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .navbar-nav .user-action-pill a,
+        .navbar-nav .user-action-pill button {
+            padding: 0.25rem 0.7rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+            transition: background-color 0.2s;
+            text-decoration: none;
+        }
+
+        .navbar-nav .user-action-pill .pill-app {
+            background-color: #2563eb;
+            color: #fff;
+        }
+
+        .navbar-nav .user-action-pill .pill-app:hover {
+            background-color: #1d4ed8;
+        }
+
+        .navbar-nav .user-action-pill .pill-logout {
+            background-color: #dc2626;
+            color: #fff;
+        }
+
+        .navbar-nav .user-action-pill .pill-logout:hover {
+            background-color: #b91c1c;
+        }
+
+        .navbar-nav .user-action-pill .pill-separator {
+            width: 1px;
+            background-color: rgba(255, 255, 255, 0.4);
+            margin: 0 0.15rem;
+        }
     </style>
 </head>
 
@@ -152,12 +213,20 @@
 
             <div class="navbar-nav">
                 @auth
-                    <div class="dropdown">
-                        <button class="btn btn-secondary dropdown-toggle">Hola, {{ auth()->user()->name }}</button>
-                        <div class="dropdown-menu">
-                            <form action="{{ route('logout') }}" method="POST">
+                    <div class="user-action-wrapper">
+                        <span class="user-greeting">Hola, {{ auth()->user()->name }}</span>
+                        <div class="user-action-pill">
+                            <a href="{{ route('panel.dashboard') }}" class="pill-app" title="Ir a la aplicación">
+                                <i class="fas fa-arrow-right-to-bracket"></i>
+                                <span>App</span>
+                            </a>
+                            <div class="pill-separator" aria-hidden="true"></div>
+                            <form action="{{ route('logout') }}" method="POST" style="margin:0;">
                                 @csrf
-                                <button type="submit" class="dropdown-item">Cerrar Sesión</button>
+                                <button type="submit" class="pill-logout">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    <span>Salir</span>
+                                </button>
                             </form>
                         </div>
                     </div>

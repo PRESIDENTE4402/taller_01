@@ -145,6 +145,12 @@
                 </a>
                 @endcan
 
+                <a href="{{ route('home') }}" target="_blank"
+                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('home') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors">
+                    <i class="fas fa-globe w-5 text-center"></i>
+                    Pagina web
+                </a>
+
                 <a href="{{ route('panel.clientes.index') }}"
                     class="sidebar-menu-btn tooltip tooltip-right flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.clientes.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors" data-tip="Directorio Clientes">
                     <i class="fas fa-address-book w-5 text-center flex-shrink-0"></i>
