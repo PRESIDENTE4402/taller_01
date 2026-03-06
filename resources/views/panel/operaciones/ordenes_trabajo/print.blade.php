@@ -13,7 +13,7 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
+            background-color: white; /* Changed to white to avoid grey boxes */
             color: #1f2937;
             margin: 0;
             padding: 0;
@@ -26,7 +26,7 @@
             .page-container {
                 box-shadow: none !important;
                 margin: 0 !important;
-                padding: 1cm !important; /* Reduced padding for more space */
+                padding: 1cm !important;
                 width: 100% !important;
                 max-width: none !important;
                 min-height: auto !important;
@@ -37,10 +37,10 @@
         .page-container {
             max-width: 210mm;
             min-height: 297mm;
-            margin: 20px auto;
+            margin: 0 auto; /* Removed margin top/bottom for preview */
             background: white;
             padding: 1.5cm;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            box-shadow: none; /* No shadow */
             display: flex;
             flex-direction: column;
         }
@@ -84,38 +84,33 @@
             background: #fff;
         }
 
-        /* Foto Grid Refinado */
-        .inspection-container {
+        /* Foto Gallery Full Width */
+        .photo-gallery {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(3, 1fr);
             gap: 15px;
             margin-top: 10px;
         }
 
-        .damage-diagram-box {
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 10px;
-            background: #fcfcfc;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 250px;
-        }
-
-        .photo-list {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-
         .photo-item img {
             width: 100%;
-            height: 120px;
+            height: 180px;
             object-fit: cover;
-            border-radius: 8px;
+            border-radius: 12px;
             border: 1px solid #e2e8f0;
+        }
+
+        .no-photos {
+            grid-column: span 3;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed #e2e8f0;
+            border-radius: 12px;
+            color: #94a3b8;
+            font-style: italic;
+            font-size: 12px;
         }
 
         /* Tabla de Presupuesto Limpia */
@@ -136,6 +131,7 @@
             color: #64748b;
             text-transform: uppercase;
             border-bottom: 1px solid #e2e8f0;
+            text-align: left;
         }
 
         .budget-table td {
@@ -164,17 +160,17 @@
         .signature-section {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 40px;
+            gap: 80px; /* Wider gap */
             margin-top: auto;
-            padding-top: 40px;
+            padding-top: 100px; /* Big space for signatures */
         }
 
         .signature-box {
             text-align: center;
         }
         .signature-line {
-            border-top: 1px solid #cbd5e1;
-            margin-bottom: 8px;
+            border-top: 2px solid #cbd5e1;
+            margin-bottom: 10px;
         }
     </style>
 </head>
@@ -201,6 +197,7 @@
             <div class="text-right">
                 <div class="text-[10px] font-black text-blue-600 uppercase">Orden de Trabajo</div>
                 <div class="text-2xl font-black text-slate-900">#{{ $orden->codigo_orden }}</div>
+                <div class="text-sm font-bold text-slate-400 mt-1">{{ now()->format('d/m/Y') }}</div>
             </div>
         </div>
 
@@ -234,7 +231,7 @@
         <div class="grid grid-cols-2 gap-8 mt-4">
             <div class="bg-slate-50 p-4 rounded-xl flex justify-between items-center">
                 <span class="label-small">KMS Entrada:</span>
-                <span class="text-xl font-black font-mono">{{ number_format($orden->kilometraje_entrada) }}</span>
+                <span class="text-xl font-black font-mono">{{ number_format($orden->kilometraje_entrada) }} <small class="text-xs">KM</small></span>
             </div>
             <div class="bg-slate-50 p-4 rounded-xl flex justify-between items-center">
                 <span class="label-small">Combustible:</span>
@@ -244,22 +241,22 @@
 
         <!-- Falla -->
         <div class="section-header"><i class="fas fa-exclamation-circle"></i> Síntomas y Diagnóstico Inicial</div>
-        <div class="p-4 bg-white border border-slate-200 rounded-xl italic text-slate-700 text-sm leading-relaxed">
+        <div class="p-4 bg-white border border-slate-100 rounded-xl italic text-slate-700 text-sm leading-relaxed">
             "{{ $orden->falla_cliente }}"
         </div>
 
-        <!-- Inventario - Condensado -->
+        <!-- Inventario -->
         @php
             $inventario = $orden->inventario_recepcion;
             if (is_string($inventario)) { $inventario = json_decode($inventario, true); }
         @endphp
         @if(is_array($inventario))
-        <div class="section-header"><i class="fas fa-clipboard-list"></i> Inventario de Accesorios</div>
+        <div class="section-header"><i class="fas fa-clipboard-list"></i> Checklist de Accesorios</div>
         <div class="grid grid-cols-5 gap-y-3 gap-x-2 px-2">
             @foreach($inventario as $key => $val)
                 @if(!is_array($val))
                 <div class="flex items-center gap-1.5 text-[10px] {{ ($val == 1 || $val === 'true') ? 'font-bold text-slate-800' : 'text-slate-300' }}">
-                    <i class="fas {{ ($val == 1 || $val === 'true') ? 'fa-check-circle text-blue-500' : 'fa-circle-notch text-slate-200' }}"></i>
+                    <i class="fas {{ ($val == 1 || $val === 'true') ? 'fa-check-circle text-blue-500' : 'fa-circle-notch text-slate-100' }}"></i>
                     <span class="uppercase truncate">{{ str_replace('_', ' ', $key) }}</span>
                 </div>
                 @endif
@@ -267,42 +264,29 @@
         </div>
         @endif
 
-        <!-- Daños y Fotos - REDISEÑADO -->
-        <div class="section-header"><i class="fas fa-camera"></i> Evidencia Visual de Recepción</div>
-        <div class="inspection-container">
-            <div class="damage-diagram-box">
-                <span class="label-small mb-4">Diagrama de Carrocería</span>
-                @if($orden->danos_imagen_url)
-                    <img src="{{ $orden->danos_imagen_url }}" style="max-width:90%; max-height:180px; object-contain;">
-                @else
-                    <div class="text-slate-300 text-[10px] italic text-center">Sin diagrama<br>registrado</div>
-                @endif
-            </div>
-            
-            <div class="photo-list">
-                @forelse($orden->archivos->take(4) as $archivo)
-                    <div class="photo-item">
-                        <img src="{{ asset($archivo->url) }}" alt="Evidencia">
-                    </div>
-                @empty
-                    <div class="col-span-2 flex items-center justify-center h-[250px] bg-slate-50 border border-dashed border-slate-200 rounded-xl text-slate-400 text-[11px] italic">
-                        Sin fotografías registradas en la recepción
-                    </div>
-                @endforelse
-            </div>
+        <!-- Fotos -->
+        <div class="section-header"><i class="fas fa-camera"></i> Evidencia Fotográfica de Ingreso</div>
+        <div class="photo-gallery">
+            @forelse($orden->archivos as $archivo)
+                <div class="photo-item">
+                    <img src="{{ asset($archivo->url) }}" alt="Evidencia">
+                </div>
+            @empty
+                <div class="no-photos">Sin fotografías registradas en la recepción</div>
+            @endforelse
         </div>
 
         <!-- Firma -->
         <div class="signature-section">
             <div class="signature-box">
                 <div class="signature-line"></div>
-                <div class="text-[10px] font-black uppercase text-slate-800">Firma del Propietario</div>
-                <div class="text-[8px] text-slate-400 mt-1 italic leading-tight">Autorizo las pruebas y acepto el inventario detallado</div>
+                <div class="text-[11px] font-black uppercase text-slate-800">Firma del Propietario</div>
+                <div class="text-[9px] text-slate-400 mt-2 italic leading-tight px-10">Acepto los términos de servicio e inventario detallado.</div>
             </div>
             <div class="signature-box">
                 <div class="signature-line"></div>
-                <div class="text-[10px] font-black uppercase text-slate-800">Responsable de Recepción</div>
-                <div class="text-[8px] text-slate-400 mt-1">Sello y Firma - Tecnimecánica California</div>
+                <div class="text-[11px] font-black uppercase text-slate-800">Responsable de Recepción</div>
+                <div class="text-[9px] text-slate-400 mt-2 px-10">Sello y Firma - Tecnimecánica California</div>
             </div>
         </div>
     </div>
@@ -311,16 +295,16 @@
     <div class="page-break"></div>
     <div class="page-container">
         <!-- Header Presupuesto -->
-        <div class="flex justify-between items-center mb-8 border-b pb-4">
+        <div class="flex justify-between items-center mb-10 pb-6 border-b-2 border-slate-50">
             <div class="flex items-center gap-3">
                 <div class="bg-blue-600 text-white w-10 h-10 rounded-lg flex items-center justify-center font-black">P</div>
                 <div>
                     <div class="text-xl font-black text-slate-900 uppercase">Presupuesto Estimado</div>
-                    <div class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Orden de Servicio #{{ $orden->codigo_orden }}</div>
+                    <div class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Orden #{{ $orden->codigo_orden }}</div>
                 </div>
             </div>
             <div class="text-right">
-                <div class="text-[9px] font-bold text-slate-300 uppercase">Documento Preliminar</div>
+                <div class="text-[10px] font-black text-slate-300 uppercase">Documento Informativo</div>
                 <div class="text-xs font-bold text-slate-500 mt-1">{{ now()->format('d/m/Y H:i A') }}</div>
             </div>
         </div>
@@ -339,11 +323,11 @@
 
         <!-- Datos del presupuesto -->
         <div class="grid grid-cols-2 gap-6 mb-8">
-            <div class="bg-slate-50 p-5 rounded-2xl">
+            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
                 <span class="label-small block mb-1">Cliente / Propietario</span>
                 <span class="text-lg font-black uppercase italic">{{ $orden->cliente->nombre_completo }}</span>
             </div>
-            <div class="bg-slate-50 p-5 rounded-2xl">
+            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
                 <span class="label-small block mb-1">Unidad a Reparar</span>
                 <span class="text-lg font-black uppercase italic">{{ $orden->vehiculo->placa }} | {{ $orden->vehiculo->marca->nombre ?? '' }}</span>
             </div>
@@ -353,9 +337,9 @@
             <thead>
                 <tr>
                     <th width="50%">Descripción del Cargo</th>
-                    <th width="15%" class="text-center">Categoría</th>
-                    <th width="10%" class="text-right">Cant.</th>
-                    <th width="25%" class="text-right">Subtotal</th>
+                    <th width="15%" style="text-align:center">Origen</th>
+                    <th width="10%" style="text-align:right">Cant.</th>
+                    <th width="25%" style="text-align:right">Subtotal</th>
                 </tr>
             </thead>
             <tbody>
@@ -363,12 +347,12 @@
                 @if($totalManoObra > 0)
                 <tr>
                     <td>
-                        <div class="font-black text-slate-800 text-sm uppercase mb-1">Mano de Obra Certificada</div>
+                        <div class="font-black text-slate-800 text-base uppercase mb-1">Mano de Obra Certificada</div>
                         <div class="text-[11px] text-slate-500 italic leading-relaxed">{{ implode(', ', $descripcionesManoObra) }}</div>
                     </td>
-                    <td class="text-center"><span class="badge badge-service">Servicio</span></td>
-                    <td class="text-right font-mono font-bold text-slate-400">1.00</td>
-                    <td class="text-right font-mono font-black text-lg text-slate-900 italic">Q.{{ number_format($totalManoObra, 2) }}</td>
+                    <td style="text-align:center; vertical-align:middle"><span class="badge badge-service">Servicio</span></td>
+                    <td style="text-align:right; vertical-align:middle" class="font-mono font-bold text-slate-400">GLB</td>
+                    <td style="text-align:right; vertical-align:middle" class="font-mono font-black text-xl text-slate-900 italic">Q.{{ number_format($totalManoObra, 2) }}</td>
                 </tr>
                 @endif
 
@@ -381,39 +365,42 @@
                 @endphp
                 <tr>
                     <td>
-                        <div class="font-black text-slate-700 text-xs uppercase">{{ $pieza->repuesto ? $pieza->repuesto->nombre : $pieza->descripcion_manual }}</div>
-                        <div class="text-[9px] text-slate-400 font-bold uppercase mt-1">{{ $pieza->repuesto ? $pieza->repuesto->codigo : 'CONSUMO DIRECTO' }}</div>
+                        <div class="font-black text-slate-700 text-sm uppercase">{{ $pieza->repuesto ? $pieza->repuesto->nombre : $pieza->descripcion_manual }}</div>
+                        <div class="text-[9px] text-slate-400 font-bold uppercase mt-1">{{ $pieza->repuesto ? $pieza->repuesto->codigo : 'SUMINISTRO DIRECTO' }}</div>
                     </td>
-                    <td class="text-center">
+                    <td style="text-align:center; vertical-align:middle">
                         <span class="badge {{ $pieza->suministrado_por == 'cliente' ? 'badge-client' : 'badge-parts' }}">
                             {{ $pieza->suministrado_por == 'cliente' ? 'Propio' : 'Almacén' }}
                         </span>
                     </td>
-                    <td class="text-right font-mono font-bold text-slate-600">{{ number_format($pieza->cantidad ?? 1, 2) }}</td>
-                    <td class="text-right font-mono font-black text-lg text-slate-900 italic">Q.{{ number_format($subtRep, 2) }}</td>
+                    <td style="text-align:right; vertical-align:middle" class="font-mono font-bold text-slate-600">{{ number_format($pieza->cantidad ?? 1, 2) }}</td>
+                    <td style="text-align:right; vertical-align:middle" class="font-mono font-black text-xl text-slate-900 italic">Q.{{ number_format($subtRep, 2) }}</td>
                 </tr>
                 @endforeach
             </tbody>
             <tfoot>
                 <tr class="budget-total-row">
-                    <td colspan="3" class="text-right align-middle">
-                        <span class="text-xs font-black uppercase tracking-[0.3em] text-blue-400">Inversión Total Estimada</span>
+                    <td colspan="3" style="text-align:right; vertical-align:middle">
+                        <span class="text-xs font-black uppercase tracking-[0.4em] text-blue-400">Total Inversión Estimada</span>
                     </td>
-                    <td class="text-right">
-                        <div class="text-3xl font-black italic tracking-tighter">Q.{{ number_format($granTotal, 2) }}</div>
+                    <td style="text-align:right; vertical-align:middle">
+                        <div class="text-4xl font-black italic tracking-tighter">Q.{{ number_format($granTotal, 2) }}</div>
                     </td>
                 </tr>
             </tfoot>
         </table>
 
-        <div class="mt-8 grid grid-cols-2 gap-10">
-            <div class="bg-blue-50/50 p-6 rounded-2xl border border-blue-100 italic text-[10px] text-slate-600 leading-relaxed shadow-sm">
-                <strong>CLAUSULA DE PRESUPUESTO:</strong> Esta estimación se basa en la inspección visual. Cualquier reparación adicional detectada durante la ejecución será notificada de inmediato. Los precios de repuestos pueden variar sin previo aviso según disponibilidad de proveedor.
+        <div class="mt-12 space-y-12">
+            <div class="p-6 bg-slate-50 border-2 border-slate-100 rounded-2xl italic text-[10px] text-slate-500 leading-relaxed max-w-2xl">
+                <strong>NOTA DE PRESUPUESTO:</strong> Este presupuesto es una estimación sujeta a cambios tras el desarme y diagnóstico avanzado. Los precios tienen una vigencia de 48 horas. Al autorizar este servicio, el cliente acepta un margen de tolerancia sugerido por hallazgos mecánicos.
             </div>
             
-            <div class="flex flex-col justify-end gap-6 text-center px-10">
-                <div class="signature-line"></div>
-                <div class="text-[10px] font-black uppercase text-slate-800">Autorización del Cliente</div>
+            <div class="grid grid-cols-2 gap-20">
+                <div class="text-center">
+                    <div class="signature-line"></div>
+                    <div class="text-[11px] font-black uppercase text-slate-800">Autorización del Cliente</div>
+                    <div class="text-[9px] text-slate-400 mt-1">Firma y Aceptación de Cargos</div>
+                </div>
             </div>
         </div>
     </div>
