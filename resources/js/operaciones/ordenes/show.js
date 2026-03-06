@@ -150,7 +150,7 @@ function initTaskForm() {
                 });
                 document.getElementById('modal-task').close();
                 form.reset();
-                window.location.reload(); // Re-render for simplicity or append row
+                await reloadTableTasks();
             } else {
                 Swal.fire({
                     title: 'Error',
@@ -908,18 +908,7 @@ function initEditTaskForm() {
                     customClass: { popup: 'rounded-3xl shadow-2xl border border-gray-100 bg-white p-6' }
                 });
 
-                // Actualizar la fila discretamente
-                const btn = document.querySelector(`.btn-delete-task[data-task-id="${taskId}"]`);
-                if (btn) {
-                    const tr = btn.closest('tr');
-                    const nuevaDesc = document.getElementById('edit-task-descripcion').value;
-                    const descDiv = tr.querySelector('.font-black.text-gray-800.text-sm.italic');
-                    if (descDiv) descDiv.innerText = nuevaDesc;
-
-                    const nuevoMinutos = document.getElementById('edit-task-meta_minutos').value;
-                    const minSpan = tr.querySelector('.badge-ghost.font-mono');
-                    if (minSpan) minSpan.innerText = nuevoMinutos + ' MIN';
-                }
+                await reloadTableTasks();
             } else {
                 Swal.fire({
                     title: 'Error',
@@ -977,7 +966,8 @@ function initDeleteTaskButtons() {
 
                     const data = await response.json();
                     if (data.success) {
-                        e.currentTarget.closest('tr').remove(); // remove row from table without reload
+                        // remove row and reload totals
+                        await reloadTableTasks();
                         Swal.fire({
                             title: '¡Eliminada!',
                             icon: 'success',
@@ -1031,6 +1021,33 @@ async function reloadTableParts() {
         initDeletePartButtons();
     } catch (err) {
         console.error('Error reloading table', err);
+        window.location.reload(); // fallback
+    }
+}
+
+async function reloadTableTasks() {
+    try {
+        const response = await fetch(window.location.href);
+        const html = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+
+        const replaceElement = (id) => {
+            const curr = document.getElementById(id);
+            const next = doc.getElementById(id);
+            if (curr && next) curr.innerHTML = next.innerHTML;
+        };
+
+        replaceElement('tasks-table-body');
+        replaceElement('sidebar-total-main');
+        replaceElement('sidebar-saldo');
+        replaceElement('visual-stepper');
+
+        // Re-bind events to new elements
+        initDeleteTaskButtons();
+        initNotesButtons();
+    } catch (err) {
+        console.error('Error reloading tasks table', err);
         window.location.reload(); // fallback
     }
 }

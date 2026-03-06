@@ -35,7 +35,7 @@
 
             <!-- Visual Stepper -->
             <div class="px-6 pb-6 pt-2">
-                <div class="flex items-center w-full">
+                <div class="flex items-center w-full" id="visual-stepper">
                     <!-- Step 1: Received -->
                     <div class="flex flex-col items-center flex-1 relative">
                         <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs z-10 shadow-lg ring-4 ring-blue-50">
