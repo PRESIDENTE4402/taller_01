@@ -52,22 +52,22 @@
                             @if($isAssigned) <i class="fas fa-check"></i> @else 2 @endif
                         </div>
                         <span class="text-[9px] font-bold mt-2 uppercase {{ $isAssigned ? 'text-blue-600' : 'text-gray-400' }}">Planificado</span>
-                        <div class="absolute h-1 w-full {{ $orden->estado == 'en_proceso' || $orden->estado == 'finalizada' ? 'bg-blue-600' : 'bg-gray-200' }} top-4 left-1/2 -z-0"></div>
+                        <div class="absolute h-1 w-full {{ in_array($orden->estado, ['en_proceso', 'finalizada', 'entregada']) ? 'bg-blue-600' : 'bg-gray-200' }} top-4 left-1/2 -z-0"></div>
                     </div>
 
                     <!-- Step 3: Execution -->
                     <div class="flex flex-col items-center flex-1 relative">
-                        @php $inProgress = $orden->estado == 'en_proceso' || $orden->estado == 'finalizada'; @endphp
+                        @php $inProgress = in_array($orden->estado, ['en_proceso', 'finalizada', 'entregada']); @endphp
                         <div class="w-8 h-8 rounded-full {{ $inProgress ? 'bg-blue-600 text-white shadow-lg ring-4 ring-blue-50' : 'bg-gray-200 text-gray-400' }} flex items-center justify-center font-bold text-xs z-10 transition-all duration-500">
-                            @if($orden->estado == 'finalizada') <i class="fas fa-check"></i> @else 3 @endif
+                            @if(in_array($orden->estado, ['finalizada', 'entregada'])) <i class="fas fa-check"></i> @else 3 @endif
                         </div>
                         <span class="text-[9px] font-bold mt-2 uppercase {{ $inProgress ? 'text-blue-600' : 'text-gray-400' }}">Reparación</span>
-                        <div class="absolute h-1 w-full {{ $orden->estado == 'finalizada' ? 'bg-blue-600' : 'bg-gray-200' }} top-4 left-1/2 -z-0"></div>
+                        <div class="absolute h-1 w-full {{ in_array($orden->estado, ['finalizada', 'entregada']) ? 'bg-blue-600' : 'bg-gray-200' }} top-4 left-1/2 -z-0"></div>
                     </div>
 
                     <!-- Step 4: Finished -->
                     <div class="flex flex-col items-center flex-1 relative">
-                        @php $isFinished = $orden->estado == 'finalizada'; @endphp
+                        @php $isFinished = in_array($orden->estado, ['finalizada', 'entregada']); @endphp
                         <div class="w-8 h-8 rounded-full {{ $isFinished ? 'bg-green-500 text-white shadow-lg ring-4 ring-green-50' : 'bg-gray-200 text-gray-400' }} flex items-center justify-center font-bold text-xs z-10 transition-all duration-500">
                             @if($isFinished) <i class="fas fa-flag-checkered"></i> @else 4 @endif
                         </div>
