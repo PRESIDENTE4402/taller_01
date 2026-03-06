@@ -64,9 +64,8 @@ class OrdenTrabajoController extends Controller
 
     public function list(Request $request)
     {
-        // 1. Órdenes Activas (No finalizadas/entregadas)
+        // 1. Todas las Órdenes
         $ordenes = OrdenTrabajo::with(['cliente', 'vehiculo.marca', 'vehiculo.modelo', 'sucursal', 'bitacoras', 'receptor'])
-            ->whereNotIn('estado', ['finalizada', 'entregada'])
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -1093,6 +1092,44 @@ class OrdenTrabajoController extends Controller
                 'success' => true,
                 'message' => 'Cobro registrado con éxito.',
                 'pago' => $pago
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function updatePago(Request $request, $id, $pagoId)
+    {
+        try {
+            $request->validate([
+                'monto' => 'required|numeric|min:0.01',
+                'metodo_pago' => 'required|string',
+            ]);
+
+            $pago = \App\Models\Pago::where('orden_trabajo_id', $id)->findOrFail($pagoId);
+            $pago->monto = $request->monto;
+            $pago->metodo_pago = $request->metodo_pago;
+            $pago->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pago actualizado con éxito.',
+                'pago' => $pago
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function deletePago($id, $pagoId)
+    {
+        try {
+            $pago = \App\Models\Pago::where('orden_trabajo_id', $id)->findOrFail($pagoId);
+            $pago->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pago eliminado con éxito.'
             ]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);

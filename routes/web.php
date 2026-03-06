@@ -115,6 +115,8 @@ Route::middleware('auth')->group(function () {
                 Route::put('/{id}/tasks/{task_id}', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'updateTask'])->name('tasks.update');
                 Route::delete('/{id}/tasks/{task_id}', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'deleteTask'])->name('tasks.destroy');
                 Route::post('/{id}/pagos', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'storePago'])->name('pagos.store');
+                Route::put('/{id}/pagos/{pago_id}', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'updatePago'])->name('pagos.update');
+                Route::delete('/{id}/pagos/{pago_id}', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'deletePago'])->name('pagos.destroy');
                 Route::put('/citas/{id}/cancel', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'cancelCita'])->name('citas.cancel');
             });
         });

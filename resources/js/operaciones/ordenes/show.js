@@ -12,6 +12,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initEditTaskForm();
     initDeleteTaskButtons();
     initPagoForm();
+    initEditPagoForm();
+    initDeletePagoButtons();
 });
 
 function initStatusActions() {
@@ -1093,5 +1095,138 @@ function initPagoForm() {
                 customClass: { popup: 'rounded-3xl bg-white p-6' }
             });
         }
+    });
+}
+
+window.openEditPagoModal = function (pagoId, monto, metodo) {
+    document.getElementById('edit_pago_id').value = pagoId;
+    document.getElementById('edit_pago_monto').value = monto;
+    document.getElementById('edit_pago_metodo').value = metodo;
+    document.getElementById('modal-edit-pago').showModal();
+}
+
+function initEditPagoForm() {
+    const form = document.getElementById('form-edit-pago');
+    if (!form) return;
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const pagoId = document.getElementById('edit_pago_id').value;
+        const formData = new FormData(form);
+        const url = window.location.pathname + '/pagos/' + pagoId;
+
+        // Check if monto <= 0
+        const monto = parseFloat(formData.get('monto'));
+        if (isNaN(monto) || monto <= 0) {
+            Swal.fire({
+                title: 'Error',
+                text: 'El monto debe ser mayor a 0',
+                icon: 'error',
+                customClass: { popup: 'rounded-3xl' }
+            });
+            return;
+        }
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST', // we use _method=PUT natively via Laravel rules but JS is easier treating as POST or letting fetch do PUT. FormData handles `_method` gracefully.
+                headers: {
+                    // Send CSRF only
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                Swal.fire({
+                    title: '¡Pago Actualizado!',
+                    icon: 'success',
+                    timer: 1500,
+                    showConfirmButton: false,
+                    customClass: { popup: 'rounded-3xl shadow-2xl bg-white p-6' }
+                });
+                document.getElementById('modal-edit-pago').close();
+                window.location.reload();
+            } else {
+                Swal.fire({
+                    title: 'Error',
+                    text: data.message,
+                    icon: 'error',
+                    customClass: { popup: 'rounded-3xl bg-white p-6' }
+                });
+            }
+        } catch (err) {
+            console.error(err);
+            Swal.fire({
+                title: 'Error',
+                text: 'Fallo al contactar al servidor',
+                icon: 'error'
+            });
+        }
+    });
+}
+
+function initDeletePagoButtons() {
+    const buttons = document.querySelectorAll('.btn-delete-pago');
+    buttons.forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const pagoId = e.currentTarget.dataset.pagoId;
+            const url = window.location.pathname + '/pagos/' + pagoId;
+
+            const { isConfirmed } = await Swal.fire({
+                title: '¿Eliminar Pago?',
+                text: 'El monto volverá a ser parte de la deuda.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar',
+                customClass: {
+                    confirmButton: 'btn bg-red-600 hover:bg-red-700 text-white border-none rounded-xl ml-2',
+                    cancelButton: 'btn btn-ghost font-bold text-gray-500 rounded-xl',
+                    popup: 'rounded-3xl shadow-2xl bg-white p-6'
+                },
+                buttonsStyling: false
+            });
+
+            if (isConfirmed) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    const data = await response.json();
+                    if (data.success) {
+                        Swal.fire({
+                            title: '¡Eliminado!',
+                            icon: 'success',
+                            timer: 1500,
+                            showConfirmButton: false,
+                            customClass: { popup: 'rounded-3xl shadow-2xl bg-white p-6' }
+                        });
+                        window.location.reload(); // Reload to recalculate
+                    } else {
+                        Swal.fire({
+                            title: 'Error',
+                            text: data.message,
+                            icon: 'error',
+                            customClass: { popup: 'rounded-3xl bg-white p-6' }
+                        });
+                    }
+                } catch (error) {
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Error de servidor',
+                        icon: 'error',
+                        customClass: { popup: 'rounded-3xl bg-white p-6' }
+                    });
+                }
+            }
+        });
     });
 }

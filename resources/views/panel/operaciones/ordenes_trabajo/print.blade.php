@@ -13,16 +13,22 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: white; /* Changed to white to avoid grey boxes */
+            background-color: {{ request()->has('preview') ? '#525659' : 'white' }};
             color: #1f2937;
             margin: 0;
-            padding: 0;
+            padding: {{ request()->has('preview') ? '2rem 0' : '0' }};
             -webkit-print-color-adjust: exact;
         }
 
         @media print {
-            body { background-color: white !important; }
-            .no-print { display: none !important; }
+            body {
+                background-color: white !important;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
             .page-container {
                 box-shadow: none !important;
                 margin: 0 !important;
@@ -31,16 +37,19 @@
                 max-width: none !important;
                 min-height: auto !important;
             }
-            .page-break { page-break-before: always; }
+
+            .page-break {
+                page-break-before: always;
+            }
         }
 
         .page-container {
             max-width: 210mm;
             min-height: 297mm;
-            margin: 0 auto; /* Removed margin top/bottom for preview */
+            margin: 0 auto;
             background: white;
             padding: 1.5cm;
-            box-shadow: none; /* No shadow */
+            box-shadow: {{ request()->has('preview') ? '0 25px 50px -12px rgba(0, 0, 0, 0.5)' : 'none' }};
             display: flex;
             flex-direction: column;
         }
@@ -67,8 +76,18 @@
             gap: 8px;
         }
 
-        .label-small { color: #64748b; font-size: 10px; font-weight: 700; text-transform: uppercase; }
-        .data-value { color: #1e293b; font-size: 13px; font-weight: 600; }
+        .label-small {
+            color: #64748b;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .data-value {
+            color: #1e293b;
+            font-size: 13px;
+            font-weight: 600;
+        }
 
         /* Placa Refinada */
         .placa-box {
@@ -153,21 +172,36 @@
             border-radius: 4px;
             text-transform: uppercase;
         }
-        .badge-service { background: #eff6ff; color: #1d4ed8; }
-        .badge-parts { background: #fff7ed; color: #c2410c; }
-        .badge-client { background: #f0fdf4; color: #166534; }
+
+        .badge-service {
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        .badge-parts {
+            background: #fff7ed;
+            color: #c2410c;
+        }
+
+        .badge-client {
+            background: #f0fdf4;
+            color: #166534;
+        }
 
         .signature-section {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 80px; /* Wider gap */
+            gap: 80px;
+            /* Wider gap */
             margin-top: auto;
-            padding-top: 100px; /* Big space for signatures */
+            padding-top: 100px;
+            /* Big space for signatures */
         }
 
         .signature-box {
             text-align: center;
         }
+
         .signature-line {
             border-top: 2px solid #cbd5e1;
             margin-bottom: 10px;
@@ -177,21 +211,26 @@
 
 <body>
 
+    @if(!request()->has('preview'))
     <div class="fixed top-4 right-4 z-50 no-print">
-        <button onclick="window.print()" class="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold shadow-xl hover:bg-blue-700">
+        <button onclick="window.print()"
+            class="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold shadow-xl hover:bg-blue-700">
             <i class="fas fa-print mr-2"></i> Procesar Impresión
         </button>
     </div>
+    @endif
 
     <!-- PÁGINA 1: RECEPCIÓN -->
     <div class="page-container">
         <!-- Encabezado -->
         <div class="flex justify-between items-start mb-6 border-b pb-4">
             <div class="flex items-center gap-4">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/BMW.svg.png" class="w-12 h-12 object-contain">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/BMW.svg.png"
+                    class="w-12 h-12 object-contain">
                 <div>
                     <div class="header-title">TECNIMECÁNICA CALIFORNIA</div>
-                    <div class="text-[10px] text-slate-400 uppercase font-bold tracking-widest mt-1">Especialistas en ingeniería alemana</div>
+                    <div class="text-[10px] text-slate-400 uppercase font-bold tracking-widest mt-1">Especialistas en
+                        ingeniería alemana</div>
                 </div>
             </div>
             <div class="text-right">
@@ -211,14 +250,16 @@
                     <span class="label-small">Teléfono:</span>
                     <span class="data-value col-span-2">{{ $orden->cliente->telefono }}</span>
                     <span class="label-small">Email:</span>
-                    <span class="data-value col-span-2 truncate text-[11px]">{{ $orden->cliente->email ?? 'N/A' }}</span>
+                    <span
+                        class="data-value col-span-2 truncate text-[11px]">{{ $orden->cliente->email ?? 'N/A' }}</span>
                 </div>
             </div>
             <div class="space-y-1">
                 <div class="section-header" style="margin-top:0"><i class="fas fa-car-side"></i> Vehículo</div>
                 <div class="grid grid-cols-3 gap-2">
                     <span class="label-small">Unidad:</span>
-                    <span class="data-value col-span-2">{{ $orden->vehiculo->marca->nombre ?? '' }} {{ $orden->vehiculo->modelo->nombre ?? '' }}</span>
+                    <span class="data-value col-span-2">{{ $orden->vehiculo->marca->nombre ?? '' }}
+                        {{ $orden->vehiculo->modelo->nombre ?? '' }}</span>
                     <span class="label-small">Año/Color:</span>
                     <span class="data-value col-span-2">{{ $orden->vehiculo->anio }} | {{ $orden->color }}</span>
                     <span class="label-small">Placas:</span>
@@ -231,7 +272,8 @@
         <div class="grid grid-cols-2 gap-8 mt-4">
             <div class="bg-slate-50 p-4 rounded-xl flex justify-between items-center">
                 <span class="label-small">KMS Entrada:</span>
-                <span class="text-xl font-black font-mono">{{ number_format($orden->kilometraje_entrada) }} <small class="text-xs">KM</small></span>
+                <span class="text-xl font-black font-mono">{{ number_format($orden->kilometraje_entrada) }} <small
+                        class="text-xs">KM</small></span>
             </div>
             <div class="bg-slate-50 p-4 rounded-xl flex justify-between items-center">
                 <span class="label-small">Combustible:</span>
@@ -248,20 +290,24 @@
         <!-- Inventario -->
         @php
             $inventario = $orden->inventario_recepcion;
-            if (is_string($inventario)) { $inventario = json_decode($inventario, true); }
+            if (is_string($inventario)) {
+                $inventario = json_decode($inventario, true);
+            }
         @endphp
         @if(is_array($inventario))
-        <div class="section-header"><i class="fas fa-clipboard-list"></i> Checklist de Accesorios</div>
-        <div class="grid grid-cols-5 gap-y-3 gap-x-2 px-2">
-            @foreach($inventario as $key => $val)
-                @if(!is_array($val))
-                <div class="flex items-center gap-1.5 text-[10px] {{ ($val == 1 || $val === 'true') ? 'font-bold text-slate-800' : 'text-slate-300' }}">
-                    <i class="fas {{ ($val == 1 || $val === 'true') ? 'fa-check-circle text-blue-500' : 'fa-circle-notch text-slate-100' }}"></i>
-                    <span class="uppercase truncate">{{ str_replace('_', ' ', $key) }}</span>
-                </div>
-                @endif
-            @endforeach
-        </div>
+            <div class="section-header"><i class="fas fa-clipboard-list"></i> Checklist de Accesorios</div>
+            <div class="grid grid-cols-5 gap-y-3 gap-x-2 px-2">
+                @foreach($inventario as $key => $val)
+                    @if(!is_array($val))
+                        <div
+                            class="flex items-center gap-1.5 text-[10px] {{ ($val == 1 || $val === 'true') ? 'font-bold text-slate-800' : 'text-slate-300' }}">
+                            <i
+                                class="fas {{ ($val == 1 || $val === 'true') ? 'fa-check-circle text-blue-500' : 'fa-circle-notch text-slate-100' }}"></i>
+                            <span class="uppercase truncate">{{ str_replace('_', ' ', $key) }}</span>
+                        </div>
+                    @endif
+                @endforeach
+            </div>
         @endif
 
         <!-- Fotos -->
@@ -281,7 +327,8 @@
             <div class="signature-box">
                 <div class="signature-line"></div>
                 <div class="text-[11px] font-black uppercase text-slate-800">Firma del Propietario</div>
-                <div class="text-[9px] text-slate-400 mt-2 italic leading-tight px-10">Acepto los términos de servicio e inventario detallado.</div>
+                <div class="text-[9px] text-slate-400 mt-2 italic leading-tight px-10">Acepto los términos de servicio e
+                    inventario detallado.</div>
             </div>
             <div class="signature-box">
                 <div class="signature-line"></div>
@@ -292,15 +339,17 @@
     </div>
 
     <!-- PÁGINA 2: PRESUPUESTO -->
-    <div class="page-break"></div>
+    <div class="page-break {{ request()->has('preview') ? 'my-8' : '' }}"></div>
     <div class="page-container">
         <!-- Header Presupuesto -->
         <div class="flex justify-between items-center mb-10 pb-6 border-b-2 border-slate-50">
             <div class="flex items-center gap-3">
-                <div class="bg-blue-600 text-white w-10 h-10 rounded-lg flex items-center justify-center font-black">P</div>
+                <div class="bg-blue-600 text-white w-10 h-10 rounded-lg flex items-center justify-center font-black">P
+                </div>
                 <div>
                     <div class="text-xl font-black text-slate-900 uppercase">Presupuesto Estimado</div>
-                    <div class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Orden #{{ $orden->codigo_orden }}</div>
+                    <div class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Orden
+                        #{{ $orden->codigo_orden }}</div>
                 </div>
             </div>
             <div class="text-right">
@@ -310,10 +359,10 @@
         </div>
 
         @php 
-            $granTotal = 0;
+                        $granTotal = 0;
             $totalManoObra = 0;
             $descripcionesManoObra = [];
-            foreach($orden->bitacoras as $task) {
+            foreach ($orden->bitacoras as $task) {
                 $subt = floatval($task->precio_cliente ?? 0) - floatval($task->descuento_cliente ?? 0);
                 $totalManoObra += $subt;
                 $descripcionesManoObra[] = $task->descripcion;
@@ -321,6 +370,7 @@
             $granTotal += $totalManoObra;
         @endphp
 
+                   
         <!-- Datos del presupuesto -->
         <div class="grid grid-cols-2 gap-6 mb-8">
             <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
@@ -339,48 +389,61 @@
                     <th width="50%">Descripción del Cargo</th>
                     <th width="15%" style="text-align:center">Origen</th>
                     <th width="10%" style="text-align:right">Cant.</th>
-                    <th width="25%" style="text-align:right">Subtotal</th>
+
+                                                <th width="25%" style="text-align:right">Subtotal</th>
                 </tr>
+                           
             </thead>
-            <tbody>
-                <!-- Mano de Obra -->
+
+                                <tbody>
+
+                       
+                                        <!-- Mano de Obra -->
                 @if($totalManoObra > 0)
-                <tr>
-                    <td>
-                        <div class="font-black text-slate-800 text-base uppercase mb-1">Mano de Obra Certificada</div>
-                        <div class="text-[11px] text-slate-500 italic leading-relaxed">{{ implode(', ', $descripcionesManoObra) }}</div>
-                    </td>
-                    <td style="text-align:center; vertical-align:middle"><span class="badge badge-service">Servicio</span></td>
-                    <td style="text-align:right; vertical-align:middle" class="font-mono font-bold text-slate-400">GLB</td>
-                    <td style="text-align:right; vertical-align:middle" class="font-mono font-black text-xl text-slate-900 italic">Q.{{ number_format($totalManoObra, 2) }}</td>
-                </tr>
+                    <tr>
+                        <td>
+                            <div class="font-black text-slate-800 text-base uppercase mb-1">Mano de Obra Certificada</div>
+                            <div class="text-[11px] text-slate-500 italic leading-relaxed">{{ implode(', ', $descripcionesManoObra) }}</div>
+                        </td>
+                        <td style="text-align:center; vertical-align:middle"><span class="badge badge-service">Servicio</span></td>
+                        <td style="text-align:right; vertical-align:middle" class="fo
+                                nt-mono font-bold text-slate-400">GLB</td>
+                        <td style="text-align:right; vertical-align:middle" class="font-mono
+                                 font-black text-xl text-slate-900 italic">Q.{{ number_format($totalManoObra, 2) }}</td>
+                    </tr>
                 @endif
 
-                <!-- Repuestos -->
+
+                                           <!-- Repuestos -->
                 @foreach($orden->detalles->where('estado', '!=', 'rechazado') as $pieza)
-                @php 
-                    $precioUnitario = floatval($pieza->suministrado_por == 'cliente' ? 0 : ($pieza->precio_unitario ?? 0));
-                    $subtRep = floatval($pieza->cantidad ?? 1) * $precioUnitario;
-                    $granTotal += $subtRep;
-                @endphp
-                <tr>
-                    <td>
-                        <div class="font-black text-slate-700 text-sm uppercase">{{ $pieza->repuesto ? $pieza->repuesto->nombre : $pieza->descripcion_manual }}</div>
-                        <div class="text-[9px] text-slate-400 font-bold uppercase mt-1">{{ $pieza->repuesto ? $pieza->repuesto->codigo : 'SUMINISTRO DIRECTO' }}</div>
-                    </td>
-                    <td style="text-align:center; vertical-align:middle">
-                        <span class="badge {{ $pieza->suministrado_por == 'cliente' ? 'badge-client' : 'badge-parts' }}">
-                            {{ $pieza->suministrado_por == 'cliente' ? 'Propio' : 'Almacén' }}
-                        </span>
-                    </td>
-                    <td style="text-align:right; vertical-align:middle" class="font-mono font-bold text-slate-600">{{ number_format($pieza->cantidad ?? 1, 2) }}</td>
-                    <td style="text-align:right; vertical-align:middle" class="font-mono font-black text-xl text-slate-900 italic">Q.{{ number_format($subtRep, 2) }}</td>
-                </tr>
+                    @php 
+                                        $precioUnitario = floatval($pieza->suministrado_por == 'cliente' ? 0 : ($pieza->precio_unitario ?? 0));
+                        $subtRep = floatval($pieza->cantidad ?? 1) * $precioUnitario;
+                        $granTotal += $subtRep;
+                    @endphp
+                    <tr>
+                        <td>
+                            <div class="font-black text-slate-700 text-sm uppercase">{{ $pieza->repuesto ? $pieza->repuesto->nombre : $pieza->descripcion_manual }}</div>
+                            <div class="text-[9px] text-slate-400 font-bold uppercase mt-1">{{ $pieza->repuesto ? $pieza->repuesto->codigo : 'SUMINISTRO DIRECTO' }}</div>
+                        </td>
+
+                                                   <td style="text-align:center; vertical-align:middle">
+                            <span class="badge {{ $pieza->suministrado_por == 'cliente' ? 'badge-client' : 'badge-parts' }}">
+                                {{ $pieza->suministrado_por == 'cliente' ? 'Propio' : 'Almacén' }}
+
+                                                    </span>
+                        </td>
+                        <td style="text-align:right; vertical-align:middle" class="font-mono font-bold text-slate-600">{{ number_format($pieza->cantidad ?? 1, 2) }}</td>
+                        <td style="text-align:right; vertical-align:middle" class="font-mono font-black text-xl text-slate-900 italic">Q.{{ number_format($subtRep, 2) }}</td>
+                    </tr>
                 @endforeach
-            </tbody>
+            </tb
+               ody>
             <tfoot>
-                <tr class="budget-total-row">
-                    <td colspan="3" style="text-align:right; vertical-align:middle">
+
+               
+                               <tr class="budget-total-row">
+        <td colspan="3" style="text-align:right; vertical-align:middle">
                         <span class="text-xs font-black uppercase tracking-[0.4em] text-blue-400">Total Inversión Estimada</span>
                     </td>
                     <td style="text-align:right; vertical-align:middle">
@@ -394,7 +457,7 @@
             <div class="p-6 bg-slate-50 border-2 border-slate-100 rounded-2xl italic text-[10px] text-slate-500 leading-relaxed max-w-2xl">
                 <strong>NOTA DE PRESUPUESTO:</strong> Este presupuesto es una estimación sujeta a cambios tras el desarme y diagnóstico avanzado. Los precios tienen una vigencia de 48 horas. Al autorizar este servicio, el cliente acepta un margen de tolerancia sugerido por hallazgos mecánicos.
             </div>
-            
+             
             <div class="grid grid-cols-2 gap-20">
                 <div class="text-center">
                     <div class="signature-line"></div>
@@ -405,13 +468,15 @@
         </div>
     </div>
 
-    <script>
-        window.onload = function() {
-            setTimeout(() => {
-                window.print();
-            }, 800);
-        };
-    </script>
+    @if(!request()->has('preview'))
+        <script>
+            window.onload = function() {
+                setTimeout(() => {
+                    window.print();
+                }, 800);
+            };
+        </script>
+    @endif
 </body>
 
 </html>

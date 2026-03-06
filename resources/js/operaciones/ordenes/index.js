@@ -181,7 +181,8 @@ function renderModalContent(orden) {
         'abierta': 'bg-blue-100 text-blue-700',
         'en_proceso': 'bg-purple-100 text-purple-700',
         'espera_repuesto': 'bg-orange-100 text-orange-700',
-        'finalizada': 'bg-green-100 text-green-700'
+        'finalizada': 'bg-green-100 text-green-700',
+        'entregada': 'bg-gray-100 text-gray-700'
     };
 
     const editUrl = window.routes.create.replace('/create', `/${orden.id}/edit`);
@@ -344,13 +345,15 @@ function createOrderCard(orden) {
         'abierta': 'bg-blue-100 text-blue-700 border-blue-200',
         'en_proceso': 'bg-purple-100 text-purple-700 border-purple-200',
         'espera_repuesto': 'bg-orange-100 text-orange-700 border-orange-200',
-        'finalizada': 'bg-green-100 text-green-700 border-green-200'
+        'finalizada': 'bg-green-100 text-green-700 border-green-200',
+        'entregada': 'bg-gray-100 text-gray-700 border-gray-300'
     };
     const statusLabels = {
         'abierta': 'Abierta',
         'en_proceso': 'En Proceso',
         'espera_repuesto': 'Espera Repuesto',
-        'finalizada': 'Finalizada'
+        'finalizada': 'Finalizada',
+        'entregada': 'Entregada'
     };
 
     const badge = statusColors[orden.estado] || 'bg-gray-100 text-gray-600';

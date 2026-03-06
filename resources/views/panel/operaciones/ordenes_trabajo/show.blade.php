@@ -20,6 +20,10 @@
                         <h2 class="text-2xl font-black text-gray-800 tracking-tighter">{{ $orden->codigo_orden }}</h2>
                         <p class="text-gray-500 font-medium text-xs uppercase tracking-tight">{{ $orden->vehiculo->marca->nombre }} {{ $orden->vehiculo->modelo->nombre }} • <span class="text-blue-600 font-bold">{{ $orden->vehiculo->placa }}</span></p>
                     </div>
+                    <!-- Quick anchor to pagos -->
+                    <a href="#seccion-pagos" class="btn btn-sm btn-outline border-emerald-200 text-emerald-600 hover:bg-emerald-50 ml-4 shadow-sm hidden md:flex" title="Ir a Pagos y Anticipos">
+                        <i class="fas fa-money-bill-wave"></i> Cobros / Saldo
+                    </a>
                 </div>
                 <div class="flex flex-col items-center md:items-end">
                     <span class="badge badge-lg {{ $orden->estado == 'abierta' ? 'badge-info' : ($orden->estado == 'finalizada' ? 'badge-success' : 'badge-primary') }} uppercase font-black italic px-4 shadow-sm border-none text-white h-8">
@@ -268,29 +272,39 @@
             </div>
         </div>
 
+        @php 
+            $totalManoObra = $orden->bitacoras->sum('precio_cliente') - $orden->bitacoras->sum('descuento_cliente');
+            $granTotal = ($totalParts ?? 0) + $totalManoObra;
+            $totalPagos = $orden->pagos->sum('monto');
+            $saldoFaltante = $granTotal - $totalPagos;
+        @endphp
         <!-- Section: Payments (Pagos) -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mt-6">
-            <div class="p-5 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
-                <h3 class="font-bold text-gray-700 flex items-center gap-2">
-                    <i class="fas fa-money-bill-wave text-emerald-500"></i> Pagos y Anticipos
-                </h3>
+        <div id="seccion-pagos" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mt-6">
+            <div class="p-5 border-b border-gray-50 flex flex-col sm:flex-row justify-between items-center bg-gray-50/50 gap-4">
+                <div>
+                    <h3 class="font-bold text-gray-700 flex items-center gap-2">
+                        <i class="fas fa-money-bill-wave text-emerald-500"></i> Pagos y Anticipos
+                    </h3>
+                    <p class="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">Saldo pendiente: 
+                        <span class="text-{{ $saldoFaltante <= 0 ? 'green' : 'red' }}-500 font-black font-mono">Q.{{ number_format(max(0, $saldoFaltante), 2) }}</span>
+                    </p>
+                </div>
                 <button onclick="document.getElementById('modal-pago').showModal()" class="btn btn-sm btn-outline btn-success gap-2">
                     <i class="fas fa-plus"></i> Registrar Pago
                 </button>
             </div>
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto p-4 md:p-0">
                 <table class="table w-full">
                     <thead>
                         <tr class="text-gray-400 text-xs uppercase">
                             <th>Fecha</th>
                             <th>Método de Pago</th>
                             <th class="text-right">Monto</th>
+                            <th class="text-right w-20">Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="pagos-table-body">
-                        @php $totalPagos = 0; @endphp
                         @forelse($orden->pagos as $pago)
-                        @php $totalPagos += $pago->monto; @endphp
                         <tr class="hover:bg-gray-50 transition-colors">
                             <td class="font-bold text-sm text-gray-700">{{ $pago->created_at->format('d/m/Y H:i') }}</td>
                             <td>
@@ -299,10 +313,18 @@
                             <td class="text-right font-black text-emerald-600 font-mono italic">
                                 Q.{{ number_format($pago->monto, 2) }}
                             </td>
+                            <td class="text-right border-b border-gray-50 rounded-r-xl flex justify-end space-x-1">
+                                <button type="button" class="btn btn-ghost btn-xs text-gray-400 hover:text-emerald-500 transition-colors btn-edit-pago" onclick="window.openEditPagoModal({{ $pago->id }}, {{ $pago->monto }}, '{{ $pago->metodo_pago }}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button" class="btn btn-ghost btn-xs text-gray-300 hover:text-red-500 transition-colors btn-delete-pago" data-pago-id="{{ $pago->id }}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="3" class="text-center py-10 text-gray-400 italic">No se han registrado pagos.</td>
+                            <td colspan="4" class="text-center py-10 text-gray-400 italic">No se han registrado pagos.</td>
                         </tr>
                         @endforelse
                     </tbody>
@@ -311,6 +333,7 @@
                         <tr>
                             <th colspan="2" class="text-right text-gray-400 uppercase">Subtotal Pagos</th>
                             <th class="text-right text-xl font-black text-emerald-600">Q.{{ number_format($totalPagos, 2) }}</th>
+                            <th></th>
                         </tr>
                     </tfoot>
                     @endif
@@ -329,9 +352,9 @@
                 <i class="fas fa-cog text-blue-600"></i> Acciones Globales
             </h3>
             <div class="space-y-3">
-                <a href="{{ route('panel.operaciones.ordenes_trabajo.print', $orden->id) }}" target="_blank" class="btn btn-outline w-full gap-2 border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300">
+                <button type="button" onclick="document.getElementById('modal-pdf').showModal()" class="btn btn-outline w-full gap-2 border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300">
                     <i class="fas fa-print"></i> Imprimir Recepción
-                </a>
+                </button>
                 <a href="{{ route('panel.operaciones.ordenes_trabajo.edit', $orden->id) }}" class="btn btn-outline w-full gap-2 border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300">
                     <i class="fas fa-edit"></i> Editar Recepción
                 </a>
@@ -368,8 +391,7 @@
                         <span class="font-bold font-mono" id="sidebar-total-parts">Q.{{ number_format($totalParts ?? 0, 2) }}</span>
                     </div>
                     @php 
-                        $totalManoObra = $orden->bitacoras->sum('precio_cliente') - $orden->bitacoras->sum('descuento_cliente');
-                        $granTotal = $totalParts + $totalManoObra;
+                        // totalManoObra and granTotal already calculated above
                     @endphp
                     <div class="flex justify-between items-center text-sm">
                         <span class="text-blue-100">Mano de Obra (Est):</span>
@@ -800,6 +822,83 @@
         </div>
     </div>
     <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+<!-- MODAL: EDITAR PAGO -->
+<dialog id="modal-edit-pago" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box p-0 overflow-hidden bg-white rounded-3xl max-w-sm">
+        <div class="bg-gradient-to-r from-emerald-600 to-teal-700 p-6 flex justify-between items-center text-white">
+            <h3 class="font-black text-xl flex items-center gap-3">
+                <i class="fas fa-edit text-emerald-100"></i> Modificar Pago
+            </h3>
+            <button class="text-white/60 hover:text-white transition-colors" onclick="document.getElementById('modal-edit-pago').close()">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        <div class="p-6 bg-gray-50">
+            <form id="form-edit-pago">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="pago_id" id="edit_pago_id">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-widest text-emerald-600">Monto del Pago (Q) *</label>
+                        <input type="number" step="0.01" id="edit_pago_monto" name="monto" min="0" class="input input-bordered w-full font-mono text-emerald-600 font-bold bg-white text-xl" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-widest">Método de Pago *</label>
+                        <select name="metodo_pago" id="edit_pago_metodo" class="select select-bordered w-full font-bold text-gray-700 bg-white" required>
+                            <option value="Efectivo">Efectivo</option>
+                            <option value="Transferencia">Transferencia</option>
+                            <option value="Tarjeta">Tarjeta (Crédito/Débito)</option>
+                            <option value="Cheque">Cheque</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-action mt-6 border-t border-gray-100 pt-4 flex justify-between items-center">
+                    <button type="button" class="btn btn-ghost text-gray-500 px-6 font-bold hover:bg-gray-200" onclick="document.getElementById('modal-edit-pago').close()">Cancelar</button>
+                    <button type="submit" class="btn bg-emerald-600 hover:bg-emerald-700 border-none text-white px-8 font-black shadow-lg shadow-emerald-500/30">Actualizar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+<!-- MODAL: VISOR PDF -->
+<dialog id="modal-pdf" class="modal">
+    <div class="modal-box w-11/12 max-w-5xl h-[90vh] p-0 flex flex-col rounded-2xl overflow-hidden bg-gray-100">
+        <!-- Encabezado del Modal -->
+        <div class="bg-gray-800 p-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <i class="fas fa-file-pdf text-red-500 text-2xl"></i>
+                <h3 class="font-bold text-white text-lg">Recepción de Orden #{{ $orden->codigo_orden }}</h3>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="{{ route('panel.operaciones.ordenes_trabajo.print', $orden->id) }}" target="_blank" class="btn btn-sm btn-ghost text-white border border-gray-600 hover:bg-gray-700">
+                    <i class="fas fa-external-link-alt"></i> Pantalla Completa
+                </a>
+                <button class="btn btn-sm btn-circle btn-ghost text-white/50 hover:bg-gray-700 hover:text-white" onclick="document.getElementById('modal-pdf').close()">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Contenedor del Iframe -->
+        <div class="flex-grow bg-gray-300 w-full relative">
+            <iframe 
+                src="{{ route('panel.operaciones.ordenes_trabajo.print', $orden->id) }}?preview=true" 
+                class="absolute inset-0 w-full h-full border-none shadow-inner bg-white"
+                title="Visor PDF">
+            </iframe>
+        </div>
+    </div>
+    <form method="dialog" class="modal-backdrop bg-gray-900/80">
         <button>close</button>
     </form>
 </dialog>
