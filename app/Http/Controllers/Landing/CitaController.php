@@ -21,9 +21,9 @@ class CitaController extends Controller
         $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'nombre' => 'required|string|min:3|max:100',
             // rfc,dns: verifica que el correo esté bien escrito Y que el dominio (ej. gmail.com) realmente exista en internet
-            'email' => 'required|email:rfc,dns', 
+            'email' => 'required|email:rfc,dns',
             // regex: Permite opcionalmente un +, seguido de entre 8 y 15 números y opcionalmente espacios
-            'telefono' => ['required', 'string', 'regex:/^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$|^[0-9]{8,12}$/'], 
+            'telefono' => ['required', 'string', 'regex:/^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$|^[0-9]{8,12}$/'],
             'placa' => 'required|string',
             'marca' => 'required|string',
             'modelo' => 'nullable|string',
@@ -51,26 +51,26 @@ class CitaController extends Controller
 
         // === PREVENCIÓN DE SPAM Y DUPLICIDAD ===
         $placaLimpia = strtoupper(str_replace([' ', '-'], '', $validated['placa']));
-        
+
         // A. Evitar que el mismo vehículo tenga múltiples citas pendientes
         $vehiculoExistente = Vehiculo::where('placa', $placaLimpia)->first();
         if ($vehiculoExistente) {
             $citaPendiente = Cita::where('vehiculo_id', $vehiculoExistente->id)
                 ->whereIn('estado', ['pendiente', 'confirmada'])
                 ->exists();
-                
+
             if ($citaPendiente) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Este vehículo (Placa: '.$placaLimpia.') ya tiene una cita activa. Por favor espere a ser atendido o contáctenos directamente.'
+                    'message' => 'Este vehículo (Placa: ' . $placaLimpia . ') ya tiene una cita activa. Por favor espere a ser atendido o contáctenos directamente.'
                 ], 422);
             }
         }
 
         // B. Evitar que el mismo correo o teléfono agende de forma masiva (Máx 2 citas en 24 horas)
-        $citasRecientes = Cita::whereHas('cliente', function($query) use ($validated) {
+        $citasRecientes = Cita::whereHas('cliente', function ($query) use ($validated) {
             $query->where('email', $validated['email'])
-                  ->orWhere('telefono', $validated['telefono']);
+                ->orWhere('telefono', $validated['telefono']);
         })->where('created_at', '>=', Carbon::now()->subHours(24))->count();
 
         if ($citasRecientes >= 2) {
@@ -112,7 +112,7 @@ class CitaController extends Controller
             $nombreMarca = trim(strtoupper($validated['marca']));
             $nombreModelo = isset($validated['modelo']) ? trim(strtoupper($validated['modelo'])) : 'MODELO BASE';
             $nombreVersion = isset($request->version) ? trim(strtoupper($request->version)) : '';
-            
+
             $mensajeAdicionalVehiculo = "";
 
             // Buscar si la marca existe en BD (para relacionarla correctamente)
@@ -123,7 +123,7 @@ class CitaController extends Controller
                 $modelo = ModeloVehiculo::firstOrCreate(
                     ['marca_id' => $marca->id, 'nombre' => $nombreModelo]
                 );
-                
+
                 $versionId = null;
                 if ($nombreVersion) {
                     $version = VersionVehiculo::firstOrCreate(
@@ -133,9 +133,9 @@ class CitaController extends Controller
                 }
             } else {
                 // Marca NO existe: Usar GENERICO
-                $marca = MarcaVehiculo::firstOrCreate(['nombre' => 'GENERICA']); 
+                $marca = MarcaVehiculo::firstOrCreate(['nombre' => 'GENERICA']);
                 $modelo = ModeloVehiculo::firstOrCreate(['marca_id' => $marca->id, 'nombre' => 'GENERICO']);
-                $versionId = null; 
+                $versionId = null;
 
                 // Guardamos el detalle real en el texto para que el asesor lo corrija después
                 $mensajeAdicionalVehiculo = " [Vehículo Ingresado: $nombreMarca - $nombreModelo - $nombreVersion]";
@@ -165,7 +165,7 @@ class CitaController extends Controller
 
             // 4. Crear CITA
             $fechaHora = Carbon::parse($validated['fecha'] . ' ' . $validated['hora'], 'America/Guatemala')->setTimezone('UTC');
-            
+
             // Concatenar detalles al motivo
             $motivoFinal = $validated['motivo'] . $mensajeAdicionalVehiculo;
 
@@ -198,7 +198,7 @@ class CitaController extends Controller
 
     public function getBranches()
     {
-        $sucursales = \App\Models\Sucursal::orderBy('nombre', 'asc')->get(['id', 'nombre']);
+        $sucursales = \App\Models\Sucursal::orderBy('nombre', 'asc')->get(['id', 'nombre', 'telefono']);
         return response()->json($sucursales);
     }
 
@@ -207,7 +207,7 @@ class CitaController extends Controller
         $marcas = MarcaVehiculo::orderBy('nombre', 'asc')->get(['id', 'nombre']);
         return response()->json($marcas);
     }
-    
+
     public function getModels($marcaId)
     {
         $modelos = ModeloVehiculo::where('marca_id', $marcaId)->orderBy('nombre', 'asc')->get(['id', 'nombre']);

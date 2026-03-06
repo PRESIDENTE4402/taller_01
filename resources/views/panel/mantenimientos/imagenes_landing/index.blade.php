@@ -80,6 +80,85 @@
                 aún no has subido ninguna.</p>
         </div>
 
+        {{-- Sección Sucursales / WhatsApp --}}
+        <div class="mt-16 mb-8 relative z-10">
+            <div class="flex items-center gap-4 mb-8">
+                <div class="h-10 w-2 bg-gradient-to-b from-blue-600 to-cyan-400 rounded-full"></div>
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800">Configuración de WhatsApp</h2>
+                    <p class="text-slate-500 text-sm">Administra los números de contacto para cada sucursal en la landing
+                        page</p>
+                </div>
+            </div>
+
+            <div id="branchesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+                <!-- Cargado por JS -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Modal Editar Teléfono Sucursal -->
+    <div id="branchModal" class="fixed inset-0 z-[60] hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity opacity-0" id="branchModalBackdrop">
+        </div>
+        <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+            <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md opacity-0 translate-y-4"
+                    id="branchModalPanel">
+                    <div class="absolute top-0 left-0 w-full h-1.5 bg-emerald-500"></div>
+                    <div class="bg-slate-900 px-6 py-4 flex justify-between items-center">
+                        <h5 class="text-white font-bold text-lg flex items-center gap-2">
+                            <i class="fab fa-whatsapp text-emerald-400"></i>
+                            <span>Editar WhatsApp</span>
+                        </h5>
+                        <button type="button" class="text-slate-400 hover:text-white" onclick="closeBranchModal()">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                    <div class="p-6">
+                        <form id="branchForm">
+                            <input type="hidden" id="editBranchId">
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">Sucursal</label>
+                                    <input type="text" id="editBranchName"
+                                        class="w-full bg-slate-100 rounded-lg border-none py-2 px-3 text-slate-500 font-medium"
+                                        readonly>
+                                </div>
+                                <div>
+                                    <label for="editBranchPhone"
+                                        class="block text-sm font-semibold text-slate-700 mb-1">Número de WhatsApp <span
+                                            class="text-red-500">*</span></label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i class="fas fa-phone text-slate-400"></i>
+                                        </div>
+                                        <input type="text" id="editBranchPhone"
+                                            class="w-full rounded-lg border-slate-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 py-2 pl-10 pr-3"
+                                            required placeholder="Ej: 50212345678">
+                                    </div>
+                                    <p class="mt-2 text-xs text-slate-500italic">Incluye el código de país sin el signo +
+                                        (Ej: 502 para Guatemala)</p>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="bg-slate-50 border-t border-slate-200 py-4 px-6 flex justify-end gap-3 rounded-b-2xl">
+                        <button type="button"
+                            class="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                            onclick="closeBranchModal()">
+                            Cancelar
+                        </button>
+                        <button type="button"
+                            class="px-4 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-all flex items-center gap-2"
+                            onclick="saveBranchPhone()">
+                            <i class="fas fa-check"></i> Actualizar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Modal Tailwind: Crear/Editar Imagen -->

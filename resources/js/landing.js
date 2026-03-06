@@ -114,8 +114,11 @@ window.updateTimeSlots = (date) => {
 window.onclick = function (event) {
     const authModal = document.getElementById('authModal');
     const bookingModal = document.getElementById('bookingModal');
+    const whatsappModal = document.getElementById('whatsappModal');
+
     if (authModal && event.target === authModal) window.toggleAuthModal();
     if (bookingModal && event.target === bookingModal) window.toggleBookingModal();
+    if (whatsappModal && event.target === whatsappModal) window.closeWhatsAppModal();
 };
 
 function showAuthenticatedSections() {
@@ -880,3 +883,62 @@ function updateNavbarLogo(logoImage) {
         img.alt = logoImage.alt_text || 'Company Logo';
     }
 }
+
+// ===== WHATSAPP LOGIC =====
+window.closeWhatsAppModal = () => {
+    const modal = document.getElementById('whatsappModal');
+    if (!modal) return;
+    modal.classList.remove('active');
+    setTimeout(() => modal.style.display = 'none', 300);
+};
+
+window.openWhatsAppModal = () => {
+    const modal = document.getElementById('whatsappModal');
+    if (!modal) return;
+    if (modal.classList.contains('active')) {
+        window.closeWhatsAppModal();
+    } else {
+        modal.style.display = 'flex';
+        setTimeout(() => modal.classList.add('active'), 10);
+        loadWhatsAppBranches();
+    }
+};
+
+async function loadWhatsAppBranches() {
+    const listContainer = document.getElementById('whatsappBranchesList');
+    if (!listContainer) return;
+
+    try {
+        const response = await fetch('/api/landing/branches');
+        const branches = await response.json();
+
+        if (branches.length === 0) {
+            listContainer.innerHTML = '<p class="text-center">No hay sucursales disponibles.</p>';
+            return;
+        }
+
+        listContainer.innerHTML = '';
+        branches.forEach(branch => {
+            const phone = branch.telefono || '50233970404'; // Fallback
+            // Limpiar el número de espacios o guiones
+            const cleanPhone = phone.replace(/[^0-9]/g, '');
+            const message = encodeURIComponent('Hola, me gustaría solicitar información técnica para mi vehículo.');
+            const url = `https://wa.me/${cleanPhone}?text=${message}`;
+
+            const btn = document.createElement('a');
+            btn.href = url;
+            btn.target = '_blank';
+            btn.className = 'whatsapp-branch-btn';
+            btn.innerHTML = `
+                <span>${branch.nombre}</span>
+                <i class="fab fa-whatsapp"></i>
+            `;
+            btn.onclick = () => window.closeWhatsAppModal();
+            listContainer.appendChild(btn);
+        });
+    } catch (error) {
+        console.error('Error loading branches for WhatsApp:', error);
+        listContainer.innerHTML = '<p class="text-center text-red-500">Error al cargar sucursales.</p>';
+    }
+}
+

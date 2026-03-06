@@ -65,10 +65,10 @@ class SucursalController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'nombre' => 'required|string|max:255',
-            'direccion' => 'required|string|max:255',
-            'telefono' => 'required|string|max:20',
-            'capacidad_bahias' => 'required|integer|min:1',
+            'nombre' => 'sometimes|required|string|max:255',
+            'direccion' => 'sometimes|required|string|max:255',
+            'telefono' => 'sometimes|required|string|max:20',
+            'capacidad_bahias' => 'sometimes|required|integer|min:1',
             'ciudad' => 'nullable|string|max:100',
             'latitud' => 'nullable|numeric|between:-90,90',
             'longitud' => 'nullable|numeric|between:-180,180',

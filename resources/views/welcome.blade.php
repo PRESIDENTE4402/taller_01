@@ -647,7 +647,7 @@
     <!-- ===== FLOATING ACTION BUTTONS (FAB) ===== -->
     <div class="fab-container">
         <!-- WhatsApp Button -->
-        <a href="https://wa.me/50233970345" target="_blank" class="fab-btn whatsapp">
+        <a href="javascript:void(0)" onclick="openWhatsAppModal()" class="fab-btn whatsapp">
             <i class="fab fa-whatsapp"></i>
             <span>WhatsApp</span>
         </a>
@@ -808,11 +808,27 @@
     </div>
 
 
-</body>
-
-</html>
-
-<!-- ===== JAVASCRIPT ===== -->
+    <!-- Modal Selección de Sucursal WhatsApp -->
+    <div id="whatsappModal" class="booking-modal-overlay">
+        <div class="booking-modal-panel"
+            style="max-width: 400px; background: #ffffff; border-radius: 24px; padding: 10px; box-shadow: 0 20px 50px rgba(0,0,0,0.4);">
+            <div class="booking-header" style="border-bottom: 1px solid #f3f4f6; margin-bottom: 0;">
+                <h3 style="color: #111827; font-weight: 800; font-size: 1.25rem;">¿Deseas comunicarte con nosotros?</h3>
+                <button type="button" class="close-booking" onclick="closeWhatsAppModal()"
+                    style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #6b7280;">&times;</button>
+            </div>
+            <div class="booking-body" style="padding: 25px 20px;">
+                <p style="margin-bottom: 25px; color: #4b5563; font-size: 0.95rem; font-weight: 500; line-height: 1.5;">
+                    Por favor, selecciona una sucursal para que un asesor te brinde atención personalizada vía WhatsApp.
+                </p>
+                <div id="whatsappBranchesList" class="whatsapp-branches-grid">
+                    <!-- Cargado por JS -->
+                    <div class="loading-dots" style="color: #2563eb; font-weight: 700;">Localizando talleres cercanos...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
 </body>
 

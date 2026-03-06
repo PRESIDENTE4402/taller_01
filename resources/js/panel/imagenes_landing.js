@@ -360,8 +360,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (filterType) filterType.addEventListener('change', loadImages);
     if (filterActive) filterActive.addEventListener('change', loadImages);
 
-    // Cargar imágenes al iniciar
+    // Cargar imágenes y sucursales al iniciar
     loadImages();
+    loadBranches();
 });
 
 // Preview local (sube a Cloudinary al guardar)
@@ -516,3 +517,96 @@ function resetForm() {
         window.triggerUpdateFormLabels();
     }
 }
+
+// ===== GESTIÓN DE SUCURSALES (WHATSAPP) =====
+function loadBranches() {
+    fetch('/panel/mantenimientos/sucursales/list')
+        .then(res => res.json())
+        .then(branches => {
+            const container = document.getElementById('branchesContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            branches.forEach(branch => {
+                const card = `
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex items-center justify-between group hover:shadow-md transition-all">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                                <i class="fab fa-whatsapp text-2xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-800">${branch.nombre}</h4>
+                                <p class="text-sm text-slate-500 font-medium">${branch.telefono || 'Sin número'}</p>
+                            </div>
+                        </div>
+                        <button onclick="editBranchPhone(${branch.id}, '${branch.nombre}', '${branch.telefono || ''}')" 
+                                class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                            <i class="fas fa-edit text-lg"></i>
+                        </button>
+                    </div>
+                `;
+                container.innerHTML += card;
+            });
+        });
+}
+
+window.editBranchPhone = function (id, name, phone) {
+    document.getElementById('editBranchId').value = id;
+    document.getElementById('editBranchName').value = name;
+    document.getElementById('editBranchPhone').value = phone;
+    window.openBranchModal();
+};
+
+window.openBranchModal = function () {
+    const modal = document.getElementById('branchModal');
+    const backdrop = document.getElementById('branchModalBackdrop');
+    const panel = document.getElementById('branchModalPanel');
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        backdrop.classList.remove('opacity-0');
+        panel.classList.remove('opacity-0', 'translate-y-4');
+    }, 10);
+};
+
+window.closeBranchModal = function () {
+    const backdrop = document.getElementById('branchModalBackdrop');
+    const panel = document.getElementById('branchModalPanel');
+    backdrop.classList.add('opacity-0');
+    panel.classList.add('opacity-0', 'translate-y-4');
+    setTimeout(() => {
+        document.getElementById('branchModal').classList.add('hidden');
+    }, 300);
+};
+
+window.saveBranchPhone = function () {
+    const id = document.getElementById('editBranchId').value;
+    const phone = document.getElementById('editBranchPhone').value;
+
+    if (!phone) {
+        Swal.fire({ title: 'Atención', text: 'El número es requerido', icon: 'warning', background: '#1e293b', color: '#ffffff' });
+        return;
+    }
+
+    fetch(`/panel/mantenimientos/sucursales/${id}`, {
+        method: 'PUT',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ telefono: phone })
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                window.closeBranchModal();
+                loadBranches();
+                Swal.fire({ title: '¡Éxito!', text: 'Teléfono actualizado correctamente', icon: 'success', background: '#1e293b', color: '#ffffff', timer: 1500, showConfirmButton: false });
+            } else {
+                Swal.fire({ title: 'Error', text: data.message || 'Error al actualizar', icon: 'error', background: '#1e293b', color: '#ffffff' });
+            }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            Swal.fire({ title: 'Error', text: 'Error de conexión', icon: 'error', background: '#1e293b', color: '#ffffff' });
+        });
+};
