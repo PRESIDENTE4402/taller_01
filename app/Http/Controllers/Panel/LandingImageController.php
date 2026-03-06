@@ -168,8 +168,12 @@ class LandingImageController extends Controller
      */
     public function upload(Request $request)
     {
-        // Aumentar límites de PHP en tiempo de ejecución para videos
-        $isVideo = $request->input('resource_type') === 'video';
+        $file = $request->file('file');
+        
+        // Determinar si es video por su Mime Type
+        $mimeType = $file ? $file->getMimeType() : '';
+        $isVideo = str_starts_with($mimeType, 'video/');
+
         if ($isVideo) {
             @ini_set('upload_max_filesize', '200M');
             @ini_set('post_max_size', '200M');
@@ -190,12 +194,15 @@ class LandingImageController extends Controller
             $type = $request->type;
 
             if ($this->cloudinary) {
+                // Forzar resource_type 'video' si Cloudinary lo requiere
+                $cloudinaryResourceType = $isVideo ? 'video' : 'auto';
+
                 // Subir a Cloudinary con carpeta según tipo
                 $response = $this->cloudinary->uploadApi()->upload(
                     $file->getRealPath(),
                     [
                         'folder' => "landing-images/{$type}",
-                        'resource_type' => 'auto',
+                        'resource_type' => $cloudinaryResourceType,
                     ]
                 );
 
