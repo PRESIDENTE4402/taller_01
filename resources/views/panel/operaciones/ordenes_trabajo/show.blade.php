@@ -268,6 +268,56 @@
             </div>
         </div>
 
+        <!-- Section: Payments (Pagos) -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mt-6">
+            <div class="p-5 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
+                <h3 class="font-bold text-gray-700 flex items-center gap-2">
+                    <i class="fas fa-money-bill-wave text-emerald-500"></i> Pagos y Anticipos
+                </h3>
+                <button onclick="document.getElementById('modal-pago').showModal()" class="btn btn-sm btn-outline btn-success gap-2">
+                    <i class="fas fa-plus"></i> Registrar Pago
+                </button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="table w-full">
+                    <thead>
+                        <tr class="text-gray-400 text-xs uppercase">
+                            <th>Fecha</th>
+                            <th>Método de Pago</th>
+                            <th class="text-right">Monto</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pagos-table-body">
+                        @php $totalPagos = 0; @endphp
+                        @forelse($orden->pagos as $pago)
+                        @php $totalPagos += $pago->monto; @endphp
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="font-bold text-sm text-gray-700">{{ $pago->created_at->format('d/m/Y H:i') }}</td>
+                            <td>
+                                <span class="badge badge-sm font-bold text-[10px] uppercase bg-emerald-100 text-emerald-700 border-none">{{ $pago->metodo_pago }}</span>
+                            </td>
+                            <td class="text-right font-black text-emerald-600 font-mono italic">
+                                Q.{{ number_format($pago->monto, 2) }}
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="3" class="text-center py-10 text-gray-400 italic">No se han registrado pagos.</td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                    @if($totalPagos > 0)
+                    <tfoot>
+                        <tr>
+                            <th colspan="2" class="text-right text-gray-400 uppercase">Subtotal Pagos</th>
+                            <th class="text-right text-xl font-black text-emerald-600">Q.{{ number_format($totalPagos, 2) }}</th>
+                        </tr>
+                    </tfoot>
+                    @endif
+                </table>
+            </div>
+        </div>
+
     </div>
 
     <!-- Column 3: Sidebar Details & Actions -->
@@ -297,8 +347,13 @@
                 </button>
                 <button
                     class="btn btn-success w-full text-white gap-2 shadow-lg shadow-green-500/30 font-black italic btn-finalizar"
-                    {{ $orden->estado == 'finalizada' ? 'disabled' : '' }}>
-                    <i class="fas fa-check-double"></i> Finalizar Orden
+                    {{ $orden->estado == 'finalizada' || $orden->estado == 'entregada' ? 'style=display:none;' : '' }}>
+                    <i class="fas fa-check-double"></i> Finalizar Reparación
+                </button>
+                <button
+                    class="btn bg-indigo-600 hover:bg-indigo-700 w-full text-white gap-2 shadow-lg shadow-indigo-500/30 font-black italic btn-entregar"
+                    {{ $orden->estado != 'finalizada' ? 'style=display:none;' : '' }}>
+                    <i class="fas fa-key"></i> Entregar Vehículo al Cliente
                 </button>
             </div>
         </div>
@@ -322,9 +377,24 @@
                     </div>
                     <div class="divider border-blue-400 opacity-20 my-2"></div>
                     <div class="flex justify-between items-center pt-2">
-                        <span class="text-lg font-black italic uppercase tracking-tighter">Total</span>
+                        <span class="text-lg font-black italic uppercase tracking-tighter">Total Final</span>
                         <span class="text-3xl font-black italic font-mono tracking-tighter" id="sidebar-total-main">Q.{{ number_format($granTotal, 2) }}</span>
                     </div>
+                    @if(isset($totalPagos) && $totalPagos > 0)
+                    <div class="flex justify-between items-center text-sm pt-2">
+                        <span class="text-emerald-300">Abonado:</span>
+                        <span class="font-bold font-mono text-emerald-300" id="sidebar-total-pagos">Q.{{ number_format($totalPagos, 2) }}</span>
+                    </div>
+                    <div class="flex justify-between items-center pt-2">
+                        <span class="text-lg font-black italic uppercase tracking-tighter text-yellow-300">Saldo</span>
+                        <span class="text-2xl font-black italic font-mono tracking-tighter text-yellow-300" id="sidebar-saldo">Q.{{ number_format($granTotal - $totalPagos, 2) }}</span>
+                    </div>
+                    @else
+                    <div class="flex justify-between items-center pt-2" style="display: none;" id="saldo-box">
+                        <span class="text-lg font-black italic uppercase tracking-tighter text-yellow-300">Saldo</span>
+                        <span class="text-2xl font-black italic font-mono tracking-tighter text-yellow-300" id="sidebar-saldo">Q.{{ number_format($granTotal, 2) }}</span>
+                    </div>
+                    @endif
                 </div>
             </div>
             <i class="fas fa-dollar-sign absolute -bottom-4 -right-4 text-8xl text-white opacity-5 rotate-12"></i>
@@ -680,6 +750,51 @@
                 <div class="modal-action mt-6 border-t border-gray-100 pt-4 flex justify-between items-center">
                     <button type="button" class="btn btn-ghost text-gray-500 px-6 font-bold hover:bg-gray-200" onclick="document.getElementById('modal-fast-repuesto').close()">Cancelar</button>
                     <button type="submit" class="btn bg-blue-600 hover:bg-blue-700 border-none text-white px-8 font-black shadow-lg shadow-blue-500/30">Guardar Pieza</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+<!-- MODAL: REGISTRAR PAGO -->
+<dialog id="modal-pago" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box p-0 overflow-hidden bg-white rounded-3xl max-w-sm">
+        <div class="bg-gradient-to-r from-emerald-500 to-emerald-700 p-6 flex justify-between items-center text-white">
+            <h3 class="font-black text-xl flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm shadow-inner">
+                    <i class="fas fa-money-bill-wave text-emerald-100"></i>
+                </div>
+                Registrar Cobro
+            </h3>
+            <button class="text-white/60 hover:text-white transition-colors" onclick="document.getElementById('modal-pago').close()">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        <div class="p-6 bg-gray-50">
+            <form id="form-pago">
+                @csrf
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-widest text-emerald-600">Monto del Pago (Q) *</label>
+                        <input type="number" step="0.01" id="pago_monto" name="monto" min="0" class="input input-bordered w-full font-mono text-emerald-600 font-bold bg-white text-xl" placeholder="0.00" value="{{ isset($granTotal) && isset($totalPagos) ? number_format($granTotal - $totalPagos, 2, '.', '') : '0.00' }}" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-widest">Método de Pago *</label>
+                        <select name="metodo_pago" id="pago_metodo" class="select select-bordered w-full font-bold text-gray-700 bg-white" required>
+                            <option value="Efectivo">Efectivo</option>
+                            <option value="Transferencia">Transferencia</option>
+                            <option value="Tarjeta">Tarjeta (Crédito/Débito)</option>
+                            <option value="Cheque">Cheque</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-action mt-6 border-t border-gray-100 pt-4 flex justify-between items-center">
+                    <button type="button" class="btn btn-ghost text-gray-500 px-6 font-bold hover:bg-gray-200" onclick="document.getElementById('modal-pago').close()">Cancelar</button>
+                    <button type="submit" class="btn bg-emerald-600 hover:bg-emerald-700 border-none text-white px-8 font-black shadow-lg shadow-emerald-500/30">Guardar</button>
                 </div>
             </form>
         </div>

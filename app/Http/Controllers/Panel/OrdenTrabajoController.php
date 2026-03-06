@@ -261,7 +261,7 @@ class OrdenTrabajoController extends Controller
 
     public function show($id)
     {
-        $orden = OrdenTrabajo::with(['cliente', 'vehiculo.marca', 'vehiculo.modelo', 'vehiculo.version', 'archivos', 'detalles.repuesto', 'bitacoras.mecanico'])->findOrFail($id);
+        $orden = OrdenTrabajo::with(['cliente', 'vehiculo.marca', 'vehiculo.modelo', 'vehiculo.version', 'archivos', 'detalles.repuesto', 'bitacoras.mecanico', 'pagos'])->findOrFail($id);
 
         // List of mechanics (mechanic role users)
         $mecanicos = \App\Models\User::whereHas('roles', function ($q) {
@@ -280,7 +280,8 @@ class OrdenTrabajoController extends Controller
             'vehiculo.version',
             'archivos',
             'detalles.repuesto',
-            'bitacoras.mecanico'
+            'bitacoras.mecanico',
+            'pagos'
         ])->findOrFail($id);
 
         return response()->json($orden);
@@ -591,6 +592,10 @@ class OrdenTrabajoController extends Controller
 
             if ($request->estado == 'finalizada') {
                 $orden->fecha_finalizacion = now();
+            }
+
+            if ($request->estado == 'entregada') {
+                $orden->fecha_entrega = now();
             }
 
             $orden->save();
@@ -1060,6 +1065,34 @@ class OrdenTrabajoController extends Controller
                     'codigo' => $repuesto->codigo_interno,
                     'precio' => $repuesto->precio_venta
                 ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function storePago(Request $request, $id)
+    {
+        try {
+            $request->validate([
+                'monto' => 'required|numeric|min:0.01',
+                'metodo_pago' => 'required|string',
+            ]);
+
+            $orden = OrdenTrabajo::findOrFail($id);
+
+            // Register movement/payment
+            $pago = new \App\Models\Pago([
+                'monto' => $request->monto,
+                'metodo_pago' => $request->metodo_pago,
+                'orden_trabajo_id' => $orden->id
+            ]);
+            $pago->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Cobro registrado con éxito.',
+                'pago' => $pago
             ]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);

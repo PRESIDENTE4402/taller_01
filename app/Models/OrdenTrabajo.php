@@ -86,4 +86,9 @@ class OrdenTrabajo extends Model
     {
         return $this->hasMany(BitacoraTrabajo::class, 'orden_trabajo_id');
     }
+
+    public function pagos()
+    {
+        return $this->hasMany(Pago::class, 'orden_trabajo_id');
+    }
 }

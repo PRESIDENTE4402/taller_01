@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initNotesButtons();
     initEditTaskForm();
     initDeleteTaskButtons();
+    initPagoForm();
 });
 
 function initStatusActions() {
@@ -18,8 +19,8 @@ function initStatusActions() {
     if (btnFinalizar) {
         btnFinalizar.addEventListener('click', async () => {
             const { isConfirmed } = await Swal.fire({
-                title: '¿Finalizar Orden?',
-                text: 'Se marcará como terminada y se registrará la fecha de hoy.',
+                title: '¿Finalizar Reparación?',
+                text: 'Se marcará como reparada y se registrará la fecha de hoy. Lista para entrega.',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Sí, finalizar',
@@ -34,6 +35,30 @@ function initStatusActions() {
 
             if (isConfirmed) {
                 updateStatus('finalizada');
+            }
+        });
+    }
+
+    const btnEntregar = document.querySelector('.btn-entregar');
+    if (btnEntregar) {
+        btnEntregar.addEventListener('click', async () => {
+            const { isConfirmed } = await Swal.fire({
+                title: '¿Entregar Vehículo?',
+                text: 'Se registrará que el cliente ha recibido su vehículo. Este paso cierra la orden.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, entregar',
+                cancelButtonText: 'Cancelar',
+                customClass: {
+                    confirmButton: 'btn bg-indigo-600 hover:bg-indigo-700 text-white border-none rounded-xl ml-2 shadow-lg shadow-indigo-500/30 font-black',
+                    cancelButton: 'btn btn-ghost border border-gray-200 hover:bg-gray-100 text-gray-600 rounded-xl font-bold',
+                    popup: 'rounded-3xl shadow-2xl border border-gray-100 bg-white p-6'
+                },
+                buttonsStyling: false
+            });
+
+            if (isConfirmed) {
+                updateStatus('entregada');
             }
         });
     }
@@ -1006,4 +1031,67 @@ async function reloadTableParts() {
         console.error('Error reloading table', err);
         window.location.reload(); // fallback
     }
+}
+
+function initPagoForm() {
+    const form = document.getElementById('form-pago');
+    if (!form) return;
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(form);
+        const url = window.location.pathname + '/pagos';
+
+        // Check if monto <= 0
+        const monto = parseFloat(formData.get('monto'));
+        if (isNaN(monto) || monto <= 0) {
+            Swal.fire({
+                title: 'Error',
+                text: 'El monto debe ser mayor a 0',
+                icon: 'error',
+                customClass: { popup: 'rounded-3xl' }
+            });
+            return;
+        }
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                Swal.fire({
+                    title: '¡Pago Registrado!',
+                    icon: 'success',
+                    timer: 1500,
+                    showConfirmButton: false,
+                    customClass: { popup: 'rounded-3xl shadow-2xl bg-white p-6' }
+                });
+                document.getElementById('modal-pago').close();
+                form.reset();
+                window.location.reload();
+            } else {
+                Swal.fire({
+                    title: 'Error',
+                    text: data.message,
+                    icon: 'error',
+                    customClass: { popup: 'rounded-3xl bg-white p-6' }
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            Swal.fire({
+                title: 'Error',
+                text: 'No se pudo registrar el pago',
+                icon: 'error',
+                customClass: { popup: 'rounded-3xl bg-white p-6' }
+            });
+        }
+    });
 }
