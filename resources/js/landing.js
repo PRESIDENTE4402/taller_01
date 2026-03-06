@@ -735,7 +735,7 @@ function loadGalleryCarousel(images) {
         const item = document.createElement('div');
         item.className = 'gallery-item-premium';
         item.innerHTML = `
-            <div class="gallery-card">
+            <div class="gallery-card" onclick="openGalleryModal('${img.image_url.replace(/'/g, "\\'")}', '${img.title.replace(/'/g, "\\'")}', '${(img.description || '').replace(/'/g, "\\'").replace(/\n/g, "<br>")}')">
                 <img src="${img.image_url}" alt="${img.alt_text}" loading="lazy">
                 <div class="gallery-info">
                     <h3>${img.title}</h3>
@@ -749,19 +749,80 @@ function loadGalleryCarousel(images) {
     initCarouselLogic();
 }
 
+window.openGalleryModal = function (url, title, desc) {
+    Swal.fire({
+        title: title,
+        html: `
+            <div class="modal-gallery-content">
+                <img src="${url}" style="width:100%; border-radius:15px; margin-bottom:15px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
+                <div style="text-align:left; color:#475569; line-height:1.6; font-size:1.1rem;">${desc}</div>
+            </div>
+        `,
+        width: '900px',
+        showConfirmButton: false,
+        showCloseButton: true,
+        customClass: {
+            popup: 'rounded-3xl border-none shadow-2xl p-6 bg-white',
+            closeButton: 'focus:outline-none'
+        }
+    });
+}
+
 function initCarouselLogic() {
     const track = document.getElementById('gallery-container');
     const prevBtn = document.getElementById('gallery-prev');
     const nextBtn = document.getElementById('gallery-next');
     if (!track || !prevBtn || !nextBtn) return;
 
+    let autoScrollInterval;
+
+    const getScrollAmount = () => {
+        const item = track.querySelector('.gallery-item-premium');
+        return item ? item.offsetWidth : track.offsetWidth;
+    };
+
+    const scrollNext = () => {
+        // Threshold of 10px
+        if (track.scrollLeft + track.clientWidth >= track.scrollWidth - 10) {
+            track.scrollTo({ left: 0, behavior: 'smooth' });
+        } else {
+            track.scrollBy({ left: getScrollAmount(), behavior: 'smooth' });
+        }
+    };
+
+    const scrollPrev = () => {
+        if (track.scrollLeft <= 10) {
+            track.scrollTo({ left: track.scrollWidth, behavior: 'smooth' });
+        } else {
+            track.scrollBy({ left: -getScrollAmount(), behavior: 'smooth' });
+        }
+    };
+
+    const startAutoScroll = () => {
+        clearInterval(autoScrollInterval);
+        autoScrollInterval = setInterval(scrollNext, 5000);
+    };
+
+    const stopAutoScroll = () => {
+        clearInterval(autoScrollInterval);
+    };
+
     nextBtn.addEventListener('click', () => {
-        track.scrollBy({ left: track.offsetWidth, behavior: 'smooth' });
+        stopAutoScroll();
+        scrollNext();
+        startAutoScroll();
     });
 
     prevBtn.addEventListener('click', () => {
-        track.scrollBy({ left: -track.offsetWidth, behavior: 'smooth' });
+        stopAutoScroll();
+        scrollPrev();
+        startAutoScroll();
     });
+
+    track.addEventListener('mouseenter', stopAutoScroll);
+    track.addEventListener('mouseleave', startAutoScroll);
+
+    startAutoScroll();
 }
 
 function loadVideoStories(videos) {
