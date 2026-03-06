@@ -50,4 +50,25 @@ class LandingImage extends Model
             default => 'Otro'
         };
     }
+
+    /**
+     * Asegura que `image_url` siempre tenga https y
+     * construye una URL válida a partir del public_id si es necesario.
+     */
+    public function getImageUrlAttribute($value)
+    {
+        if ($value) {
+            // Forzar https en caso de que venga con http
+            return preg_replace('#^http://#i', 'https://', $value);
+        }
+
+        if ($this->cloudinary_public_id) {
+            $cloudName = config('cloudinary.cloud_name');
+            if ($cloudName) {
+                return "https://res.cloudinary.com/{$cloudName}/image/upload/{$this->cloudinary_public_id}";
+            }
+        }
+
+        return $value;
+    }
 }

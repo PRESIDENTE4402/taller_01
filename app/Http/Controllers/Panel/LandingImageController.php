@@ -14,13 +14,17 @@ class LandingImageController extends Controller
 
     public function __construct()
     {
-        $this->cloudinary = new Cloudinary([
-            'cloud' => [
-                'cloud_name' => config('cloudinary.cloud_name'),
-                'api_key' => config('cloudinary.api_key'),
-                'api_secret' => config('cloudinary.api_secret'),
-            ]
-        ]);
+        if (class_exists(\Cloudinary\Cloudinary::class)) {
+            $this->cloudinary = new \Cloudinary\Cloudinary([
+                'cloud' => [
+                    'cloud_name' => config('cloudinary.cloud_name'),
+                    'api_key' => config('cloudinary.api_key'),
+                    'api_secret' => config('cloudinary.api_secret'),
+                ]
+            ]);
+        } else {
+            $this->cloudinary = null;
+        }
     }
 
     /**
@@ -66,7 +70,7 @@ class LandingImageController extends Controller
             'cloudinary_public_id' => $request->cloudinary_public_id,
             'alt_text' => $request->alt_text,
             'order' => $request->order ?? 0,
-            'is_active' => true,
+            'is_active' => $request->boolean('is_active', true),
         ]);
 
         // Invalidar cache
@@ -144,11 +148,13 @@ class LandingImageController extends Controller
         ]);
     }
 
-    /**
-     * Eliminar un recurso de Cloudinary detectando su tipo
-     */
     private function deleteFromCloudinary(string $publicId, string $type = 'image'): void
     {
+        if (!$this->cloudinary) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($publicId);
+            return;
+        }
+        
         try {
             $resourceType = ($type === 'video' || str_starts_with($publicId, 'video/')) ? 'video' : 'image';
             $this->cloudinary->uploadApi()->destroy($publicId, ['resource_type' => $resourceType]);
@@ -183,30 +189,40 @@ class LandingImageController extends Controller
             $file = $request->file('file');
             $type = $request->type;
 
-            // Subir a Cloudinary con carpeta según tipo
-            $response = $this->cloudinary->uploadApi()->upload(
-                $file->getRealPath(),
-                [
-                    'folder' => "landing-images/{$type}",
-                    'resource_type' => 'auto',
-                ]
-            );
-            // The instruction provided a line `LandingImage::create($validated);` here,
-            // but it's syntactically incorrect as $validated is not defined in this context.
-            // This method is for uploading to Cloudinary, not for creating a LandingImage record.
-            // The actual creation of the LandingImage record happens in the `store` method.
-            // Therefore, no change is applied here to maintain correctness.
+            if ($this->cloudinary) {
+                // Subir a Cloudinary con carpeta según tipo
+                $response = $this->cloudinary->uploadApi()->upload(
+                    $file->getRealPath(),
+                    [
+                        'folder' => "landing-images/{$type}",
+                        'resource_type' => 'auto',
+                    ]
+                );
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Imagen subida a Cloudinary',
-                'data' => [
-                    'public_id' => $response['public_id'],
-                    'url' => $response['secure_url'],
-                    'width' => $response['width'] ?? null,
-                    'height' => $response['height'] ?? null,
-                ]
-            ]);
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Imagen subida a Cloudinary',
+                    'data' => [
+                        'public_id' => $response['public_id'],
+                        'url' => $response['secure_url'],
+                        'width' => $response['width'] ?? null,
+                        'height' => $response['height'] ?? null,
+                    ]
+                ]);
+            } else {
+                // Fallback a almacenamiento local si Cloudinary no está disponible
+                $path = $file->store("landing-images/{$type}", 'public');
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Imagen subida localmente',
+                    'data' => [
+                        'public_id' => $path,
+                        'url' => asset('storage/' . $path),
+                        'width' => null,
+                        'height' => null,
+                    ]
+                ]);
+            }
 
         } catch (\Exception $e) {
             return response()->json([
