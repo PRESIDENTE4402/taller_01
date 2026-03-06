@@ -135,6 +135,7 @@ Route::middleware('auth')->group(function () {
             Route::get('/', [\App\Http\Controllers\Panel\MisTareasController::class, 'index'])->name('index');
             Route::post('/{id}/status', [\App\Http\Controllers\Panel\MisTareasController::class, 'updateStatus'])->name('status');
             Route::post('/{id}/notes', [\App\Http\Controllers\Panel\MisTareasController::class, 'addNotes'])->name('notes');
+            Route::delete('/{id}', [\App\Http\Controllers\Panel\MisTareasController::class, 'destroy'])->name('destroy');
         });
 
 

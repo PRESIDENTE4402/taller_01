@@ -123,9 +123,9 @@
                             </div>
                         </div>
 
-                        <div class="mt-6 flex flex-col gap-2">
+                        <div class="mt-6 flex flex-col sm:flex-row gap-2">
                             <form action="{{ route('panel.mis_tareas.status', $tareaActual->id) }}" method="POST"
-                                class="flex gap-2">
+                                class="flex flex-1 gap-2">
                                 @csrf
                                 @if($tareaActual->estado == 'en_pausa')
                                     <button type="submit" name="estado" value="en_progreso"
@@ -140,6 +140,18 @@
                                 <button type="button" class="btn btn-primary flex-1 shadow-sm"
                                     onclick="confirmarFinalizacion(this)">
                                     <i class="fas fa-check-double"></i> Finalizar
+                                </button>
+                            </form>
+
+                            <!-- Botón Cancelar (Eliminar Tarea) -->
+                            <form action="{{ route('panel.mis_tareas.destroy', $tareaActual->id) }}" method="POST"
+                                class="flex sm:w-auto w-full">
+                                @csrf
+                                @method('DELETE')
+                                <button type="button"
+                                    class="btn btn-error text-white flex-1 sm:flex-none shadow-sm tooltip tooltip-top"
+                                    data-tip="Anular si no se llevará a cabo" onclick="confirmarCancelacion(this)">
+                                    <i class="fas fa-times-circle"></i> Cancelar
                                 </button>
                             </form>
                         </div>
@@ -241,13 +253,18 @@
                                                         Total: {{ $tarea->minutos_totales }} min
                                                     </span>
                                                     @if($tarea->meta_minutos)
-                                                        <span class="text-xs text-gray-400">/ Meta: {{ $tarea->meta_minutos }} min</span>
+                                                        <span class="text-xs text-gray-400">/ Meta: {{ $tarea->meta_minutos }}
+                                                            min</span>
                                                     @endif
                                                 </div>
                                                 <div class="text-[10px] text-gray-500 mt-1 space-y-0.5 leading-tight">
-                                                    <div><strong>Asignada:</strong> {{ $tarea->created_at->format('d M, H:i') }}</div>
-                                                    <div><strong>Iniciada:</strong> {{ $tarea->inicio ? $tarea->inicio->format('d M, H:i') : 'N/A' }}</div>
-                                                    <div><strong>Terminada:</strong> {{ $tarea->fin ? $tarea->fin->format('d M, H:i') : $tarea->updated_at->format('d M, H:i') }}</div>
+                                                    <div><strong>Asignada:</strong> {{ $tarea->created_at->format('d M, H:i') }}
+                                                    </div>
+                                                    <div><strong>Iniciada:</strong>
+                                                        {{ $tarea->inicio ? $tarea->inicio->format('d M, H:i') : 'N/A' }}</div>
+                                                    <div><strong>Terminada:</strong>
+                                                        {{ $tarea->fin ? $tarea->fin->format('d M, H:i') : $tarea->updated_at->format('d M, H:i') }}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </td>
@@ -310,12 +327,12 @@
                     Swal.fire({
                         title: '<i class="fas fa-clipboard-list text-yellow-500 mb-2 text-4xl"></i><br><span class="text-xl font-black text-gray-800 uppercase">Notas del Mecánico</span>',
                         html: `
-                                <div class="bg-yellow-50 text-left p-5 rounded-xl border border-yellow-200 mt-4 shadow-inner">
-                                    <div class="text-gray-700 text-sm font-medium leading-relaxed max-h-64 overflow-y-auto custom-scrollbar">
-                                        ${htmlNotas}
+                                    <div class="bg-yellow-50 text-left p-5 rounded-xl border border-yellow-200 mt-4 shadow-inner">
+                                        <div class="text-gray-700 text-sm font-medium leading-relaxed max-h-64 overflow-y-auto custom-scrollbar">
+                                            ${htmlNotas}
+                                        </div>
                                     </div>
-                                </div>
-                            `,
+                                `,
                         showConfirmButton: true,
                         confirmButtonText: '<i class="fas fa-check"></i> Entendido',
                         customClass: {
@@ -328,5 +345,25 @@
                 });
             });
         });
+
+        function confirmarCancelacion(btn) {
+            Swal.fire({
+                title: '¿Cancelar Tarea?',
+                text: '¿Seguro que deseas cancelar esta tarea? Se eliminará de tu tablero porque ya no se va a llevar a cabo. Esta acción no se puede deshacer.',
+                icon: 'error',
+                showCancelButton: true,
+                confirmButtonText: '<i class="fas fa-trash"></i> Sí, cancelar y eliminar',
+                cancelButtonText: 'No, mantenerla',
+                customClass: {
+                    confirmButton: 'btn btn-error text-white',
+                    cancelButton: 'btn btn-ghost hover:bg-gray-100 border border-gray-300'
+                },
+                buttonsStyling: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    btn.closest('form').submit();
+                }
+            });
+        }
     </script>
 @endpush

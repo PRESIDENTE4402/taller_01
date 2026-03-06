@@ -122,4 +122,26 @@ class MisTareasController extends Controller
             return redirect()->back()->with('error', 'Error al agregar observación: ' . $e->getMessage());
         }
     }
+
+    public function destroy($id)
+    {
+        try {
+            /** @var \App\Models\User $currentUser */
+            $currentUser = Auth::user();
+            $isAdmin = $currentUser->hasRole('admin') || $currentUser->hasRole('recepcionista');
+
+            if ($isAdmin) {
+                $tarea = BitacoraTrabajo::findOrFail($id);
+            } else {
+                $tarea = BitacoraTrabajo::where('user_id', $currentUser->id)->findOrFail($id);
+            }
+
+            // Eliminar la tarea (cancelar porque no se va a llevar a cabo)
+            $tarea->delete();
+
+            return redirect()->back()->with('success', 'Tarea cancelada y eliminada del tablero correctamente.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error al cancelar la tarea: ' . $e->getMessage());
+        }
+    }
 }
