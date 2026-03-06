@@ -77,21 +77,21 @@ function loadImages() {
                             </div>
                             <div class="relative w-full h-48 rounded-xl overflow-hidden mb-4 bg-slate-50 flex items-center justify-center">
                                 ${(img.type === 'video' || img.image_url?.includes('/video/upload/'))
-                                    ? `<video src="${img.image_url}" class="max-w-full max-h-full object-contain" muted preload="metadata"></video>
+                            ? `<video src="${img.image_url}" class="max-w-full max-h-full object-contain" muted preload="metadata"></video>
                                        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
                                            <i class="fas fa-play-circle text-white text-5xl drop-shadow-lg opacity-80"></i>
                                        </div>`
-                                    : `<img src="${img.image_url}" alt="${img.title}" class="max-w-full max-h-full object-contain p-2">`
-                                }
+                            : `<img src="${img.image_url}" alt="${img.title}" class="max-w-full max-h-full object-contain p-2">`
+                        }
                                 <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
                                 <div class="absolute bottom-2 left-2 flex gap-2">
                                     <span class="px-2 py-1 text-xs font-bold rounded-md bg-white/90 text-slate-800 shadow-sm backdrop-blur">
                                         ${getTypeLabel(img.type)}
                                     </span>
-                                    ${img.is_active ? 
-                                        '<span class="px-2 py-1 text-xs font-bold rounded-md bg-emerald-500 text-white shadow-sm">Activo</span>' :
-                                        '<span class="px-2 py-1 text-xs font-bold rounded-md bg-slate-400 text-white shadow-sm">Inactivo</span>'
-                                    }
+                                    ${img.is_active ?
+                            '<span class="px-2 py-1 text-xs font-bold rounded-md bg-emerald-500 text-white shadow-sm">Activo</span>' :
+                            '<span class="px-2 py-1 text-xs font-bold rounded-md bg-slate-400 text-white shadow-sm">Inactivo</span>'
+                        }
                                 </div>
                             </div>
                             <h4 class="font-bold text-slate-800 truncate" title="${img.title}">${img.title}</h4>
@@ -199,17 +199,44 @@ document.addEventListener('DOMContentLoaded', () => {
         fileInput.addEventListener('change', window.uploadImage);
     }
 
+    // Adapt fields to type
+    const imageTypeSelect = document.getElementById('imageType');
+    if (imageTypeSelect) {
+        imageTypeSelect.addEventListener('change', updateFormLabels);
+    }
+
+    function updateFormLabels() {
+        const type = imageTypeSelect.value;
+        const imageAltLabel = document.querySelector('label[for="imageAlt"]');
+        const imageTitleLabel = document.querySelector('label[for="imageTitle"]');
+        const imageDescriptionLabel = document.querySelector('label[for="imageDescription"]');
+
+        if (type === 'about') {
+            imageTitleLabel.innerHTML = 'Título Principal <span class="text-red-500">*</span>';
+            imageAltLabel.innerHTML = 'Frase Destacada (Quote) <span class="text-red-500">*</span>';
+            imageDescriptionLabel.innerHTML = 'Descripción / Historia';
+            document.getElementById('imageAlt').placeholder = 'Ej: "Pasión por la Ingeniería Alemana"';
+        } else {
+            imageTitleLabel.innerHTML = 'Título <span class="text-red-500">*</span>';
+            imageAltLabel.innerHTML = 'Texto Alternativo (SEO) <span class="text-red-500">*</span>';
+            imageDescriptionLabel.innerHTML = 'Descripción';
+            document.getElementById('imageAlt').placeholder = 'Ej: Logo de Tecnimecanica California';
+        }
+    }
+
+    window.triggerUpdateFormLabels = updateFormLabels;
+
     // Limpiar imagen
     const clearBtn = document.getElementById('clearImageBtn');
     if (clearBtn) {
         clearBtn.addEventListener('click', () => {
             const input = document.getElementById('fileInput');
-            if(input) input.value = '';
+            if (input) input.value = '';
             document.getElementById('cloudinaryPublicId').value = '';
             document.getElementById('cloudinaryUrl').value = '';
             document.getElementById('previewContainer').classList.add('hidden');
             const dropZone = document.getElementById('dropZone');
-            if(dropZone) {
+            if (dropZone) {
                 dropZone.classList.remove('hidden');
                 dropZone.classList.add('flex');
             }
@@ -265,7 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         body: uploadData
                     });
                     const uploadResult = await uploadResponse.json();
-                    
+
                     if (uploadResult.success) {
                         formData.image_url = uploadResult.data.url;
                         formData.cloudinary_public_id = uploadResult.data.public_id;
@@ -286,8 +313,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            const url = currentImageId 
-                ? `/panel/mantenimientos/imagenes-landing/${currentImageId}` 
+            const url = currentImageId
+                ? `/panel/mantenimientos/imagenes-landing/${currentImageId}`
                 : '/panel/mantenimientos/imagenes-landing';
             const method = currentImageId ? 'PUT' : 'POST';
 
@@ -299,37 +326,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 body: JSON.stringify(formData)
             })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    window.closeModal();
-                    loadImages();
-                    Swal.fire({ title: '¡Éxito!', text: 'Imagen guardada correctamente', icon: 'success', background: '#1e293b', color: '#ffffff', timer: 2000, showConfirmButton: false });
-                } else {
-                    let errorMsg = data.message || 'Error desconocido';
-                    if (data.errors) {
-                        const firstErrorKey = Object.keys(data.errors)[0];
-                        errorMsg = data.errors[firstErrorKey][0];
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        window.closeModal();
+                        loadImages();
+                        Swal.fire({ title: '¡Éxito!', text: 'Imagen guardada correctamente', icon: 'success', background: '#1e293b', color: '#ffffff', timer: 2000, showConfirmButton: false });
+                    } else {
+                        let errorMsg = data.message || 'Error desconocido';
+                        if (data.errors) {
+                            const firstErrorKey = Object.keys(data.errors)[0];
+                            errorMsg = data.errors[firstErrorKey][0];
+                        }
+                        Swal.fire({ title: 'Error', text: errorMsg, icon: 'error', background: '#1e293b', color: '#ffffff', confirmButtonColor: '#3b82f6' });
                     }
-                    Swal.fire({ title: 'Error', text: errorMsg, icon: 'error', background: '#1e293b', color: '#ffffff', confirmButtonColor: '#3b82f6' });
-                }
-            })
-            .catch(err => {
-                console.error('Save Error:', err);
-                Swal.fire({ title: 'Error', text: 'Error al guardar el registro.', icon: 'error', background: '#1e293b', color: '#ffffff', confirmButtonColor: '#3b82f6' });
-            })
-            .finally(() => {
-                saveBtn.disabled = false;
-                btnText.innerHTML = 'Guardar Imagen';
-                saveBtn.classList.remove('opacity-75');
-            });
+                })
+                .catch(err => {
+                    console.error('Save Error:', err);
+                    Swal.fire({ title: 'Error', text: 'Error al guardar el registro.', icon: 'error', background: '#1e293b', color: '#ffffff', confirmButtonColor: '#3b82f6' });
+                })
+                .finally(() => {
+                    saveBtn.disabled = false;
+                    btnText.innerHTML = 'Guardar Imagen';
+                    saveBtn.classList.remove('opacity-75');
+                });
         });
     }
 
     // Filtros
     const filterType = document.getElementById('filterType');
     const filterActive = document.getElementById('filterActive');
-    
+
     if (filterType) filterType.addEventListener('change', loadImages);
     if (filterActive) filterActive.addEventListener('change', loadImages);
 
@@ -338,7 +365,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Preview local (sube a Cloudinary al guardar)
-window.uploadImage = function() {
+window.uploadImage = function () {
     const fileInput = document.getElementById('fileInput');
     const dropZone = document.getElementById('dropZone');
     const previewContainer = document.getElementById('previewContainer');
@@ -376,7 +403,7 @@ window.uploadImage = function() {
 }
 
 // Editar imagen
-window.editImage = function(id) {
+window.editImage = function (id) {
     fetch(`/panel/mantenimientos/imagenes-landing/list`)
         .then(res => res.json())
         .then(images => {
@@ -417,11 +444,15 @@ window.editImage = function(id) {
             document.getElementById('cloudinaryPublicId').value = img.cloudinary_public_id;
             document.getElementById('cloudinaryUrl').value = img.image_url;
             previewContainer.classList.remove('hidden');
-            
+
             const dropZone = document.getElementById('dropZone');
-            if(dropZone) {
+            if (dropZone) {
                 dropZone.classList.add('hidden');
                 dropZone.classList.remove('flex');
+            }
+
+            if (window.triggerUpdateFormLabels) {
+                window.triggerUpdateFormLabels();
             }
 
             window.openModal();
@@ -429,7 +460,7 @@ window.editImage = function(id) {
 }
 
 // Eliminar imagen
-window.deleteImage = async function(id) {
+window.deleteImage = async function (id) {
     const result = await Swal.fire({
         title: '¿Eliminar Imagen?',
         text: "Esta acción no se puede deshacer y también se eliminará de Cloudinary.",
@@ -454,15 +485,15 @@ window.deleteImage = async function(id) {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
         }
     })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            loadImages();
-            Swal.fire({ title: 'Eliminada', text: 'La imagen ha sido eliminada', icon: 'success', background: '#1e293b', color: '#ffffff', timer: 2000, showConfirmButton: false });
-        } else {
-            Swal.fire({ title: 'Error', text: 'Error al eliminar', icon: 'error', background: '#1e293b', color: '#ffffff', confirmButtonColor: '#3b82f6' });
-        }
-    });
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                loadImages();
+                Swal.fire({ title: 'Eliminada', text: 'La imagen ha sido eliminada', icon: 'success', background: '#1e293b', color: '#ffffff', timer: 2000, showConfirmButton: false });
+            } else {
+                Swal.fire({ title: 'Error', text: 'Error al eliminar', icon: 'error', background: '#1e293b', color: '#ffffff', confirmButtonColor: '#3b82f6' });
+            }
+        });
 }
 
 // Reset form
@@ -471,13 +502,17 @@ function resetForm() {
     document.getElementById('imageForm').reset();
     document.getElementById('formTitle').textContent = 'Agregar Nueva Imagen';
     document.getElementById('previewContainer').classList.add('hidden');
-    
+
     const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('fileInput');
-    
-    if(dropZone) {
+
+    if (dropZone) {
         dropZone.classList.remove('hidden');
         dropZone.classList.add('flex');
     }
-    if(fileInput) fileInput.value = '';
+    if (fileInput) fileInput.value = '';
+
+    if (window.triggerUpdateFormLabels) {
+        window.triggerUpdateFormLabels();
+    }
 }

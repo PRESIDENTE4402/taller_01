@@ -724,6 +724,24 @@ function updateAboutImage(image) {
         aboutImg.src = image.image_url;
         aboutImg.alt = image.alt_text || 'Sobre Nosotros';
     }
+
+    const textContainer = document.querySelector('.about-text');
+    if (!textContainer) return;
+
+    const title = textContainer.querySelector('h2');
+    if (title && image.title) {
+        title.textContent = image.title;
+    }
+
+    const highlight = textContainer.querySelector('.highlight-text');
+    if (highlight && image.alt_text) {
+        highlight.textContent = image.alt_text;
+    }
+
+    const description = textContainer.querySelector('p:not(.highlight-text)');
+    if (description && image.description) {
+        description.textContent = image.description;
+    }
 }
 
 function loadGalleryCarousel(images) {
