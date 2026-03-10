@@ -58,7 +58,8 @@ class ClienteController extends Controller
             'nit' => 'nullable|string|max:20',
             'direccion' => 'nullable|string|max:500',
             'es_empresa' => 'boolean',
-            'empresa' => 'nullable|required_if:es_empresa,true|string|max:255'
+            'empresa' => 'nullable|required_if:es_empresa,true|string|max:255',
+            'password' => 'nullable|string|min:4'
         ]);
 
         try {
@@ -93,13 +94,19 @@ class ClienteController extends Controller
             'nit' => 'nullable|string|max:20',
             'direccion' => 'nullable|string|max:500',
             'es_empresa' => 'boolean',
-            'empresa' => 'nullable|required_if:es_empresa,true|string|max:255'
+            'empresa' => 'nullable|required_if:es_empresa,true|string|max:255',
+            'password' => 'nullable|string|min:4'
         ]);
 
         try {
             DB::beginTransaction();
 
-            $cliente->update($request->all());
+            $data = $request->all();
+            if (empty($data['password'])) {
+                unset($data['password']);
+            }
+
+            $cliente->update($data);
 
             DB::commit();
 

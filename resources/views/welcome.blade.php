@@ -129,64 +129,260 @@
         }
 
         /* Ajustes para los controles de usuario autenticado */
-        .navbar-nav .user-action-wrapper {
+        .navbar-nav .user-action-btn {
+            padding: 0.6rem 1.2rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            border-radius: 12px;
+            transition: all 0.3s ease;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        .navbar-nav .user-greeting {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #111;
-            white-space: nowrap;
+        .navbar-nav .btn-app-modern {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
         }
 
-        .navbar-nav .user-action-pill {
-            display: inline-flex;
-            border: 1px solid rgba(148, 163, 184, 0.5);
-            background-color: rgba(255, 255, 255, 0.85);
-            border-radius: 999px;
-            overflow: hidden;
+        .navbar-nav .btn-app-modern:hover {
+            background: white;
+            color: #000;
+            transform: translateY(-2px);
         }
 
-        .navbar-nav .user-action-pill a,
-        .navbar-nav .user-action-pill button {
-            padding: 0.25rem 0.7rem;
-            font-size: 0.75rem;
-            font-weight: 600;
-            border: none;
+        .navbar-nav .btn-logout-modern {
+            color: rgba(255, 255, 255, 0.6);
+            padding: 0.6rem 0.8rem;
+        }
+
+        .navbar-nav .btn-logout-modern:hover {
+            color: #ff4d4d;
+        }
+
+        /* Historial Dashboard Aesthetics (BMW/Premium Style) */
+        .historial-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2.5rem;
+            margin-top: 2rem;
+        }
+
+        @media (min-width: 1024px) {
+            .historial-grid {
+                grid-template-columns: 350px 1fr;
+            }
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 2.5rem;
+            border-left: 2px solid #f1f5f9;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 3rem;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: calc(-2.5rem - 6px);
+            top: 0;
+            width: 12px;
+            height: 12px;
+            background: #1C69D4;
+            /* BMW Blue */
+            border-radius: 50%;
+            border: 3px solid #fff;
+            box-shadow: 0 0 0 6px rgba(28, 105, 212, 0.1);
+            z-index: 10;
+        }
+
+        .timeline-card {
+            background: white;
+            border-radius: 28px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.05);
+            border: 1px solid #f1f5f9;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .timeline-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.1);
+        }
+
+        .vehicle-side-card {
+            background: linear-gradient(165deg, #0f172a, #1e293b);
+            border-radius: 32px;
+            padding: 3rem 2.5rem;
+            color: white;
+            position: sticky;
+            top: 2rem;
+            box-shadow: 0 30px 60px -12px rgba(15, 23, 42, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            height: fit-content;
+        }
+
+        .vehicle-selection-card {
+            background: white;
+            border-radius: 32px;
+            padding: 2.5rem 2rem;
+            border: 2px solid #f1f5f9;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
-            display: inline-flex;
+            text-align: center;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
+        }
+
+        .vehicle-selection-card:hover {
+            border-color: #1C69D4;
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px -12px rgba(28, 105, 212, 0.15);
+        }
+
+        .badge-status-h {
+            padding: 6px 14px;
+            border-radius: 99px;
+            font-size: 0.7rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .modal-full-screen {
+            width: 95vw !important;
+            max-width: 1400px !important;
+            height: 92vh !important;
+            border-radius: 60px !important;
+            overflow: hidden !important;
+            border: none !important;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.5);
+        }
+
+        .historial-header-premium {
+            background: white;
+            border-bottom: 1px solid #f1f5f9;
+            padding: 4rem 6rem;
+            /* Increased padding */
+        }
+
+        .search-container-premium {
+            background: #f8fafc;
+            padding: 3.5rem 4rem;
+            /* More internal space */
+            border-radius: 48px;
+            border: 1px solid #f1f5f9;
+            margin-bottom: 4rem;
+        }
+
+        .premium-input-h {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 24px;
+            padding: 1.5rem 2rem 1.5rem 4.5rem;
+            /* More left padding for icons */
+            width: 100%;
+            font-weight: 700;
+            font-size: 1.15rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #0f172a;
+        }
+
+        .premium-input-h::placeholder {
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .premium-input-h:focus {
+            border-color: #1C69D4;
+            outline: none;
+            box-shadow: 0 0 0 6px rgba(28, 105, 212, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .btn-consultar {
+            background: #1e293b;
+            color: white;
+            padding: 1.5rem 3rem;
+            border-radius: 24px;
+            font-weight: 900;
+            font-size: 1.1rem;
+            letter-spacing: 0.8px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 15px 35px -10px rgba(30, 41, 59, 0.5);
+            display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.35rem;
-            transition: background-color 0.2s;
-            text-decoration: none;
+            gap: 1rem;
+            width: 100%;
         }
 
-        .navbar-nav .user-action-pill .pill-app {
-            background-color: #2563eb;
-            color: #fff;
+        @media (min-width: 1280px) {
+            .btn-consultar {
+                width: auto;
+            }
         }
 
-        .navbar-nav .user-action-pill .pill-app:hover {
-            background-color: #1d4ed8;
+        .btn-consultar:hover {
+            background: #000;
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.6);
         }
 
-        .navbar-nav .user-action-pill .pill-logout {
-            background-color: #dc2626;
-            color: #fff;
+        /* Container padding correction */
+        .premium-modal-content-area {
+            padding-left: 6rem;
+            padding-right: 6rem;
+            padding-bottom: 5rem;
+            padding-top: 3rem;
         }
 
-        .navbar-nav .user-action-pill .pill-logout:hover {
-            background-color: #b91c1c;
+        @media (max-width: 1024px) {
+            .historial-header-premium {
+                padding: 3rem 2.5rem;
+            }
+
+            .premium-modal-content-area {
+                padding-left: 2.5rem;
+                padding-right: 2.5rem;
+            }
+
+            .search-container-premium {
+                padding: 2.5rem 2rem;
+            }
         }
 
-        .navbar-nav .user-action-pill .pill-separator {
-            width: 1px;
-            background-color: rgba(255, 255, 255, 0.4);
-            margin: 0 0.15rem;
+        .no-data-msg {
+            text-align: center;
+            padding: 10rem 2rem;
+            color: #94a3b8;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
     </style>
 </head>
@@ -206,6 +402,8 @@
             <div class="navbar-menu">
                 <a href="#servicios" class="navbar-link">Servicios</a>
                 <a href="#galeria" class="navbar-link">Nuestros éxitos</a>
+                <a href="javascript:void(0)" onclick="openHistorialModal()"
+                    class="navbar-link navbar-link-historial">Historial</a>
                 <a href="#soluciones" class="navbar-link">Soluciones</a>
                 <a href="#clientes" class="navbar-link">Clientes</a>
                 <a href="#contacto" class="navbar-link">Contacto</a>
@@ -213,22 +411,19 @@
 
             <div class="navbar-nav">
                 @auth
-                    <div class="user-action-wrapper">
-                        <span class="user-greeting">Hola, {{ auth()->user()->name }}</span>
-                        <div class="user-action-pill">
-                            <a href="{{ route('panel.dashboard') }}" class="pill-app" title="Ir a la aplicación">
-                                <i class="fas fa-arrow-right-to-bracket"></i>
-                                <span>App</span>
-                            </a>
-                            <div class="pill-separator" aria-hidden="true"></div>
-                            <form action="{{ route('logout') }}" method="POST" style="margin:0;">
-                                @csrf
-                                <button type="submit" class="pill-logout">
-                                    <i class="fas fa-sign-out-alt"></i>
-                                    <span>Salir</span>
-                                </button>
-                            </form>
-                        </div>
+                    <div class="flex items-center gap-4">
+                        <span class="text-white/60 text-xs font-bold hidden lg:block">{{ auth()->user()->name }}</span>
+                        <a href="{{ route('panel.dashboard') }}" class="user-action-btn btn-app-modern"
+                            title="Ir a la aplicación">
+                            <i class="fas fa-th-large"></i>
+                            <span>APP</span>
+                        </a>
+                        <form action="{{ route('logout') }}" method="POST" class="m-0">
+                            @csrf
+                            <button type="submit" class="user-action-btn btn-logout-modern" title="Cerrar Sesión">
+                                <i class="fas fa-power-off"></i>
+                            </button>
+                        </form>
                     </div>
                 @else
                     <a href="{{ route('login') }}" class="btn btn-primary">Ingresar</a>
@@ -808,8 +1003,117 @@
     </div>
 
 
+    <!-- MODAL: HISTORIAL DE VEHÍCULO (PREMIUM RE-ENGINEERING) -->
+    <div id="historialModal" class="booking-modal-overlay">
+        <div class="booking-modal-container modal-full-screen bg-white">
+            <!-- Close Button Header - Professional Minimalist Style -->
+            <div class="absolute top-8 right-12 z-[60]">
+                <button onclick="toggleHistorialModal()"
+                    class="w-14 h-14 bg-white/80 hover:bg-white backdrop-blur-md text-slate-800 rounded-full flex items-center justify-center transition-all duration-300 shadow-xl border border-slate-100 group">
+                    <i class="fas fa-times text-xl group-hover:rotate-90 transition-transform duration-500"></i>
+                </button>
+            </div>
+
+            <!-- Header Section -->
+            <div class="historial-header-premium">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-8">
+                    <div>
+                        <div class="flex items-center gap-3 mb-4">
+                            <div
+                                class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200">
+                                <i class="fas fa-shield-check text-white text-sm"></i>
+                            </div>
+                            <span class="text-blue-600 font-black text-xs uppercase tracking-[0.3em]">Portal de
+                                Historial Vehicular</span>
+                        </div>
+                        <h2 class="text-5xl font-black text-slate-900 tracking-tighter leading-tight mb-3">Expediente de
+                            <span class="text-blue-600">Servicio</span>
+                        </h2>
+                        <p class="text-slate-500 font-medium text-lg max-w-2xl leading-relaxed">Registro técnico
+                            consolidado de sus mantenimientos, reparaciones y visitas preventivas.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Area (Scrollable) -->
+            <div class="flex-1 overflow-y-auto scroll-smooth custom-scrollbar premium-modal-content-area">
+
+                <!-- Search Control Center -->
+                <div class="search-container-premium">
+                    <div class="flex flex-col xl:flex-row items-end gap-10">
+                        <div class="flex-1 w-full grid grid-cols-1 md:grid-cols-2 gap-10">
+                            <div class="space-y-4">
+                                <label
+                                    class="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Placa
+                                    de Identificación</label>
+                                <div class="relative group">
+                                    <i
+                                        class="fas fa-id-card absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors text-lg"></i>
+                                    <input type="text" id="hPlaca" placeholder="EJ. P-440BMW"
+                                        class="premium-input-h uppercase">
+                                </div>
+                            </div>
+                            <div class="space-y-4">
+                                <label
+                                    class="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Password
+                                    de Seguridad</label>
+                                <div class="relative group">
+                                    <i
+                                        class="fas fa-key absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors text-lg"></i>
+                                    <input type="password" id="hPassword" placeholder="••••••••"
+                                        class="premium-input-h">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="w-full xl:w-auto">
+                            <button type="button" class="btn-consultar" onclick="searchHistorial()">
+                                <i class="fas fa-magnifying-glass"></i>
+                                <span>CONSULTAR EXPEDIENTE</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div
+                        class="mt-8 flex items-center gap-4 py-4 px-6 bg-blue-50/50 rounded-2xl border border-blue-100">
+                        <i class="fas fa-info-circle text-blue-600 text-lg"></i>
+                        <p class="text-sm text-blue-900 font-bold leading-relaxed">
+                            Acceso seguro restringido. Para visualizar la bitácora técnica de su unidad, es
+                            indispensable ingresar su contraseña asignada en recepción.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Step Navigator -->
+                <div id="historialNav" class="hidden mb-12 items-center gap-4">
+                    <button onclick="backToVehicles()"
+                        class="flex items-center gap-2 text-slate-500 hover:text-slate-900 font-black text-xs uppercase tracking-widest transition-all">
+                        <i class="fas fa-arrow-left"></i> Volver a Mis Vehículos
+                    </button>
+                    <div class="h-4 w-px bg-slate-200"></div>
+                    <span id="navDetailText" class="text-blue-600 font-black text-xs uppercase tracking-widest">Detalle
+                        Unidad</span>
+                </div>
+
+                <!-- Dashboard Results Content -->
+                <div id="historialContent" class="min-h-[400px]">
+                    <div class="no-data-msg">
+                        <div
+                            class="w-40 h-40 bg-slate-50 rounded-[48px] flex items-center justify-center mx-auto mb-10 shadow-inner border border-slate-100/50">
+                            <i class="fas fa-folder-tree text-5xl text-slate-200"></i>
+                        </div>
+                        <h3 class="text-3xl font-black text-slate-800 tracking-tight mb-3">Expediente No Identificado
+                        </h3>
+                        <p class="text-slate-400 max-w-md mx-auto text-lg font-medium leading-relaxed">Por favor ingrese
+                            la placa y contraseña de su vehículo para sincronizar con nuestra base de datos técnica.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Selección de Sucursal WhatsApp -->
     <div id="whatsappModal" class="booking-modal-overlay">
+        <!-- ... existing content ... -->
         <div class="booking-modal-panel"
             style="max-width: 400px; background: #ffffff; border-radius: 24px; padding: 10px; box-shadow: 0 20px 50px rgba(0,0,0,0.4);">
             <div class="booking-header" style="border-bottom: 1px solid #f3f4f6; margin-bottom: 0;">

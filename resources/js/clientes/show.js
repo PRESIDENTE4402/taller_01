@@ -15,6 +15,7 @@ const config = {
 function editCliente() {
     document.getElementById('clientModal').classList.remove('hidden');
     document.getElementById('es_empresa').checked = config.esEmpresa;
+    document.getElementById('password').value = ''; // Always empty on open
     toggleEmpresaFields();
 }
 

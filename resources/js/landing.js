@@ -884,6 +884,264 @@ function updateNavbarLogo(logoImage) {
     }
 }
 
+// ===== HISTORIAL LOGIC =====
+window.openHistorialModal = () => {
+    const modal = document.getElementById('historialModal');
+    if (!modal) return;
+    modal.style.display = 'flex';
+    setTimeout(() => modal.classList.add('active'), 10);
+};
+
+window.toggleHistorialModal = () => {
+    const modal = document.getElementById('historialModal');
+    if (!modal) return;
+    if (modal.classList.contains('active')) {
+        modal.classList.remove('active');
+        setTimeout(() => modal.style.display = 'none', 300);
+    } else {
+        window.openHistorialModal();
+    }
+};
+
+let currentHistorialData = null;
+
+window.searchHistorial = async () => {
+    const placa = document.getElementById('hPlaca').value.trim();
+    const password = document.getElementById('hPassword').value.trim();
+    const content = document.getElementById('historialContent');
+    const nav = document.getElementById('historialNav');
+
+    if (!placa || !password) {
+        Swal.fire({
+            title: 'Datos Incompletos',
+            text: 'Por favor, ingrese la placa y su contraseña de seguridad para continuar.',
+            icon: 'warning',
+            target: document.getElementById('historialModal'),
+            confirmButtonColor: '#1e293b'
+        });
+        return;
+    }
+
+    content.innerHTML = `
+        <div class="no-data-msg">
+            <div class="loading loading-spinner loading-lg text-primary"></div>
+            <p class="mt-6 font-black text-slate-400">Sincronizando expedientes técnicos...</p>
+        </div>
+    `;
+    if (nav) nav.classList.add('hidden');
+
+    try {
+        const url = `/api/landing/historial?placa=${encodeURIComponent(placa)}&password=${encodeURIComponent(password)}`;
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            currentHistorialData = data;
+            renderVehicleSelection(data.vehiculos);
+        } else {
+            content.innerHTML = `
+                <div class="no-data-msg">
+                    <i class="fas fa-triangle-exclamation text-6xl mb-6 text-orange-400"></i>
+                    <h3 class="text-2xl font-black text-slate-800">${data.message || 'Error de Autenticación'}</h3>
+                    <p class="text-slate-400 mt-2">Verifique sus credenciales o contacte a soporte técnico.</p>
+                </div>
+            `;
+        }
+    } catch (error) {
+        content.innerHTML = `<div class="p-8 text-center text-red-500 font-bold font-black">ERROR CRÍTICO: No se pudo establecer conexión con el núcleo del sistema.</div>`;
+    }
+};
+
+function renderVehicleSelection(vehiculos) {
+    const content = document.getElementById('historialContent');
+    const nav = document.getElementById('historialNav');
+    if (nav) nav.classList.add('hidden');
+
+    let html = `
+        <div class="mb-10">
+            <span class="text-blue-600 font-black text-xs uppercase tracking-[0.2em] mb-2 block">Paso 1: Seleccione su Unidad</span>
+            <h3 class="text-3xl font-black text-slate-900 tracking-tight">Vehículos Vinculados</h3>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    `;
+
+    vehiculos.forEach((v, index) => {
+        html += `
+            <div class="vehicle-selection-card group" onclick="viewVehicleTimeline(${index})">
+                <div class="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:bg-blue-50 transition-colors">
+                    <i class="fas fa-car-side text-2xl text-slate-300 group-hover:text-blue-600 transition-colors"></i>
+                </div>
+                <h4 class="text-2xl font-black text-slate-900 mb-1 tracking-tighter">${v.placa}</h4>
+                <p class="text-slate-400 font-bold text-sm uppercase mb-6">${v.marca?.nombre} ${v.modelo?.nombre}</p>
+                <div class="flex items-center justify-center gap-2 text-blue-600 font-black text-xs uppercase tracking-widest">
+                    Ver Historial <i class="fas fa-chevron-right text-[10px]"></i>
+                </div>
+            </div>
+        `;
+    });
+
+    html += `</div>`;
+    content.innerHTML = html;
+}
+
+window.viewVehicleTimeline = (index) => {
+    const v = currentHistorialData.vehiculos[index];
+    const content = document.getElementById('historialContent');
+    const nav = document.getElementById('historialNav');
+    const navText = document.getElementById('navDetailText');
+
+    if (nav) {
+        nav.classList.remove('hidden');
+        nav.classList.add('flex');
+    }
+    if (navText) navText.innerText = `EXPEDIENTE: ${v.placa}`;
+
+    let html = `
+        <div class="historial-grid">
+            <!-- Vehicle Sidebar Card -->
+            <div class="vehicle-side-card">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-car text-xl text-blue-400"></i>
+                    </div>
+                    <div>
+                        <span class="text-blue-400 text-[10px] font-black uppercase tracking-widest block">Unidad Registrada</span>
+                        <h2 class="text-3xl font-black tracking-tighter">${v.placa}</h2>
+                    </div>
+                </div>
+
+                <div class="space-y-6 pt-8 border-t border-white/10">
+                    <div class="flex flex-col gap-1">
+                        <span class="text-blue-300/50 text-[10px] font-black uppercase tracking-widest">Marca / Modelo</span>
+                        <span class="font-black text-lg">${v.marca?.nombre} ${v.modelo?.nombre}</span>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <span class="text-blue-300/50 text-[10px] font-black uppercase tracking-widest">Versión / Año</span>
+                        <span class="font-black text-lg">${v.version?.nombre || 'N/A'} - ${v.anio || 'N/A'}</span>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <span class="text-blue-300/50 text-[10px] font-black uppercase tracking-widest">Servicios Realizados</span>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="px-3 py-1 bg-blue-500 rounded-full font-black text-sm">${v.ordenes.length}</span>
+                            <span class="text-xs text-blue-300 font-bold">Órdenes de Trabajo</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-12 p-6 bg-white/5 rounded-2xl border border-white/5">
+                    <p class="text-[10px] text-blue-200 uppercase font-black tracking-widest mb-2"><i class="fas fa-circle-check text-blue-400 mr-2"></i> Estado de Garantía</p>
+                    <p class="text-xs text-blue-100/70 leading-relaxed">Este historial técnico certifica los servicios preventivos realizados en nuestro centro autorizado.</p>
+                </div>
+            </div>
+
+            <!-- Timeline Section -->
+            <div class="timeline">
+                ${v.ordenes.length > 0 ? v.ordenes.map(orden => `
+                    <div class="timeline-item">
+                        <div class="timeline-card">
+                            <div class="flex flex-col lg:flex-row justify-between lg:items-center gap-4 mb-6">
+                                <div>
+                                    <div class="flex items-center gap-3 mb-2">
+                                        <span class="badge-status-h bg-slate-100 text-slate-700">Orden #${orden.codigo_orden}</span>
+                                        <span class="badge-status-h ${getStatusClass(orden.estado)}">${orden.estado.replace('_', ' ')}</span>
+                                    </div>
+                                    <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                                        <i class="fas fa-calendar-days text-slate-300"></i> ${new Date(orden.fecha_recepcion).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}
+                                    </h4>
+                                </div>
+                                <div class="bg-blue-50 px-6 py-3 rounded-2xl border border-blue-100 lg:text-right">
+                                    <span class="text-[10px] font-black text-blue-400 uppercase block tracking-widest mb-1">Recorrido</span>
+                                    <span class="font-black text-2xl text-blue-900">${orden.kilometraje_entrada.toLocaleString()} <span class="text-sm">KM</span></span>
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-50 border border-slate-100 rounded-2xl p-5 mb-6">
+                                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Descripción del Reporte</span>
+                                <p class="text-slate-700 italic font-medium leading-relaxed">"${orden.falla_cliente}"</p>
+                            </div>
+
+                            <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                                <div>
+                                    <div class="flex items-center gap-2 mb-4">
+                                        <div class="w-6 h-6 bg-blue-100 rounded-lg flex items-center justify-center">
+                                            <i class="fas fa-boxes-stacked text-[10px] text-blue-600"></i>
+                                        </div>
+                                        <span class="text-[11px] font-black text-slate-900 uppercase tracking-widest">Insumos y Repuestos</span>
+                                    </div>
+                                    <ul class="space-y-3">
+                                        ${orden.detalles.length > 0 ? orden.detalles.map(d => `
+                                            <li class="flex items-start gap-3 p-3 bg-white rounded-xl border border-slate-100 shadow-sm">
+                                                <span class="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center font-black text-slate-600 text-xs">${d.cantidad}</span>
+                                                <div class="flex-1">
+                                                    <p class="text-xs font-black text-slate-800 uppercase leading-none mb-1">${d.repuesto?.nombre || d.descripcion_manual}</p>
+                                                    <p class="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Material Técnico Certificado</p>
+                                                </div>
+                                            </li>
+                                        `).join('') : `
+                                            <li class="p-4 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-center">
+                                                <span class="text-[10px] font-bold text-slate-400 uppercase">Sin materiales reportados</span>
+                                            </li>
+                                        `}
+                                    </ul>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2 mb-4">
+                                        <div class="w-6 h-6 bg-orange-100 rounded-lg flex items-center justify-center">
+                                            <i class="fas fa-screwdriver-wrench text-[10px] text-orange-600"></i>
+                                        </div>
+                                        <span class="text-[11px] font-black text-slate-900 uppercase tracking-widest">Labores Técnicas</span>
+                                    </div>
+                                    <ul class="space-y-3">
+                                        ${orden.bitacoras.length > 0 ? orden.bitacoras.map(t => `
+                                            <li class="flex items-start gap-3 p-3 bg-white rounded-xl border border-slate-100 shadow-sm">
+                                                <div class="w-8 h-8 bg-orange-50 rounded-lg flex items-center justify-center">
+                                                    <i class="fas fa-check text-[10px] text-orange-400"></i>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <p class="text-xs font-black text-slate-800 uppercase leading-relaxed">${t.descripcion}</p>
+                                                </div>
+                                            </li>
+                                        `).join('') : `
+                                            <li class="p-4 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-center">
+                                                <span class="text-[10px] font-bold text-slate-400 uppercase">Sin tareas reportadas</span>
+                                            </li>
+                                        `}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('') : `
+                    <div class="no-data-msg">
+                        <i class="fas fa-folder-open text-4xl mb-4 opacity-20"></i>
+                        <p class="font-black text-slate-400 uppercase text-xs tracking-widest">No se registran intervenciones para esta unidad.</p>
+                    </div>
+                `}
+            </div>
+        </div>
+    `;
+    content.innerHTML = html;
+};
+
+window.backToVehicles = () => {
+    if (currentHistorialData) {
+        renderVehicleSelection(currentHistorialData.vehiculos);
+    }
+};
+
+function getStatusClass(status) {
+    const classes = {
+        'PENDIENTE': 'bg-orange-100 text-orange-700',
+        'PROCESO': 'bg-blue-100 text-blue-700',
+        'PAUSADO': 'bg-red-100 text-red-700',
+        'FINALIZADO': 'bg-green-100 text-green-700',
+        'ENTREGADO': 'bg-slate-900 text-white',
+        'CONFIRMACION_PRESUPUESTO': 'bg-purple-100 text-purple-700',
+        'ESPERANDO_REPUESTO': 'bg-yellow-100 text-yellow-700'
+    };
+    return classes[status] || 'bg-gray-100 text-gray-700';
+}
+
 // ===== WHATSAPP LOGIC =====
 window.closeWhatsAppModal = () => {
     const modal = document.getElementById('whatsappModal');

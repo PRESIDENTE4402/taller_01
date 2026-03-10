@@ -15,6 +15,7 @@ class Cliente extends Model
     protected $fillable = [
         'nombre_completo',
         'email',
+        'password',
         'telefono',
         'empresa',
         'nit',
@@ -23,9 +24,20 @@ class Cliente extends Model
         'situacion'
     ];
 
+    protected $hidden = [
+        'password',
+    ];
+
     protected $casts = [
         'es_empresa' => 'boolean',
     ];
+
+    public function setPasswordAttribute($value)
+    {
+        if (!empty($value)) {
+            $this->attributes['password'] = \Illuminate\Support\Facades\Hash::make($value);
+        }
+    }
 
     public function vehiculos()
     {

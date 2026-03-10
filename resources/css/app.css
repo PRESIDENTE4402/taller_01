@@ -4290,6 +4290,12 @@ footer a:hover {
     color: var(--m-red);
 }
 
+/* Historial link - mismo comportamiento adaptativo que los demás links */
+/* Negro al inicio (hereda .navbar-link base), blanco al scrollear */
+.navbar.scrolled .navbar-link-historial {
+    color: white;
+}
+
 /* Loading Spinner Styles */
 .loading-spinner {
     display: flex;

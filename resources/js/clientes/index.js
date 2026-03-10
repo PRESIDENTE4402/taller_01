@@ -105,6 +105,7 @@ function openModal(mode, data = null) {
 
         document.getElementById('es_empresa').checked = data.es_empresa;
         document.getElementById('empresa').value = data.empresa || '';
+        document.getElementById('password').value = ''; // Always empty on open for safety
 
         toggleEmpresaFields();
     }

@@ -26,6 +26,7 @@ Route::get('/api/landing/versions/{modeloId}', [CitaController::class, 'getVersi
 Route::get('/api/landing/client-lookup', [CitaController::class, 'clientLookup']);
 Route::post('/api/landing/citas', [CitaController::class, 'store'])->name('landing.citas.store');
 Route::get('/api/landing/images', [\App\Http\Controllers\Panel\LandingImageController::class, 'getPublicImages']);
+Route::get('/api/landing/historial', [App\Http\Controllers\Landing\HistorialController::class, 'search']);
 
 // Auth Routes
 Route::middleware('guest')->group(function () {
