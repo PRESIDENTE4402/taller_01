@@ -980,46 +980,29 @@ function openCitaModal(cita) {
     const btnWhatsApp = document.getElementById('btnWhatsApp');
     const waMsg = `Hola ${cita.cliente}, le escribimos de Tecnimecánica California sobre su vehículo ${cita.vehiculo}.`;
 
-    btnWhatsApp.onclick = (e) => {
+    btnWhatsApp.onclick = async (e) => {
         e.preventDefault();
         if (!cleanPhone) return;
 
-        // Si es admin o recepcionista, permitir elegir desde qué sucursal enviar
-        const isAdmin = window.APP_CONFIG.USER_ROLES && (window.APP_CONFIG.USER_ROLES.includes('admin') || window.APP_CONFIG.USER_ROLES.includes('recepcionista'));
-
-        if (isAdmin) {
-            Swal.fire({
-                title: 'Enviar WhatsApp como...',
-                text: 'Seleccione la sucursal desde cuya cuenta desea enviar el mensaje:',
-                icon: 'question',
-                input: 'select',
-                inputOptions: window.APP_CONFIG.SUCURSALES_OPTIONS || {},
-                inputPlaceholder: 'Seleccionar sucursal...',
-                showCancelButton: true,
-                confirmButtonText: 'Continuar',
-                cancelButtonText: 'Cancelar',
-                customClass: {
-                    confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 transition-colors mr-2',
-                    cancelButton: 'bg-gray-200 text-gray-700 px-6 py-2 rounded-lg font-bold hover:bg-gray-300 transition-colors'
+        try {
+            const response = await fetch(`${window.location.pathname.replace(/\/$/, '')}/${cita.id}/notify`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': window.APP_CONFIG.CSRF_TOKEN,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 },
-                buttonsStyling: false,
-                inputValidator: (value) => {
-                    if (!value) return 'Debes seleccionar una sucursal';
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    const selectedSucursalId = result.value;
-                    const sucursalPhone = window.APP_CONFIG.SUCURSAL_PHONES ? window.APP_CONFIG.SUCURSAL_PHONES[selectedSucursalId] : null;
-
-                    // Usamos la API oficial que es la más compatible para disparar la app o el sitio web
-                    const waUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(waMsg)}`;
-                    window.open(waUrl, '_blank');
-                }
+                body: JSON.stringify({ tipo: 'confirmacion', channel: 'whatsapp' })
             });
-        } else {
-            // Usuario normal, usar la API más compatible
-            const waUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(waMsg)}`;
-            window.open(waUrl, '_blank');
+
+            const data = await response.json();
+            if (data.success) {
+                const waUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(data.whatsapp_text)}`;
+                window.open(waUrl, '_blank');
+            }
+        } catch (error) {
+            console.error(error);
+            Swal.fire('Error', 'No se pudo generar el mensaje de WhatsApp', 'error');
         }
     };
     if (!cleanPhone) btnWhatsApp.classList.add('opacity-50', 'pointer-events-none');
@@ -1027,14 +1010,28 @@ function openCitaModal(cita) {
 
     // 2. Reminder (Predefined Message via WhatsApp)
     const btnReminder = document.getElementById('btnReminder');
-    const reminderMsg = `Hola ${cita.cliente}, le recordamos su cita en Tecnimecánica California para el vehículo ${cita.vehiculo} el día ${formattedDate}. Por favor confirme su asistencia. Le esperamos.`;
+    btnReminder.onclick = async () => {
+        if (!cleanPhone) return;
 
-    btnReminder.onclick = () => {
-        if (cleanPhone) {
-            const waUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(reminderMsg)}`;
-            window.open(waUrl, '_blank');
-        } else {
-            Swal.fire('Error', 'El cliente no tiene teléfono registrado', 'warning');
+        try {
+            const response = await fetch(`${window.location.pathname.replace(/\/$/, '')}/${cita.id}/notify`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': window.APP_CONFIG.CSRF_TOKEN,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ tipo: 'recordatorio', channel: 'whatsapp' })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                const waUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(data.whatsapp_text)}`;
+                window.open(waUrl, '_blank');
+            }
+        } catch (error) {
+            console.error(error);
+            Swal.fire('Error', 'No se pudo generar el recordatorio', 'error');
         }
     };
     if (!cleanPhone || ['concretada', 'cancelada', 'no_asistio'].includes(cita.estado)) {
@@ -1042,6 +1039,45 @@ function openCitaModal(cita) {
     } else {
         btnReminder.classList.remove('opacity-50', 'pointer-events-none');
     }
+
+    // 3. Email Notification
+    const btnEmailNotify = document.getElementById('btnEmailNotify');
+    btnEmailNotify.onclick = async () => {
+        if (!cita.email) {
+            Swal.fire('Error', 'El cliente no tiene correo registrado', 'warning');
+            return;
+        }
+
+        btnEmailNotify.disabled = true;
+        btnEmailNotify.innerHTML = '<span class="loading loading-spinner"></span> Enviando...';
+
+        try {
+            const response = await fetch(`${window.location.pathname.replace(/\/$/, '')}/${cita.id}/notify`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': window.APP_CONFIG.CSRF_TOKEN,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ tipo: 'confirmacion', channel: 'email' })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                Swal.fire('¡Enviado!', data.message, 'success');
+            } else {
+                Swal.fire('Error', data.message, 'error');
+            }
+        } catch (error) {
+            console.error(error);
+            Swal.fire('Error', 'No se pudo enviar el correo', 'error');
+        } finally {
+            btnEmailNotify.disabled = false;
+            btnEmailNotify.innerHTML = '<i class="fas fa-envelope text-2xl group-hover:scale-110 transition-transform"></i> <span class="text-[10px] font-black uppercase">Enviar<br>Correo</span>';
+        }
+    };
+    if (!cita.email) btnEmailNotify.classList.add('opacity-50', 'pointer-events-none');
+    else btnEmailNotify.classList.remove('opacity-50', 'pointer-events-none');
 
     // ... (previous content) ...
 

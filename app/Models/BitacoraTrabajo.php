@@ -30,6 +30,7 @@ class BitacoraTrabajo extends Model
         'motivo_descuento',
         'estado_pago',
         'pago_trabajador_id',
+        'motivo_pausa',
         'monto_pago'
     ];
 

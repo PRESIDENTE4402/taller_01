@@ -17,6 +17,93 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initStatusActions() {
+    const btnReanudar = document.querySelector('.btn-reanudar');
+    if (btnReanudar) {
+        btnReanudar.addEventListener('click', async () => {
+            const { isConfirmed } = await Swal.fire({
+                title: '¿Reanudar Reparación?',
+                text: 'La orden volverá a estado "En Proceso".',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, reanudar',
+                cancelButtonText: 'Cancelar',
+                customClass: {
+                    confirmButton: 'btn bg-blue-600 hover:bg-blue-700 text-white border-none rounded-xl ml-2 shadow-lg shadow-blue-500/30',
+                    cancelButton: 'btn btn-ghost border border-gray-200 hover:bg-gray-100 text-gray-600 rounded-xl font-bold',
+                    popup: 'rounded-3xl shadow-2xl border border-gray-100 bg-white p-6'
+                },
+                buttonsStyling: false
+            });
+
+            if (isConfirmed) {
+                updateStatus('en_proceso');
+            }
+        });
+    }
+
+    const btnEsperaRepuesto = document.querySelector('.btn-espera-repuesto');
+    if (btnEsperaRepuesto) {
+        btnEsperaRepuesto.addEventListener('click', async () => {
+            const { value: situacion } = await Swal.fire({
+                title: 'Cambiar Situación de la Orden',
+                input: 'select',
+                inputOptions: {
+                    'espera_repuesto': 'Esperando Repuestos',
+                    'confirmacion_presupuesto': 'Espera de Corfirmación Presupuesto',
+                    'otros': 'Otro (Especificar)'
+                },
+                inputPlaceholder: 'Seleccione una situación...',
+                showCancelButton: true,
+                confirmButtonText: 'Continuar',
+                cancelButtonText: 'Cancelar',
+                inputValidator: (value) => {
+                    return new Promise((resolve) => {
+                        if (value) {
+                            resolve();
+                        } else {
+                            resolve('Debes seleccionar una situación');
+                        }
+                    });
+                },
+                customClass: {
+                    confirmButton: 'btn bg-orange-500 hover:bg-orange-600 text-white border-none rounded-xl ml-2 shadow-lg shadow-orange-500/30',
+                    cancelButton: 'btn btn-ghost border border-gray-200 hover:bg-gray-100 text-gray-600 rounded-xl font-bold',
+                    popup: 'rounded-3xl shadow-2xl border border-gray-100 bg-white p-6'
+                },
+                buttonsStyling: false
+            });
+
+            if (situacion) {
+                let motivo = '';
+                if (situacion === 'otros' || situacion === 'confirmacion_presupuesto') {
+                    const result = await Swal.fire({
+                        title: 'Detalle de la situación',
+                        input: 'textarea',
+                        inputPlaceholder: 'Escriba más detalles aquí...',
+                        showCancelButton: true,
+                        confirmButtonText: 'Cambiar Estado',
+                        cancelButtonText: 'Cancelar',
+                        customClass: {
+                            confirmButton: 'btn bg-orange-500 hover:bg-orange-600 text-white border-none rounded-xl ml-2 shadow-lg shadow-orange-500/30 font-black',
+                            cancelButton: 'btn btn-ghost border border-gray-200 hover:bg-gray-100 text-gray-600 rounded-xl font-bold',
+                            popup: 'rounded-3xl shadow-2xl border border-gray-100 bg-white p-6'
+                        },
+                        buttonsStyling: false
+                    });
+
+                    if (!result.isConfirmed) return;
+                    motivo = result.value || situacion;
+                } else {
+                    motivo = 'Espera de Repuestos';
+                }
+
+                if (situacion) {
+                    updateStatus('espera_repuesto', motivo);
+                }
+            }
+        });
+    }
+
     const btnFinalizar = document.querySelector('.btn-finalizar');
     if (btnFinalizar) {
         btnFinalizar.addEventListener('click', async () => {
@@ -66,7 +153,7 @@ function initStatusActions() {
     }
 }
 
-async function updateStatus(nuevoEstado) {
+async function updateStatus(nuevoEstado, motivoEstado = null) {
     const url = window.location.pathname + '/status';
     try {
         const response = await fetch(url, {
@@ -76,21 +163,46 @@ async function updateStatus(nuevoEstado) {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
-            body: JSON.stringify({ estado: nuevoEstado })
+            body: JSON.stringify({
+                estado: nuevoEstado,
+                motivo_estado: motivoEstado
+            })
         });
 
         const data = await response.json();
         if (data.success) {
             Swal.fire({
-                title: '¡Éxito!',
+                title: '¡Estado Actualizado!',
                 text: data.message,
                 icon: 'success',
+                showCancelButton: true,
+                confirmButtonText: '<i class="fas fa-bell mr-2"></i> Notificar al Cliente',
+                cancelButtonText: 'Cerrar',
                 customClass: {
-                    confirmButton: 'btn bg-blue-600 hover:bg-blue-700 text-white border-none rounded-xl',
+                    confirmButton: 'btn bg-indigo-600 hover:bg-indigo-700 text-white border-none rounded-xl ml-2 shadow-lg shadow-indigo-500/30 font-black',
+                    cancelButton: 'btn btn-ghost border border-gray-200 hover:bg-gray-100 text-gray-600 rounded-xl font-bold',
                     popup: 'rounded-3xl shadow-2xl border border-gray-100 bg-white p-6'
                 },
                 buttonsStyling: false
-            }).then(() => window.location.reload());
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Trigger the notification logic using the new window.ordenData
+                    if (window.notificarAvance && window.ordenData) {
+                        window.notificarAvance(
+                            window.ordenData.id,
+                            window.ordenData.telefono,
+                            window.ordenData.codigo,
+                            nuevoEstado,
+                            window.ordenData.email,
+                            window.ordenData.printUrl
+                        );
+                    } else {
+                        window.location.reload();
+                    }
+                } else {
+                    window.location.reload();
+                }
+            });
         } else {
             Swal.fire({
                 title: 'Error',
@@ -560,50 +672,230 @@ window.enviarCotizacion = function (telefono, linkPdf, codigoOrden) {
             const btnWa = document.getElementById('btn-whatsapp');
             const btnEmail = document.getElementById('btn-email');
 
-            btnWa.addEventListener('click', () => {
-                let numeroLimpio = telefono.replace(/\D/g, '');
+            btnWa.addEventListener('click', async () => {
+                btnWa.disabled = true;
+                btnWa.innerHTML = '<span class="loading loading-spinner"></span> Preparando...';
 
-                // Formatear si no tiene codigo de area GT (502).
-                if (numeroLimpio.length === 8) {
-                    numeroLimpio = '502' + numeroLimpio;
+                try {
+                    const response = await fetch(`${window.location.pathname}/notify`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ tipo: 'cotizacion', channel: 'whatsapp' })
+                    });
+
+                    const data = await response.json();
+                    if (data.success) {
+                        let numeroLimpio = telefono.replace(/\D/g, '');
+                        if (numeroLimpio.length === 8) numeroLimpio = '502' + numeroLimpio;
+
+                        const mensaje = encodeURIComponent(data.whatsapp_text ||
+                            `*Cotización Orden #${codigoOrden}*\n\nPuedes ver el detalle aquí: ${linkPdf}`
+                        );
+
+                        window.open(`https://wa.me/${numeroLimpio}?text=${mensaje}`, '_blank');
+                        Swal.close();
+                    }
+                } catch (error) {
+                    console.error(error);
+                    Swal.fire('Error', 'No se pudo generar el mensaje de WhatsApp', 'error');
+                } finally {
+                    btnWa.disabled = false;
+                    btnWa.innerHTML = '<i class="fab fa-whatsapp text-2xl"></i> Enviar por WhatsApp';
                 }
-
-                const mensaje = encodeURIComponent(
-                    `*Taller Mecánico - Cotización Orden #${codigoOrden}* 🚘\n\n` +
-                    `¡Hola! 👨‍🔧 Te enviamos una actualización/cotización sobre los servicios de tu vehículo.\n\n` +
-                    `📄 *Puedes ver el detalle completo de la orden aquí:*\n${linkPdf}\n\n` +
-                    `¡Quedamos a la espera de tu confirmación para proceder! ✅`
-                );
-
-                window.open(`https://wa.me/${numeroLimpio}?text=${mensaje}`, '_blank');
-                Swal.close();
             });
 
-            btnEmail.addEventListener('click', () => {
-                Swal.fire({
-                    title: 'Enviando...',
-                    text: 'Conectando con el servidor de correo...',
-                    icon: 'info',
-                    timer: 2000,
-                    showConfirmButton: false,
-                    customClass: {
-                        popup: 'rounded-2xl border border-gray-100 p-6 shadow-xl'
-                    }
-                }).then(() => {
-                    Swal.fire({
-                        title: 'Aviso',
-                        text: 'La cotización debe ser confirmada. Funcionalidad de correos programada para la próxima actualización de tu sistema.',
-                        icon: 'info',
-                        customClass: {
-                            confirmButton: 'btn bg-blue-600 hover:bg-blue-700 text-white border-none rounded-xl'
+            btnEmail.addEventListener('click', async () => {
+                btnEmail.disabled = true;
+                btnEmail.innerHTML = '<span class="loading loading-spinner"></span> Enviando...';
+
+                try {
+                    const response = await fetch(`${window.location.pathname}/notify`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
                         },
-                        buttonsStyling: false
+                        body: JSON.stringify({ tipo: 'cotizacion', channel: 'email' })
                     });
-                });
+
+                    const data = await response.json();
+                    if (data.success) {
+                        Swal.fire({
+                            title: '¡Correo Enviado!',
+                            text: data.message,
+                            icon: 'success',
+                            customClass: { popup: 'rounded-2xl border border-gray-100 p-6' }
+                        });
+                    } else {
+                        throw new Error(data.message);
+                    }
+                } catch (error) {
+                    Swal.fire('Error', error.message || 'No se pudo enviar el correo', 'error');
+                } finally {
+                    btnEmail.disabled = false;
+                    btnEmail.innerHTML = '<i class="fas fa-envelope text-xl"></i> Enviar PDF por Correo';
+                }
             });
         }
     });
 }
+
+window.notificarAvance = function (id, telefono, codigoOrden, estadoActual, email, printUrl) {
+    Swal.fire({
+        title: 'Notificar al Cliente',
+        html: `
+            <div class="text-left space-y-4 px-2">
+                <p class="text-xs text-gray-500 font-bold uppercase tracking-widest text-center mb-6">¿Qué deseas notificar sobre la Orden #${codigoOrden}?</p>
+                
+                <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 flex flex-col gap-3">
+                    <label class="font-black text-[10px] uppercase text-blue-600 tracking-widest">Tipo de Mensaje</label>
+                    <div class="flex gap-2">
+                        <button id="msg-fase" class="btn-msg-type flex-1 btn btn-sm btn-primary italic font-black" data-type="fase">Cambio de Fase</button>
+                        <button id="msg-listo" class="btn-msg-type flex-1 btn btn-sm btn-outline border-green-200 text-green-600 font-black italic" data-type="listo">Vehículo Listo</button>
+                    </div>
+                </div>
+
+                <div class="divider text-[10px] font-black text-gray-300 uppercase">Canal de Envío</div>
+
+                <div class="grid grid-cols-1 gap-3">
+                    <button id="notify-whatsapp" class="btn bg-[#25D366] hover:bg-[#1ebe59] border-none text-white w-full gap-3 font-black shadow-lg shadow-[#25D366]/30 py-3 h-auto">
+                        <i class="fab fa-whatsapp text-2xl"></i> Enviar por WhatsApp
+                    </button>
+                    
+                    ${email ? `
+                    <button id="notify-email" class="btn bg-indigo-600 hover:bg-indigo-700 border-none text-white w-full gap-3 font-bold shadow-lg shadow-indigo-600/30">
+                        <i class="fas fa-envelope text-xl"></i> Enviar por Correo 
+                    </button>
+                    ` : `
+                    <div class="p-3 bg-red-50 text-red-500 rounded-xl text-[10px] font-bold text-center border border-red-100 italic">
+                        <i class="fas fa-exclamation-circle mr-1"></i> Cliente sin correo registrado
+                    </div>
+                    `}
+                </div>
+            </div>
+        `,
+        showConfirmButton: false,
+        showCancelButton: true,
+        cancelButtonText: 'Cerrar',
+        customClass: {
+            cancelButton: 'btn btn-ghost border border-gray-200 hover:bg-gray-100 text-gray-600 w-full mt-4 font-bold',
+            popup: 'rounded-3xl shadow-2xl border border-gray-100 bg-white p-6'
+        },
+        buttonsStyling: false,
+        didOpen: () => {
+            let selectedType = 'fase';
+            const btnFase = document.getElementById('msg-fase');
+            const btnListo = document.getElementById('msg-listo');
+            const btnWa = document.getElementById('notify-whatsapp');
+            const btnEmail = document.getElementById('notify-email');
+
+            const updateType = (type) => {
+                selectedType = type;
+                if (type === 'fase') {
+                    btnFase.className = 'btn-msg-type flex-1 btn btn-sm btn-primary italic font-black';
+                    btnListo.className = 'btn-msg-type flex-1 btn btn-sm btn-outline border-green-200 text-green-600 font-black italic';
+                } else {
+                    btnFase.className = 'btn-msg-type flex-1 btn btn-sm btn-outline border-blue-200 text-blue-600 font-black italic';
+                    btnListo.className = 'btn-msg-type flex-1 btn btn-sm btn-success text-white font-black italic shadow-md shadow-green-500/20';
+                }
+            };
+
+            btnFase.onclick = () => updateType('fase');
+            btnListo.onclick = () => updateType('listo');
+
+            btnWa.onclick = async () => {
+                btnWa.disabled = true;
+                btnWa.innerHTML = '<span class="loading loading-spinner"></span> Preparando...';
+
+                try {
+                    const response = await fetch(`${window.location.pathname}/notify`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ tipo: selectedType, channel: 'whatsapp' })
+                    });
+
+                    const data = await response.json();
+                    if (data.success) {
+                        let numeroLimpio = telefono.replace(/\D/g, '');
+                        if (numeroLimpio.length === 8) numeroLimpio = '502' + numeroLimpio;
+
+                        window.open(`https://api.whatsapp.com/send?phone=${numeroLimpio}&text=${encodeURIComponent(data.whatsapp_text)}`, '_blank');
+                        Swal.fire({
+                            title: '¡WhatsApp Listo!',
+                            text: 'Se ha abierto la ventana de WhatsApp. La página se recargará para mostrar cambios.',
+                            icon: 'success',
+                            confirmButtonText: 'Entendido',
+                            customClass: {
+                                confirmButton: 'btn bg-green-600 hover:bg-green-700 text-white rounded-xl px-8',
+                                popup: 'rounded-3xl border border-gray-100 p-6'
+                            },
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    }
+                } catch (error) {
+                    console.error(error);
+                    Swal.fire('Error', 'No se pudo generar el mensaje de WhatsApp', 'error');
+                } finally {
+                    btnWa.disabled = false;
+                    btnWa.innerHTML = '<i class="fab fa-whatsapp text-2xl"></i> Enviar por WhatsApp';
+                }
+            };
+
+            if (btnEmail) {
+                btnEmail.onclick = async () => {
+                    btnEmail.disabled = true;
+                    btnEmail.innerHTML = '<span class="loading loading-spinner"></span> Enviando...';
+
+                    try {
+                        const response = await fetch(`${window.location.pathname}/notify`, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({ tipo: selectedType, channel: 'email' })
+                        });
+
+                        const data = await response.json();
+                        if (data.success) {
+                            Swal.fire({
+                                title: '¡Correo Enviado!',
+                                text: data.message,
+                                icon: 'success',
+                                confirmButtonText: 'Excelente',
+                                customClass: {
+                                    confirmButton: 'btn bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-8',
+                                    popup: 'rounded-3xl border border-gray-100 p-6'
+                                }
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            throw new Error(data.message);
+                        }
+                    } catch (error) {
+                        Swal.fire('Error', error.message || 'No se pudo enviar el correo', 'error');
+                    } finally {
+                        btnEmail.disabled = false;
+                        btnEmail.innerHTML = '<i class="fas fa-envelope text-xl"></i> Enviar por Correo';
+                    }
+                };
+            }
+        }
+    });
+}
+
 
 function initRepuestoSearch() {
     const searchInput = document.getElementById('busqueda-repuesto');

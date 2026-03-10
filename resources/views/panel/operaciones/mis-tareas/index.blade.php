@@ -133,7 +133,7 @@
                                         <i class="fas fa-play"></i> Iniciar
                                     </button>
                                 @elseif($tareaActual->estado == 'en_progreso')
-                                    <button type="submit" name="estado" value="en_pausa" class="btn btn-warning flex-1 shadow-sm">
+                                    <button type="button" onclick="confirmarPausa(this)" class="btn btn-warning flex-1 shadow-sm">
                                         <i class="fas fa-pause"></i> Pausar
                                     </button>
                                 @endif
@@ -167,6 +167,17 @@
                             <button type="submit" class="btn btn-sm btn-outline btn-block"><i class="fas fa-save"></i> Guardar
                                 Nota</button>
                         </form>
+
+                        @if($tareaActual->estado == 'en_pausa' && $tareaActual->motivo_pausa)
+                            <div class="mt-4 bg-orange-50 p-4 rounded-xl border-l-4 border-orange-400">
+                                <label class="block text-xs font-black text-orange-700 uppercase tracking-widest mb-1">
+                                    <i class="fas fa-exclamation-circle mr-1"></i> Motivo de la Pausa
+                                </label>
+                                <p class="text-sm text-orange-800 font-medium">
+                                    {{ $tareaActual->motivo_pausa }}
+                                </p>
+                            </div>
+                        @endif
 
                         @if($tareaActual->notas_adicionales)
                             <div class="mt-4 bg-yellow-50 p-3 rounded-lg border border-yellow-100">
@@ -290,6 +301,49 @@
 
 @push('scripts')
     <script>
+        function confirmarPausa(btn) {
+            Swal.fire({
+                title: 'Pausar Tarea',
+                text: 'Indica el motivo por el cual estás deteniendo el trabajo:',
+                input: 'textarea',
+                inputPlaceholder: 'Ej: Esperando repuestos, falta de herramienta especial...',
+                inputAttributes: {
+                    'aria-label': 'Motivo de la pausa'
+                },
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Confirmar Pausa',
+                cancelButtonText: 'Cancelar',
+                inputValidator: (value) => {
+                    if (!value) {
+                        return '¡Debes indicar un motivo para pausar!'
+                    }
+                },
+                customClass: {
+                    confirmButton: 'btn btn-warning shadow-md',
+                    cancelButton: 'btn btn-ghost'
+                },
+                buttonsStyling: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const form = btn.closest('form');
+                    const hiddenStatus = document.createElement('input');
+                    hiddenStatus.type = 'hidden';
+                    hiddenStatus.name = 'estado';
+                    hiddenStatus.value = 'en_pausa';
+
+                    const hiddenReason = document.createElement('input');
+                    hiddenReason.type = 'hidden';
+                    hiddenReason.name = 'motivo_pausa';
+                    hiddenReason.value = result.value;
+
+                    form.appendChild(hiddenStatus);
+                    form.appendChild(hiddenReason);
+                    form.submit();
+                }
+            });
+        }
+
         function confirmarFinalizacion(btn) {
             Swal.fire({
                 title: '¿Finalizar Tarea?',
@@ -327,12 +381,12 @@
                     Swal.fire({
                         title: '<i class="fas fa-clipboard-list text-yellow-500 mb-2 text-4xl"></i><br><span class="text-xl font-black text-gray-800 uppercase">Notas del Mecánico</span>',
                         html: `
-                                    <div class="bg-yellow-50 text-left p-5 rounded-xl border border-yellow-200 mt-4 shadow-inner">
-                                        <div class="text-gray-700 text-sm font-medium leading-relaxed max-h-64 overflow-y-auto custom-scrollbar">
-                                            ${htmlNotas}
-                                        </div>
-                                    </div>
-                                `,
+                                                <div class="bg-yellow-50 text-left p-5 rounded-xl border border-yellow-200 mt-4 shadow-inner">
+                                                    <div class="text-gray-700 text-sm font-medium leading-relaxed max-h-64 overflow-y-auto custom-scrollbar">
+                                                        ${htmlNotas}
+                                                    </div>
+                                                </div>
+                                            `,
                         showConfirmButton: true,
                         confirmButtonText: '<i class="fas fa-check"></i> Entendido',
                         customClass: {

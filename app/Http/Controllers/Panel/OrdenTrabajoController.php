@@ -13,8 +13,13 @@ use App\Models\ModeloVehiculo;
 use App\Models\VersionVehiculo;
 use App\Models\BitacoraTrabajo;
 use App\Models\DetalleOrden;
+use App\Models\InventarioRecepcionItem;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\OrdenTrabajoStatusNotification;
+use App\Models\User;
+use App\Notifications\ActividadTaller;
 
 class OrdenTrabajoController extends Controller
 {
@@ -30,9 +35,15 @@ class OrdenTrabajoController extends Controller
         $search = $request->get('search');
 
         // Query Base
-        $query = Cita::with(['cliente', 'vehiculo.marca', 'vehiculo.modelo'])
+        $query = Cita::with(['cliente', 'vehiculo.marca', 'vehiculo.modelo', 'sucursal'])
             ->whereDoesntHave('ordenTrabajo') // Solo pendientes de recibir
             ->whereIn('estado', ['confirmada', 'concretada', 'pendiente']); // Ampliamos estados para que aparezcan más
+
+        // Filtro por Sucursal (No admin solo ve sus sucursales)
+        if (!Auth::user()->hasRole('admin')) {
+            $userSids = Auth::user()->sucursales->pluck('id');
+            $query->whereIn('sucursal_id', $userSids);
+        }
 
         // Filtro por Fecha (siempre aplica, por defecto HOY)
         if ($fecha) {
@@ -64,18 +75,31 @@ class OrdenTrabajoController extends Controller
 
     public function list(Request $request)
     {
-        // 1. Todas las Órdenes
-        $ordenes = OrdenTrabajo::with(['cliente', 'vehiculo.marca', 'vehiculo.modelo', 'sucursal', 'bitacoras', 'receptor'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $user = Auth::user();
+        $isAdmin = $user->hasRole('admin');
+        $userSids = $user->sucursales->pluck('id');
 
-        // 2. Citas "Concretadas" que NO tienen Orden de Trabajo aún
-        // Obtenemos citas con estado 'concretada' que no estén referenciadas en la tabla ordenes_trabajo
-        $citasPendientes = Cita::with(['cliente', 'vehiculo.marca', 'vehiculo.modelo'])
+        // 1. Todas las Órdenes (Filtradas si no es admin)
+        $queryOrdenes = OrdenTrabajo::with(['cliente', 'vehiculo.marca', 'vehiculo.modelo', 'sucursal', 'bitacoras', 'receptor'])
+            ->orderBy('created_at', 'desc');
+
+        if (!$isAdmin) {
+            $queryOrdenes->whereIn('sucursal_id', $userSids);
+        }
+
+        $ordenes = $queryOrdenes->get();
+
+        // 2. Citas "Concretadas" que NO tienen Orden de Trabajo aún (Filtradas si no es admin)
+        $queryCitas = Cita::with(['cliente', 'vehiculo.marca', 'vehiculo.modelo', 'sucursal'])
             ->where('estado', 'concretada')
-            ->whereDoesntHave('ordenTrabajo') // Asumiendo relación en modelo Cita
-            ->orderBy('fecha_programada', 'asc')
-            ->get();
+            ->whereDoesntHave('ordenTrabajo')
+            ->orderBy('fecha_programada', 'asc');
+
+        if (!$isAdmin) {
+            $queryCitas->whereIn('sucursal_id', $userSids);
+        }
+
+        $citasPendientes = $queryCitas->get();
 
         return response()->json([
             'ordenes' => $ordenes,
@@ -102,7 +126,9 @@ class OrdenTrabajoController extends Controller
         $isAdmin = $authUser->hasRole('admin');
         $sucursales = $isAdmin ? \App\Models\Sucursal::all() : collect([]);
 
-        return view('panel.operaciones.ordenes_trabajo.create', compact('cita', 'vehiculo', 'cliente', 'isAdmin', 'sucursales'));
+        $inventoryItems = InventarioRecepcionItem::where('activo', true)->orderBy('orden')->get();
+
+        return view('panel.operaciones.ordenes_trabajo.create', compact('cita', 'vehiculo', 'cliente', 'isAdmin', 'sucursales', 'inventoryItems'));
     }
 
     public function cancelCita($id)
@@ -111,6 +137,17 @@ class OrdenTrabajoController extends Controller
             $cita = Cita::findOrFail($id);
             $cita->estado = 'no_asistio';
             $cita->save();
+
+            // Notificar Administradores
+            $admins = User::whereHas('roles', fn($q) => $q->where('slug', 'admin'))->get();
+            foreach ($admins as $admin) {
+                /** @var \App\Models\User $admin */
+                $admin->notify(new ActividadTaller(
+                    "Cita de {$cita->cliente->nombre_completo} marcada como inasistencia",
+                    route('panel.operaciones.citas.index'),
+                    'cita_cancelada'
+                ));
+            }
 
             return response()->json([
                 'success' => true,
@@ -136,7 +173,9 @@ class OrdenTrabajoController extends Controller
         $isAdmin = $authUser->hasRole('admin');
         $sucursales = $isAdmin ? \App\Models\Sucursal::all() : collect([]);
 
-        return view('panel.operaciones.ordenes_trabajo.create', compact('orden', 'cliente', 'vehiculo', 'cita', 'isAdmin', 'sucursales'));
+        $inventoryItems = InventarioRecepcionItem::where('activo', true)->orderBy('orden')->get();
+
+        return view('panel.operaciones.ordenes_trabajo.create', compact('orden', 'cliente', 'vehiculo', 'cita', 'isAdmin', 'sucursales', 'inventoryItems'));
     }
 
     public function update(Request $request, $id)
@@ -336,6 +375,18 @@ class OrdenTrabajoController extends Controller
                 $orden->save();
             }
 
+            // Notificar Administradores
+            $admins = User::whereHas('roles', fn($q) => $q->where('slug', 'admin'))->get();
+            $itemNombre = $detalle->repuesto ? $detalle->repuesto->nombre : $detalle->descripcion_manual;
+            foreach ($admins as $admin) {
+                /** @var \App\Models\User $admin */
+                $admin->notify(new ActividadTaller(
+                    "Repuesto/Servicio agregado a OT #{$orden->codigo_orden}: {$itemNombre}",
+                    route('panel.operaciones.ordenes_trabajo.show', $orden->id),
+                    'detalle_agregado'
+                ));
+            }
+
             return response()->json(['success' => true, 'message' => 'Detalle agregado con éxito', 'data' => $detalle]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
@@ -496,6 +547,18 @@ class OrdenTrabajoController extends Controller
 
             $detalle->delete();
 
+            // Notificar Administradores
+            $admins = User::whereHas('roles', fn($q) => $q->where('slug', 'admin'))->get();
+            $itemNombre = $detalle->repuesto ? $detalle->repuesto->nombre : $detalle->descripcion_manual;
+            foreach ($admins as $admin) {
+                /** @var \App\Models\User $admin */
+                $admin->notify(new ActividadTaller(
+                    "Repuesto/Servicio eliminado de OT #{$orden->codigo_orden}: {$itemNombre}",
+                    route('panel.operaciones.ordenes_trabajo.show', $orden->id),
+                    'detalle_eliminado'
+                ));
+            }
+
             return response()->json(['success' => true, 'message' => 'Repuesto eliminado con éxito']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
@@ -525,6 +588,18 @@ class OrdenTrabajoController extends Controller
             if ($orden->estado == 'abierta') {
                 $orden->estado = 'en_proceso';
                 $orden->save();
+            }
+
+            // Notificar Administradores
+            $admins = User::whereHas('roles', fn($q) => $q->where('slug', 'admin'))->get();
+            $mecanicoNombre = $tarea->mecanico ? $tarea->mecanico->name : 'un mecánico';
+            foreach ($admins as $admin) {
+                /** @var \App\Models\User $admin */
+                $admin->notify(new ActividadTaller(
+                    "Nueva tarea asignada en la Orden #{$orden->codigo_orden}: '{$request->descripcion}' a {$mecanicoNombre}",
+                    route('panel.operaciones.ordenes_trabajo.show', $orden->id),
+                    'tarea_asignada'
+                ));
             }
 
             return response()->json(['success' => true, 'message' => 'Tarea asignada', 'data' => $tarea]);
@@ -589,6 +664,10 @@ class OrdenTrabajoController extends Controller
             $orden = OrdenTrabajo::findOrFail($id);
             $orden->estado = $request->estado;
 
+            if ($request->has('motivo_estado')) {
+                $orden->motivo_estado = $request->motivo_estado;
+            }
+
             if ($request->estado == 'finalizada') {
                 $orden->fecha_finalizacion = now();
             }
@@ -597,11 +676,77 @@ class OrdenTrabajoController extends Controller
                 $orden->fecha_entrega = now();
             }
 
+            // Si reanuda, limpiar el motivo
+            if ($request->estado == 'en_proceso') {
+                $orden->motivo_estado = null;
+            }
+
             $orden->save();
+
+            // Notificar Administradores
+            $motivoTxt = $orden->motivo_estado ? " (Motivo: {$orden->motivo_estado})" : "";
+            $admins = User::whereHas('roles', fn($q) => $q->where('slug', 'admin'))->get();
+            foreach ($admins as $admin) {
+                /** @var \App\Models\User $admin */
+                $admin->notify(new ActividadTaller(
+                    "Orden #{$orden->codigo_orden} cambió a estado: " . strtoupper($request->estado) . $motivoTxt,
+                    route('panel.operaciones.ordenes_trabajo.show', $orden->id),
+                    'orden_estado'
+                ));
+            }
 
             return response()->json(['success' => true, 'message' => 'Estado actualizado a ' . $request->estado]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function sendNotification(Request $request, $id)
+    {
+        try {
+            $orden = OrdenTrabajo::with(['cliente', 'vehiculo.marca', 'vehiculo.modelo', 'sucursal'])->findOrFail($id);
+            $tipo = $request->input('tipo', 'fase'); // 'fase', 'listo' o 'cotizacion'
+            $channel = $request->input('channel', 'whatsapp');
+
+            // Buscar la plantilla correspondiente
+            $slug = "orden_{$tipo}";
+            $plantilla = \App\Models\PlantillaMensaje::where('slug', $slug)->where('activo', true)->first();
+
+            $data = [
+                'cliente' => $orden->cliente->nombre_completo,
+                'vehiculo' => ($orden->vehiculo->marca->nombre ?? '') . ' ' . ($orden->vehiculo->modelo->nombre ?? ''),
+                'placa' => $orden->vehiculo->placa,
+                'codigo_orden' => $orden->codigo_orden,
+                'sucursal' => $orden->sucursal->nombre ?? 'General',
+                'fase' => str_replace('_', ' ', $orden->estado),
+                'link' => route('panel.operaciones.ordenes_trabajo.print', $orden->id) . ($tipo === 'fase' ? '?mode=avances' : '?mode=full')
+            ];
+
+            $cuerpo = $plantilla ? $plantilla->parse($data) : null;
+            $asunto = $plantilla ? $plantilla->parseAsunto($data) : null;
+
+            if ($channel === 'email') {
+                if (!$orden->cliente->email) {
+                    return response()->json(['success' => false, 'message' => 'El cliente no tiene correo electrónico registrado.'], 400);
+                }
+
+                try {
+                    Mail::to($orden->cliente->email)->send(new OrdenTrabajoStatusNotification($orden, $tipo, $cuerpo, $asunto));
+                    return response()->json(['success' => true, 'message' => 'Correo enviado correctamente a ' . $orden->cliente->email]);
+                } catch (\Exception $e) {
+                    return response()->json(['success' => false, 'message' => 'Error al conectar con el servidor de correo: ' . $e->getMessage()], 500);
+                }
+            }
+
+            // Para WhatsApp, retornamos el cuerpo procesado para que el frontend lo use
+            return response()->json([
+                'success' => true,
+                'message' => 'Notificación lista para enviar',
+                'whatsapp_text' => $cuerpo
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error al enviar notificación: ' . $e->getMessage()], 500);
         }
     }
 
@@ -892,6 +1037,7 @@ class OrdenTrabajoController extends Controller
 
             // Si venía de una cita, actualizar estado de la cita
             if ($request->has('cita_id') && !empty($request->cita_id)) {
+                /** @var \App\Models\Cita $cita */
                 $cita = Cita::find($request->cita_id);
                 if ($cita) {
                     $cita->estado = 'concretada'; // Estado válido
@@ -900,6 +1046,17 @@ class OrdenTrabajoController extends Controller
             }
 
             DB::commit();
+
+            // Notificar Administradores
+            $admins = User::whereHas('roles', fn($q) => $q->where('slug', 'admin'))->get();
+            foreach ($admins as $admin) {
+                /** @var \App\Models\User $admin */
+                $admin->notify(new ActividadTaller(
+                    "Nueva Orden de Trabajo creada: {$orden->codigo_orden} para {$orden->cliente->nombre_completo}",
+                    route('panel.operaciones.ordenes_trabajo.show', $orden->id),
+                    'orden_creada'
+                ));
+            }
 
             return response()->json(['success' => true, 'redirect' => route('panel.operaciones.ordenes_trabajo.show', $orden->id), 'message' => 'Orden creada con éxito']);
         } catch (\Exception $e) {
@@ -981,7 +1138,7 @@ class OrdenTrabajoController extends Controller
         return response()->json($data);
     }
 
-    public function print($id)
+    public function print(Request $request, $id)
     {
         $orden = OrdenTrabajo::with([
             'cliente',
@@ -990,10 +1147,15 @@ class OrdenTrabajoController extends Controller
             'vehiculo.version',
             'sucursal',
             'archivos',
-            'receptor'
+            'receptor',
+            'bitacoras',
+            'detalles.repuesto'
         ])->findOrFail($id);
 
-        return view('panel.operaciones.ordenes_trabajo.print', compact('orden'));
+        $mode = $request->get('mode', 'full'); // 'full' or 'avances'
+        $inventoryItems = InventarioRecepcionItem::all();
+
+        return view('panel.operaciones.ordenes_trabajo.print', compact('orden', 'mode', 'inventoryItems'));
     }
     public function searchRepuestos(Request $request)
     {
@@ -1087,6 +1249,17 @@ class OrdenTrabajoController extends Controller
                 'orden_trabajo_id' => $orden->id
             ]);
             $pago->save();
+
+            // Notificar Administradores
+            $admins = User::whereHas('roles', fn($q) => $q->where('slug', 'admin'))->get();
+            foreach ($admins as $admin) {
+                /** @var \App\Models\User $admin */
+                $admin->notify(new ActividadTaller(
+                    "Pago de Q." . number_format($request->monto, 2) . " recibido para la Orden #{$orden->codigo_orden}",
+                    route('panel.operaciones.ordenes_trabajo.show', $orden->id),
+                    'pago_recibido'
+                ));
+            }
 
             return response()->json([
                 'success' => true,

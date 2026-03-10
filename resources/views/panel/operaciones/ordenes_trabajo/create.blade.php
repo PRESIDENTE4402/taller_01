@@ -476,131 +476,99 @@ $serverConfig=[ "routes"=> [
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-1">
-            <!-- Section 1 -->
+            <!-- Section 1: Documentos y Accesorios -->
             <div class="space-y-1">
                 <div class="flex items-center gap-2 mb-3 bg-blue-50 py-1 px-3 rounded-lg w-fit">
                     <i class="fas fa-file-invoice text-blue-600 text-[10px]"></i>
                     <span class="text-[10px] font-black text-blue-900 uppercase">Documentos y Accesorios</span>
                 </div>
 
-                <!-- Documents -->
-                <div class="flex items-center justify-between py-2.5 px-3 border-b border-gray-50 hover:bg-gray-50 transition-colors group">
-                    <span class="text-xs font-bold text-gray-600 group-hover:text-blue-900 transition-colors uppercase">Documentos</span>
-                    <div class="flex gap-4">
-                        <label class="flex items-center gap-2 cursor-pointer group/sub">
-                            <input type="checkbox" name="inv[documentos][original]" class="checkbox checkbox-xs rounded border-gray-300 checkbox-primary" {{ isset($invVal['documentos']['original']) && $invVal['documentos']['original'] ? 'checked' : '' }}>
-                            <span class="text-[10px] font-black text-gray-400 group-hover/sub:text-blue-900 mt-0.5 uppercase">ORIGINAL</span>
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer group/sub">
-                            <input type="checkbox" name="inv[documentos][copia]" class="checkbox checkbox-xs rounded border-gray-300 checkbox-primary" {{ isset($invVal['documentos']['copia']) && $invVal['documentos']['copia'] ? 'checked' : '' }}>
-                            <span class="text-[10px] font-black text-gray-400 group-hover/sub:text-blue-900 mt-0.5 uppercase">COPIA</span>
-                        </label>
-                    </div>
-                </div>
-
-                @php
-                $items1 = [
-                'encendedor' => 'Encendedor',
-                'radio' => 'Radio / Frontal',
-                'llavero' => 'Llavero',
-                'control_alarma' => 'Control Alarma',
-                'bateria' => 'Batería',
-                'tricket' => 'Tricket (Gato)',
-                'barilla' => 'Barilla de Gato',
-                'llave_seguridad' => 'Llave Seguridad',
-                'llave_chuchos' => 'Llave de Chuchos',
-                ];
-                @endphp
-
-                @foreach($items1 as $key => $label)
-                <div class="flex items-center justify-between py-2 px-3 border-b border-gray-50 hover:bg-gray-50 rounded-lg transition-colors group">
-                    <span class="text-xs font-bold text-gray-600 group-hover:text-blue-900 transition-colors uppercase">{{ $label }}</span>
-                    <div class="flex gap-1 bg-gray-100 p-1 rounded-lg">
-                        <label class="flex items-center justify-center p-1.5 cursor-pointer rounded-md transition-all has-[:checked]:bg-blue-900 has-[:checked]:text-white hover:bg-white border-none">
-                            <input type="radio" name="inv[{{$key}}]" value="1" class="hidden" {{ (isset($invVal[$key]) && ($invVal[$key] == '1' || $invVal[$key] === true)) ? 'checked' : '' }}>
-                            <span class="text-[10px] font-black px-2">SÍ</span>
-                        </label>
-                        <label class="flex items-center justify-center p-1.5 cursor-pointer rounded-md transition-all has-[:checked]:bg-gray-400 has-[:checked]:text-white hover:bg-white border-none">
-                            <input type="radio" name="inv[{{$key}}]" value="0" class="hidden" {{ (!isset($invVal[$key]) || $invVal[$key] == '0' || $invVal[$key] === false) ? 'checked' : '' }}>
-                            <span class="text-[10px] font-black px-2">NO</span>
-                        </label>
-                    </div>
-                </div>
+                @foreach($inventoryItems->where('seccion', 'documentos_accesorios') as $item)
+                    @if($item->tipo == 'documentos')
+                        <!-- Documents -->
+                        <div class="flex items-center justify-between py-2.5 px-3 border-b border-gray-50 hover:bg-gray-50 transition-colors group">
+                            <span class="text-xs font-bold text-gray-600 group-hover:text-blue-900 transition-colors uppercase">{{ $item->nombre }}</span>
+                            <div class="flex gap-4">
+                                <label class="flex items-center gap-2 cursor-pointer group/sub">
+                                    <input type="checkbox" name="inv[{{ $item->slug }}][original]" class="checkbox checkbox-xs rounded border-gray-300 checkbox-primary" {{ isset($invVal[$item->slug]['original']) && $invVal[$item->slug]['original'] ? 'checked' : '' }}>
+                                    <span class="text-[10px] font-black text-gray-400 group-hover/sub:text-blue-900 mt-0.5 uppercase">ORIGINAL</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer group/sub">
+                                    <input type="checkbox" name="inv[{{ $item->slug }}][copia]" class="checkbox checkbox-xs rounded border-gray-300 checkbox-primary" {{ isset($invVal[$item->slug]['copia']) && $invVal[$item->slug]['copia'] ? 'checked' : '' }}>
+                                    <span class="text-[10px] font-black text-gray-400 group-hover/sub:text-blue-900 mt-0.5 uppercase">COPIA</span>
+                                </label>
+                            </div>
+                        </div>
+                    @elseif($item->tipo == 'si_no')
+                        <div class="flex items-center justify-between py-2 px-3 border-b border-gray-50 hover:bg-gray-50 rounded-lg transition-colors group">
+                            <span class="text-xs font-bold text-gray-600 group-hover:text-blue-900 transition-colors uppercase">{{ $item->nombre }}</span>
+                            <div class="flex gap-1 bg-gray-100 p-1 rounded-lg">
+                                <label class="flex items-center justify-center p-1.5 cursor-pointer rounded-md transition-all has-[:checked]:bg-blue-900 has-[:checked]:text-white hover:bg-white border-none">
+                                    <input type="radio" name="inv[{{ $item->slug }}]" value="1" class="hidden" {{ (isset($invVal[$item->slug]) && ($invVal[$item->slug] == '1' || $invVal[$item->slug] === true)) ? 'checked' : '' }}>
+                                    <span class="text-[10px] font-black px-2">SÍ</span>
+                                </label>
+                                <label class="flex items-center justify-center p-1.5 cursor-pointer rounded-md transition-all has-[:checked]:bg-gray-400 has-[:checked]:text-white hover:bg-white border-none">
+                                    <input type="radio" name="inv[{{ $item->slug }}]" value="0" class="hidden" {{ (!isset($invVal[$item->slug]) || $invVal[$item->slug] == '0' || $invVal[$item->slug] === false) ? 'checked' : '' }}>
+                                    <span class="text-[10px] font-black px-2">NO</span>
+                                </label>
+                            </div>
+                        </div>
+                    @elseif($item->tipo == 'tapiceria')
+                        <div class="flex items-center justify-between py-2.5 px-3 border-b border-gray-50 hover:bg-gray-50 rounded-lg transition-colors group">
+                            <span class="text-xs font-bold text-gray-600 group-hover:text-blue-900 transition-colors uppercase">{{ $item->nombre }}</span>
+                            <div class="flex gap-1 bg-gray-100 p-1 rounded-lg">
+                                <label class="flex items-center justify-center p-1.5 cursor-pointer rounded-md transition-all has-[:checked]:bg-emerald-600 has-[:checked]:text-white hover:bg-white border-none shadow-sm">
+                                    <input type="radio" name="inv[{{ $item->slug }}]" value="buena" class="hidden" {{ (isset($invVal[$item->slug]) && $invVal[$item->slug] == 'buena') ? 'checked' : '' }}>
+                                    <span class="text-[9px] font-black px-1">BUENA</span>
+                                </label>
+                                <label class="flex items-center justify-center p-1.5 cursor-pointer rounded-md transition-all has-[:checked]:bg-amber-500 has-[:checked]:text-white hover:bg-white border-none shadow-sm">
+                                    <input type="radio" name="inv[{{ $item->slug }}]" value="regular" class="hidden" {{ (!isset($invVal[$item->slug]) || $invVal[$item->slug] == 'regular') ? 'checked' : '' }}>
+                                    <span class="text-[9px] font-black px-1">REGULAR</span>
+                                </label>
+                                <label class="flex items-center justify-center p-1.5 cursor-pointer rounded-md transition-all has-[:checked]:bg-rose-600 has-[:checked]:text-white hover:bg-white border-none shadow-sm">
+                                    <input type="radio" name="inv[{{ $item->slug }}]" value="mala" class="hidden" {{ (isset($invVal[$item->slug]) && $invVal[$item->slug] == 'mala') ? 'checked' : '' }}>
+                                    <span class="text-[9px] font-black px-1">MALA</span>
+                                </label>
+                            </div>
+                        </div>
+                    @endif
                 @endforeach
-
-                <div class="flex items-center justify-between py-2.5 px-3 border-b border-gray-50 hover:bg-gray-50 rounded-lg transition-colors group">
-                    <span class="text-xs font-bold text-gray-600 group-hover:text-blue-900 transition-colors uppercase">Estado Tapicería</span>
-                    <div class="flex gap-1 bg-gray-100 p-1 rounded-lg">
-                        <label class="flex items-center justify-center p-1.5 cursor-pointer rounded-md transition-all has-[:checked]:bg-emerald-600 has-[:checked]:text-white hover:bg-white border-none shadow-sm">
-                            <input type="radio" name="inv[tapiceria]" value="buena" class="hidden" {{ (isset($invVal['tapiceria']) && $invVal['tapiceria'] == 'buena') ? 'checked' : '' }}>
-                            <span class="text-[9px] font-black px-1">BUENA</span>
-                        </label>
-                        <label class="flex items-center justify-center p-1.5 cursor-pointer rounded-md transition-all has-[:checked]:bg-amber-500 has-[:checked]:text-white hover:bg-white border-none shadow-sm">
-                            <input type="radio" name="inv[tapiceria]" value="regular" class="hidden" {{ (!isset($invVal['tapiceria']) || $invVal['tapiceria'] == 'regular') ? 'checked' : '' }}>
-                            <span class="text-[9px] font-black px-1">REGULAR</span>
-                        </label>
-                        <label class="flex items-center justify-center p-1.5 cursor-pointer rounded-md transition-all has-[:checked]:bg-rose-600 has-[:checked]:text-white hover:bg-white border-none shadow-sm">
-                            <input type="radio" name="inv[tapiceria]" value="mala" class="hidden" {{ (isset($invVal['tapiceria']) && $invVal['tapiceria'] == 'mala') ? 'checked' : '' }}>
-                            <span class="text-[9px] font-black px-1">MALA</span>
-                        </label>
-                    </div>
-                </div>
             </div>
 
-            <!-- Section 2 -->
+            <!-- Section 2: Herramientas y Exterior -->
             <div class="space-y-1">
                 <div class="flex items-center gap-2 mb-3 bg-amber-50 py-1 px-3 rounded-lg w-fit">
                     <i class="fas fa-tools text-amber-600 text-[10px]"></i>
                     <span class="text-[10px] font-black text-amber-900 uppercase">Herramientas y Exterior</span>
                 </div>
 
-                @php
-                $items2 = [
-                'llanta_repuesto' => 'Llanta Repuesto',
-                'herramientas' => 'Estuche Herram.',
-                'extinguidor' => 'Extinguidor',
-                'cables' => 'Cables Corriente',
-                'antena' => 'Antena',
-                'tapon_tanque' => 'Tapón Tanque',
-                'chibola' => 'Chibola Palanca',
-                ];
-                $qtyItems = [
-                'tapones_ruedas' => 'Tapones Ruedas',
-                'chuchos' => 'Chuchos (Tuercas)',
-                'plumillas' => 'Plumillas',
-                'alfombras' => 'Alfombras',
-                'retrovisores' => 'Retrovisores',
-                'triangulos' => 'Triangulos',
-                ]
-                @endphp
-
-                @foreach($items2 as $key => $label)
-                <div class="flex items-center justify-between py-2 px-3 border-b border-gray-50 hover:bg-gray-50 rounded-lg transition-colors group">
-                    <span class="text-xs font-bold text-gray-600 group-hover:text-blue-900 transition-colors uppercase">{{ $label }}</span>
-                    <div class="flex gap-1 bg-gray-100 p-1 rounded-lg">
-                        <label class="flex items-center justify-center p-1.5 cursor-pointer rounded-md transition-all has-[:checked]:bg-blue-900 has-[:checked]:text-white hover:bg-white border-none">
-                            <input type="radio" name="inv[{{$key}}]" value="1" class="hidden" {{ (isset($invVal[$key]) && ($invVal[$key] == '1' || $invVal[$key] === true)) ? 'checked' : '' }}>
-                            <span class="text-[10px] font-black px-2 text-center">SÍ</span>
-                        </label>
-                        <label class="flex items-center justify-center p-1.5 cursor-pointer rounded-md transition-all has-[:checked]:bg-gray-400 has-[:checked]:text-white hover:bg-white border-none">
-                            <input type="radio" name="inv[{{$key}}]" value="0" class="hidden" {{ (!isset($invVal[$key]) || $invVal[$key] == '0' || $invVal[$key] === false) ? 'checked' : '' }}>
-                            <span class="text-[10px] font-black px-2 text-center">NO</span>
-                        </label>
-                    </div>
-                </div>
-                @endforeach
-
-                @foreach($qtyItems as $key => $label)
-                <div class="flex items-center justify-between py-3 px-3 border-b border-gray-50 hover:bg-gray-50 rounded-lg transition-colors group">
-                    <span class="text-xs font-bold text-gray-600 group-hover:text-amber-900 transition-colors uppercase">{{ $label }}</span>
-                    <div class="flex items-center gap-3">
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="inv[{{$key}}][check]" value="1" class="checkbox checkbox-xs rounded border-gray-300 checkbox-warning toggle-qty" data-target="qty-{{$key}}" {{ (isset($invVal[$key]['check']) && $invVal[$key]['check']) ? 'checked' : '' }}>
-                            <span class="text-[10px] font-black text-gray-400 mt-0.5 uppercase">¿TRAE?</span>
-                        </label>
-                        <input type="number" id="qty-{{$key}}" name="inv[{{$key}}][cant]" class="input input-xs input-bordered w-12 text-center {{ (isset($invVal[$key]['check']) && $invVal[$key]['check']) ? '' : 'hidden' }} font-black text-blue-900 border-amber-200 bg-amber-50" value="{{ $invVal[$key]['cant'] ?? 0 }}">
-                    </div>
-                </div>
+                @foreach($inventoryItems->where('seccion', 'herramientas_exterior') as $item)
+                    @if($item->tipo == 'si_no')
+                        <div class="flex items-center justify-between py-2 px-3 border-b border-gray-50 hover:bg-gray-50 rounded-lg transition-colors group">
+                            <span class="text-xs font-bold text-gray-600 group-hover:text-blue-900 transition-colors uppercase">{{ $item->nombre }}</span>
+                            <div class="flex gap-1 bg-gray-100 p-1 rounded-lg">
+                                <label class="flex items-center justify-center p-1.5 cursor-pointer rounded-md transition-all has-[:checked]:bg-blue-900 has-[:checked]:text-white hover:bg-white border-none">
+                                    <input type="radio" name="inv[{{ $item->slug }}]" value="1" class="hidden" {{ (isset($invVal[$item->slug]) && ($invVal[$item->slug] == '1' || $invVal[$item->slug] === true)) ? 'checked' : '' }}>
+                                    <span class="text-[10px] font-black px-2 text-center">SÍ</span>
+                                </label>
+                                <label class="flex items-center justify-center p-1.5 cursor-pointer rounded-md transition-all has-[:checked]:bg-gray-400 has-[:checked]:text-white hover:bg-white border-none">
+                                    <input type="radio" name="inv[{{ $item->slug }}]" value="0" class="hidden" {{ (!isset($invVal[$item->slug]) || $invVal[$item->slug] == '0' || $invVal[$item->slug] === false) ? 'checked' : '' }}>
+                                    <span class="text-[10px] font-black px-2 text-center">NO</span>
+                                </label>
+                            </div>
+                        </div>
+                    @elseif($item->tipo == 'cantidad')
+                        <div class="flex items-center justify-between py-3 px-3 border-b border-gray-50 hover:bg-gray-50 rounded-lg transition-colors group">
+                            <span class="text-xs font-bold text-gray-600 group-hover:text-amber-900 transition-colors uppercase">{{ $item->nombre }}</span>
+                            <div class="flex items-center gap-3">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" name="inv[{{ $item->slug }}][check]" value="1" class="checkbox checkbox-xs rounded border-gray-300 checkbox-warning toggle-qty" data-target="qty-{{ $item->slug }}" {{ (isset($invVal[$item->slug]['check']) && $invVal[$item->slug]['check']) ? 'checked' : '' }}>
+                                    <span class="text-[10px] font-black text-gray-400 mt-0.5 uppercase">¿TRAE?</span>
+                                </label>
+                                <input type="number" id="qty-{{ $item->slug }}" name="inv[{{ $item->slug }}][cant]" class="input input-xs input-bordered w-12 text-center {{ (isset($invVal[$item->slug]['check']) && $invVal[$item->slug]['check']) ? '' : 'hidden' }} font-black text-blue-900 border-amber-200 bg-amber-50" value="{{ $invVal[$item->slug]['cant'] ?? 0 }}">
+                            </div>
+                        </div>
+                    @endif
                 @endforeach
             </div>
         </div>

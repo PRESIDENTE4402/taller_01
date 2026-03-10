@@ -45,6 +45,12 @@ class FixPermissionsSeeder extends Seeder
             ['nombre' => 'Gestionar Roles', 'slug' => 'gestionar_roles'],
             ['nombre' => 'Gestionar Permisos', 'slug' => 'gestionar_permisos'],
             ['nombre' => 'Gestionar Usuarios', 'slug' => 'gestionar_usuarios'],
+            ['nombre' => 'Gestionar Clientes', 'slug' => 'gestionar_clientes'],
+            ['nombre' => 'Gestionar Vehículos', 'slug' => 'gestionar_vehiculos'],
+            ['nombre' => 'Gestionar Imágenes Landing', 'slug' => 'gestionar_imagenes_landing'],
+            ['nombre' => 'Gestionar Ítems Recepción', 'slug' => 'gestionar_items_recepcion'],
+            ['nombre' => 'Ver Reportes', 'slug' => 'ver_reportes'],
+            ['nombre' => 'Gestionar Planilla', 'slug' => 'gestionar_planilla'],
         ];
 
         foreach ($perms as $p) {

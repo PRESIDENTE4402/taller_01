@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orden #{{ $orden->codigo_orden }}</title>
+    <title>{{ $mode == 'avances' ? 'Avances' : 'Orden' }} #{{ $orden->codigo_orden }}</title>
     <!-- Use a reliable FontAwesome CDN for print -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -299,11 +299,15 @@
             <div class="grid grid-cols-5 gap-y-3 gap-x-2 px-2">
                 @foreach($inventario as $key => $val)
                     @if(!is_array($val))
+                        @php
+                            $item = $inventoryItems->where('slug', $key)->first();
+                            $label = $item ? $item->nombre : str_replace('_', ' ', $key);
+                        @endphp
                         <div
                             class="flex items-center gap-1.5 text-[10px] {{ ($val == 1 || $val === 'true') ? 'font-bold text-slate-800' : 'text-slate-300' }}">
                             <i
                                 class="fas {{ ($val == 1 || $val === 'true') ? 'fa-check-circle text-blue-500' : 'fa-circle-notch text-slate-100' }}"></i>
-                            <span class="uppercase truncate">{{ str_replace('_', ' ', $key) }}</span>
+                                <span class="uppercase truncate">{{ $label }}</span>
                         </div>
                     @endif
                 @endforeach
@@ -347,7 +351,7 @@
                 <div class="bg-blue-600 text-white w-10 h-10 rounded-lg flex items-center justify-center font-black">P
                 </div>
                 <div>
-                    <div class="text-xl font-black text-slate-900 uppercase">Presupuesto Estimado</div>
+                    <div class="text-xl font-black text-slate-900 uppercase">{{ $mode == 'avances' ? 'Ficha de Avances de Trabajo' : 'Presupuesto Estimado' }}</div>
                     <div class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Orden
                         #{{ $orden->codigo_orden }}</div>
                 </div>
@@ -386,11 +390,9 @@
         <table class="budget-table">
             <thead>
                 <tr>
-                    <th width="50%">Descripción del Cargo</th>
-                    <th width="15%" style="text-align:center">Origen</th>
-                    <th width="10%" style="text-align:right">Cant.</th>
-
-                                                <th width="25%" style="text-align:right">Subtotal</th>
+                    <th width="60%">Descripción del Cargo</th>
+                    <th width="15%" style="text-align:center">Estado / Origen</th>
+                    <th width="25%" style="text-align:right">{{ $mode == 'avances' ? 'Actualización' : 'Subtotal' }}</th>
                 </tr>
                            
             </thead>
@@ -399,22 +401,33 @@
 
                        
                                         <!-- Mano de Obra -->
-                @if($totalManoObra > 0)
+                @if($orden->bitacoras->count() > 0)
+                    @foreach($orden->bitacoras as $task)
                     <tr>
                         <td>
-                            <div class="font-black text-slate-800 text-base uppercase mb-1">Mano de Obra Certificada</div>
-                            <div class="text-[11px] text-slate-500 italic leading-relaxed">{{ implode(', ', $descripcionesManoObra) }}</div>
+                            <div class="font-black text-slate-800 text-sm uppercase mb-1">{{ $task->descripcion }}</div>
+                            <div class="text-[10px] text-slate-400 italic">{{ $task->notas_adicionales ?? 'Sin notas adicionales' }}</div>
                         </td>
-                        <td style="text-align:center; vertical-align:middle"><span class="badge badge-service">Servicio</span></td>
-                        <td style="text-align:right; vertical-align:middle" class="fo
-                                nt-mono font-bold text-slate-400">GLB</td>
-                        <td style="text-align:right; vertical-align:middle" class="font-mono
-                                 font-black text-xl text-slate-900 italic">Q.{{ number_format($totalManoObra, 2) }}</td>
+                        <td style="text-align:center; vertical-align:middle">
+                            <span class="badge {{ $task->estado == 'finalizada' ? 'badge-client' : 'badge-service' }}">
+                                {{ str_replace('_', ' ', $task->estado) }}
+                            </span>
+                        </td>
+                        <td style="text-align:right; vertical-align:middle">
+                            @if($mode == 'avances')
+                                <div class="text-[10px] text-slate-400 font-bold uppercase">{{ $task->updated_at->format('d/m/Y') }}</div>
+                                <div class="text-[10px] italic">{{ $task->updated_at->format('H:i') }}</div>
+                            @else
+                                <div class="font-mono font-black text-xl text-slate-900 italic">Q.{{ number_format(floatval($task->precio_cliente ?? 0) - floatval($task->descuento_cliente ?? 0), 2) }}</div>
+                            @endif
+                        </td>
                     </tr>
+                    @endforeach
                 @endif
 
 
-                                           <!-- Repuestos -->
+                                           <!-- Repuestos (Solo si no es avances) -->
+                @if($mode != 'avances')
                 @foreach($orden->detalles->where('estado', '!=', 'rechazado') as $pieza)
                     @php 
                                         $precioUnitario = floatval($pieza->suministrado_por == 'cliente' ? 0 : ($pieza->precio_unitario ?? 0));
@@ -437,11 +450,11 @@
                         <td style="text-align:right; vertical-align:middle" class="font-mono font-black text-xl text-slate-900 italic">Q.{{ number_format($subtRep, 2) }}</td>
                     </tr>
                 @endforeach
+                @endif
             </tb
                ody>
+            @if($mode != 'avances')
             <tfoot>
-
-               
                                <tr class="budget-total-row">
         <td colspan="3" style="text-align:right; vertical-align:middle">
                         <span class="text-xs font-black uppercase tracking-[0.4em] text-blue-400">Total Inversión Estimada</span>
@@ -451,11 +464,16 @@
                     </td>
                 </tr>
             </tfoot>
+            @endif
         </table>
 
         <div class="mt-12 space-y-12">
             <div class="p-6 bg-slate-50 border-2 border-slate-100 rounded-2xl italic text-[10px] text-slate-500 leading-relaxed max-w-2xl">
-                <strong>NOTA DE PRESUPUESTO:</strong> Este presupuesto es una estimación sujeta a cambios tras el desarme y diagnóstico avanzado. Los precios tienen una vigencia de 48 horas. Al autorizar este servicio, el cliente acepta un margen de tolerancia sugerido por hallazgos mecánicos.
+                @if($mode == 'avances')
+                    <strong>NOTA DE AVANCES:</strong> Este documento muestra el progreso de los trabajos autorizados. No representa el total final de la factura y puede estar sujeto a hallazgos adicionales durante el proceso de reparación.
+                @else
+                    <strong>NOTA DE PRESUPUESTO:</strong> Este presupuesto es una estimación sujeta a cambios tras el desarme y diagnóstico avanzado. Los precios tienen una vigencia de 48 horas. Al autorizar este servicio, el cliente acepta un margen de tolerancia sugerido por hallazgos mecánicos.
+                @endif
             </div>
              
             <div class="grid grid-cols-2 gap-20">

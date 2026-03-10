@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\BitacoraTrabajo;
 use App\Models\User;
 use App\Notifications\TareaFinalizada;
+use App\Notifications\NuevaNotaTarea;
+use App\Notifications\ActividadTaller;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,7 +18,7 @@ class MisTareasController extends Controller
     {
         /** @var \App\Models\User $currentUser */
         $currentUser = Auth::user();
-        $isAdmin = $currentUser->hasRole('admin') || $currentUser->hasRole('recepcionista');
+        $isAdmin = $currentUser->hasRole('admin') || $currentUser->hasRole('recepcionista') || $currentUser->hasRole('secretario');
 
         $mecanicos = collect();
         $selectedUser = $currentUser;
@@ -48,13 +50,14 @@ class MisTareasController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
-            'estado' => 'required|in:en_progreso,en_pausa,completado'
+            'estado' => 'required|in:en_progreso,en_pausa,completado',
+            'motivo_pausa' => 'nullable|string'
         ]);
 
         try {
             /** @var \App\Models\User $currentUser */
             $currentUser = Auth::user();
-            $isAdmin = $currentUser->hasRole('admin') || $currentUser->hasRole('recepcionista');
+            $isAdmin = $currentUser->hasRole('admin') || $currentUser->hasRole('recepcionista') || $currentUser->hasRole('secretario');
 
             if ($isAdmin) {
                 $tarea = BitacoraTrabajo::findOrFail($id);
@@ -77,7 +80,7 @@ class MisTareasController extends Controller
 
                 // Enviar notificación a administradores o secretarios
                 $admins = User::whereHas('roles', function ($q) {
-                    $q->whereIn('slug', ['admin', 'recepcionista']);
+                    $q->whereIn('slug', ['admin', 'recepcionista', 'secretario']);
                 })->get();
 
                 foreach ($admins as $admin) {
@@ -87,6 +90,35 @@ class MisTareasController extends Controller
             }
 
             $tarea->estado = $request->estado;
+
+            // Sincronizar con la Orden de Trabajo
+            if ($tarea->orden) {
+                $orden = $tarea->orden;
+                if ($request->estado == 'en_pausa') {
+                    $orden->estado = 'detenida';
+                    $tarea->motivo_pausa = $request->motivo_pausa;
+
+                    // Agregar a notas generales para que quede registro histórico
+                    $notaHistorica = "\n" . Carbon::now()->format('d/m/Y H:i') . " - TRABAJO PAUSADO: " . $request->motivo_pausa;
+                    $tarea->notas_adicionales = $tarea->notas_adicionales . $notaHistorica;
+
+                    // Notificar a administradores sobre la pausa
+                    $admins = User::whereHas('roles', fn($q) => $q->where('slug', 'admin'))->get();
+                    foreach ($admins as $admin) {
+                        /** @var \App\Models\User $admin */
+                        $admin->notify(new ActividadTaller(
+                            "TRABAJO DETENIDO en OT #{$orden->codigo_orden}: " . $request->motivo_pausa,
+                            route('panel.operaciones.ordenes_trabajo.show', $orden->id),
+                            'orden_pausada'
+                        ));
+                    }
+                } elseif ($request->estado == 'en_progreso') {
+                    $orden->estado = 'en_progreso';
+                    $tarea->motivo_pausa = null; // Limpiar al reanudar
+                }
+                $orden->save();
+            }
+
             $tarea->save();
 
             return redirect()->back()->with('success', 'Estado de la tarea actualizado exitosamente.');
@@ -104,7 +136,7 @@ class MisTareasController extends Controller
         try {
             /** @var \App\Models\User $currentUser */
             $currentUser = Auth::user();
-            $isAdmin = $currentUser->hasRole('admin') || $currentUser->hasRole('recepcionista');
+            $isAdmin = $currentUser->hasRole('admin') || $currentUser->hasRole('recepcionista') || $currentUser->hasRole('secretario');
 
             if ($isAdmin) {
                 $tarea = BitacoraTrabajo::findOrFail($id);
@@ -117,6 +149,16 @@ class MisTareasController extends Controller
             $tarea->notas_adicionales = $tarea->notas_adicionales ? $tarea->notas_adicionales . "\n" . $newNotes : $newNotes;
             $tarea->save();
 
+            // Notificar a secretarios y administradores
+            $admins = User::whereHas('roles', function ($q) {
+                $q->whereIn('slug', ['admin', 'recepcionista', 'secretario']);
+            })->get();
+
+            foreach ($admins as $admin) {
+                /** @var \App\Models\User $admin */
+                $admin->notify(new NuevaNotaTarea($tarea, $request->notas_adicionales));
+            }
+
             return redirect()->back()->with('success', 'Observación agregada.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Error al agregar observación: ' . $e->getMessage());
@@ -128,7 +170,7 @@ class MisTareasController extends Controller
         try {
             /** @var \App\Models\User $currentUser */
             $currentUser = Auth::user();
-            $isAdmin = $currentUser->hasRole('admin') || $currentUser->hasRole('recepcionista');
+            $isAdmin = $currentUser->hasRole('admin') || $currentUser->hasRole('recepcionista') || $currentUser->hasRole('secretario');
 
             if ($isAdmin) {
                 $tarea = BitacoraTrabajo::findOrFail($id);

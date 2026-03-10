@@ -11,8 +11,9 @@ use App\Models\MarcaVehiculo;
 use App\Models\ModeloVehiculo;
 use App\Models\VersionVehiculo;
 use App\Models\OrdenTrabajo;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Carbon\Carbon;
 
 class CitaController extends Controller
 {
@@ -36,13 +37,19 @@ class CitaController extends Controller
         // Si hay filtro de fecha exacto o rango
         if ($start) {
             $endDate = $end ?? $start;
-            if (strlen($endDate) <= 10) $endDate .= ' 23:59:59';
-            if (strlen($start) <= 10) $start .= ' 00:00:00';
+            if (strlen($endDate) <= 10)
+                $endDate .= ' 23:59:59';
+            if (strlen($start) <= 10)
+                $start .= ' 00:00:00';
 
             $query->whereBetween('fecha_programada', [$start, $endDate]);
         }
 
-        if ($sucursalId && $sucursalId !== 'all') {
+        // Filtro por Sucursal (Seguridad para no-admins)
+        if (!auth()->user()->hasRole('admin')) {
+            $userSids = auth()->user()->sucursales->pluck('id');
+            $query->whereIn('sucursal_id', $userSids);
+        } elseif ($sucursalId && $sucursalId !== 'all') {
             $query->where('sucursal_id', $sucursalId);
         }
 
@@ -58,13 +65,17 @@ class CitaController extends Controller
         $countsQuery = Cita::query();
         if ($start) {
             $endDateForCounts = $end ?? $start;
-            if (strlen($endDateForCounts) <= 10) $endDateForCounts .= ' 23:59:59';
-            if (strlen($start) <= 10) $startClone = $start; // Already formatted above actually, but careful with variable reuse
-            else $startClone = $start;
+            if (strlen($endDateForCounts) <= 10)
+                $endDateForCounts .= ' 23:59:59';
+            if (strlen($start) <= 10)
+                $startClone = $start; // Already formatted above actually, but careful with variable reuse
+            else
+                $startClone = $start;
 
             // Re-use logic from above for safety if variable was modified
             $s = $request->get('start');
-            if (strlen($s) <= 10) $s .= ' 00:00:00';
+            if (strlen($s) <= 10)
+                $s .= ' 00:00:00';
 
             $countsQuery->whereBetween('fecha_programada', [$s, $endDateForCounts]);
         }
@@ -165,10 +176,17 @@ class CitaController extends Controller
         // Contar citas por día
         // "que las citas que ya estan aceptadas y que ya estan en taller ya no se muestren"
         // Excluir 'concretada' y 'cancelada'/'no_asistio'
-        $counts = Cita::select(DB::raw('DATE(fecha_programada) as date'), DB::raw('count(*) as count'))
+        // Contar citas por día
+        $countsQuery = Cita::select(DB::raw('DATE(fecha_programada) as date'), DB::raw('count(*) as count'))
             ->whereBetween('fecha_programada', [$startOfMonth, $endOfMonth])
-            ->whereIn('estado', ['pendiente', 'confirmada']) // Only active pending/confirmed
-            ->groupBy('date')
+            ->whereIn('estado', ['pendiente', 'confirmada']);
+
+        if (!auth()->user()->hasRole('admin')) {
+            $userSids = auth()->user()->sucursales->pluck('id');
+            $countsQuery->whereIn('sucursal_id', $userSids);
+        }
+
+        $counts = $countsQuery->groupBy('date')
             ->get()
             ->keyBy('date'); // Indexar por fecha
 
@@ -200,14 +218,14 @@ class CitaController extends Controller
                 $email = trim($request->email_nuevo);
 
                 $clienteExistente = Cliente::where('telefono', $telefono)
-                    ->when($email !== '', function($query) use ($email) {
+                    ->when($email !== '', function ($query) use ($email) {
                         return $query->orWhere('email', $email);
                     })->first();
 
                 if ($clienteExistente) {
                     DB::rollBack();
                     return response()->json([
-                        'success' => false, 
+                        'success' => false,
                         'message' => 'Ya existe un cliente registrado con este teléfono o correo (' . $clienteExistente->nombre_completo . '). Por favor cambia a la opción "Buscar Cliente".'
                     ], 422);
                 }
@@ -418,15 +436,15 @@ class CitaController extends Controller
         }
 
         $query = Cliente::query();
-        
+
         if ($telefono) {
             $query->where('telefono', $telefono);
         }
-        
+
         if ($email) {
             // We use orWhere inside a logical group to ensure it doesn't break other conditions if we add more
-            $query->orWhere(function($q) use ($email) {
-                if($email !== '') {
+            $query->orWhere(function ($q) use ($email) {
+                if ($email !== '') {
                     $q->where('email', $email);
                 }
             });
@@ -500,5 +518,56 @@ class CitaController extends Controller
     public function getBrands()
     {
         return response()->json(MarcaVehiculo::orderBy('nombre')->get(['id', 'nombre']));
+    }
+    public function sendNotification(Request $request, $id)
+    {
+        try {
+            $cita = Cita::with(['cliente', 'vehiculo.marca', 'vehiculo.modelo', 'sucursal'])->findOrFail($id);
+            $tipo = $request->input('tipo', 'confirmacion'); // 'confirmacion' o 'recordatorio'
+            $channel = $request->input('channel', 'whatsapp');
+
+            // Buscar la plantilla correspondiente
+            $slug = "cita_{$tipo}";
+            $plantilla = \App\Models\PlantillaMensaje::where('slug', $slug)->where('activo', true)->first();
+
+            $fecha = Carbon::parse($cita->fecha_programada);
+
+            $data = [
+                'cliente' => $cita->cliente->nombre_completo,
+                'vehiculo' => ($cita->vehiculo->marca->nombre ?? '') . ' ' . ($cita->vehiculo->modelo->nombre ?? ''),
+                'placa' => $cita->vehiculo->placa ?? 'S/P',
+                'fecha' => $fecha->format('d/m/Y'),
+                'hora' => $fecha->format('H:i'),
+                'sucursal' => $cita->sucursal->nombre ?? 'General',
+                'link' => route('home') // Por ahora link a la web
+            ];
+
+            $cuerpo = $plantilla ? $plantilla->parse($data) : null;
+            $asunto = $plantilla ? $plantilla->parseAsunto($data) : null;
+
+            if ($channel === 'email') {
+                if (!$cita->cliente->email) {
+                    return response()->json(['success' => false, 'message' => 'El cliente no tiene correo electrónico registrado.'], 400);
+                }
+
+                try {
+                    // Reusamos la notificación de orden con un ajuste menor o podríamos crear CitaNotification
+                    // Por ahora para no crear mil clases si no es necesario:
+                    Mail::to($cita->cliente->email)->send(new \App\Mail\OrdenTrabajoStatusNotification($cita->orden ?? new \App\Models\OrdenTrabajo(), 'cita', $cuerpo, $asunto));
+                    return response()->json(['success' => true, 'message' => 'Correo enviado correctamente a ' . $cita->cliente->email]);
+                } catch (\Exception $e) {
+                    return response()->json(['success' => false, 'message' => 'Error al conectar con el servidor de correo: ' . $e->getMessage()], 500);
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Notificación lista para enviar',
+                'whatsapp_text' => $cuerpo
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error al enviar notificación: ' . $e->getMessage()], 500);
+        }
     }
 }

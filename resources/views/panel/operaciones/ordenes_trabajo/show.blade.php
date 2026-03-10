@@ -26,10 +26,21 @@
                     </a>
                 </div>
                 <div class="flex flex-col items-center md:items-end">
-                    <span class="badge badge-lg {{ $orden->estado == 'abierta' ? 'badge-info' : ($orden->estado == 'finalizada' ? 'badge-success' : 'badge-primary') }} uppercase font-black italic px-4 shadow-sm border-none text-white h-8">
+                    <span class="badge badge-lg {{ 
+                        $orden->estado == 'abierta' ? 'badge-info' : 
+                        ($orden->estado == 'finalizada' ? 'badge-success' : 
+                        ($orden->estado == 'espera_repuesto' ? 'badge-warning' : 
+                        ($orden->estado == 'entregada' ? 'bg-indigo-600' : 
+                        ($orden->estado == 'detenida' ? 'bg-orange-500' : 'badge-primary')))) 
+                    }} uppercase font-black italic px-4 shadow-sm border-none text-white h-8">
                         {{ str_replace('_', ' ', $orden->estado) }}
                     </span>
                     <p class="text-[9px] text-gray-400 mt-1 uppercase font-black tracking-widest">Estado de la Reparación</p>
+                    @if($orden->motivo_estado)
+                        <div class="mt-2 text-[10px] bg-orange-50 text-orange-700 px-3 py-1 rounded-lg border border-orange-100 font-bold italic shadow-sm text-center md:text-right">
+                            <i class="fas fa-info-circle mr-1"></i> {{ $orden->motivo_estado }}
+                        </div>
+                    @endif
                 </div>
             </div>
 
@@ -367,6 +378,20 @@
                     @if($orden->detalles->where('estado', 'pendiente')->count() > 0)
                         <span class="badge badge-sm bg-white text-orange-600 border-none ml-1">{{ $orden->detalles->where('estado', 'pendiente')->count() }}</span>
                     @endif
+                </button>
+                <button onclick="window.notificarAvance({{ $orden->id }}, '{{ $orden->cliente->telefono ?? '' }}', '{{ $orden->codigo_orden }}', '{{ str_replace('_', ' ', $orden->estado) }}', '{{ $orden->cliente->email ?? '' }}', '{{ route('panel.operaciones.ordenes_trabajo.print', $orden->id) }}')" class="btn btn-outline border-indigo-200 text-indigo-600 hover:bg-indigo-50 w-full gap-2 font-black italic">
+                    <i class="fas fa-bell"></i> Notificar al Cliente
+                </button>
+                <div class="divider"></div>
+                <button
+                    class="btn btn-primary w-full text-white gap-2 shadow-lg shadow-blue-500/30 font-black italic btn-reanudar"
+                    {{ $orden->estado != 'espera_repuesto' && $orden->estado != 'detenida' ? 'style=display:none;' : '' }}>
+                    <i class="fas fa-play"></i> Reanudar Reparación
+                </button>
+                <button
+                    class="btn btn-warning w-full text-white gap-2 shadow-lg shadow-orange-500/30 font-black italic btn-espera-repuesto"
+                    {{ $orden->estado == 'espera_repuesto' || $orden->estado == 'finalizada' || $orden->estado == 'entregada' ? 'style=display:none;' : '' }}>
+                    <i class="fas fa-hourglass-half"></i> Cambiar Situación / Pausa
                 </button>
                 <button
                     class="btn btn-success w-full text-white gap-2 shadow-lg shadow-green-500/30 font-black italic btn-finalizar"
@@ -904,7 +929,16 @@
 </dialog>
 
 @push('scripts')
-@vite(['resources/js/operaciones/ordenes/show.js'])
+    <script>
+        window.ordenData = {
+            id: {{ $orden->id }},
+            codigo: '{{ $orden->codigo_orden }}',
+            telefono: '{{ $orden->cliente->telefono ?? '' }}',
+            email: '{{ $orden->cliente->email ?? '' }}',
+            printUrl: '{{ route('panel.operaciones.ordenes_trabajo.print', $orden->id) }}'
+        };
+    </script>
+    @vite(['resources/js/operaciones/ordenes/show.js'])
 @endpush
 
 @endsection

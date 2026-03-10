@@ -16,19 +16,39 @@ class UsuarioController extends Controller
 
     public function list()
     {
+        $user = auth()->user();
+        $isAdmin = $user->hasRole('admin');
+
         // Traemos usuarios con sus roles, perfil y sucursales
-        $users = User::with('roles', 'persona', 'sucursales')->orderBy('id', 'desc')->get();
+        $query = User::with('roles', 'persona', 'sucursales')->orderBy('id', 'desc');
+
+        if (!$isAdmin) {
+            $userSids = $user->sucursales->pluck('id');
+            $query->whereHas('sucursales', function ($q) use ($userSids) {
+                $q->whereIn('sucursales.id', $userSids);
+            });
+        }
+
+        $users = $query->get();
         return response()->json($users);
     }
 
     public function listRoles()
     {
+        // No permitir ver roles a no-admins por seguridad si no es necesario para la vista
+        if (!auth()->user()->hasRole('admin')) {
+            return response()->json([]);
+        }
         $roles = Role::all();
         return response()->json($roles);
     }
 
     public function listSucursales()
     {
+        $user = auth()->user();
+        if (!$user->hasRole('admin')) {
+            return response()->json($user->sucursales);
+        }
         $sucursales = \App\Models\Sucursal::all();
         return response()->json($sucursales);
     }

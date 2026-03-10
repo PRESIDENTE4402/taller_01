@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use App\Notifications\TareaAsignada;
+use App\Notifications\ActividadTaller;
 
 class ColaboradorController extends Controller
 {
@@ -102,6 +103,18 @@ class ColaboradorController extends Controller
             ]);
 
             $user->notify(new TareaAsignada($tarea));
+
+            // Notificar Administradores
+            $admins = User::whereHas('roles', fn($q) => $q->where('slug', 'admin'))->get();
+            $mecanicoNombre = $user->persona ? ($user->persona->nombres . ' ' . $user->persona->apellidos) : $user->name;
+            foreach ($admins as $admin) {
+                /** @var \App\Models\User $admin */
+                $admin->notify(new ActividadTaller(
+                    "Tarea asignada: '{$request->descripcion}' a {$mecanicoNombre}" . ($tarea->orden_trabajo_id ? " (OT #{$tarea->orden_trabajo_id})" : ""),
+                    $tarea->orden_trabajo_id ? route('panel.operaciones.ordenes_trabajo.show', $tarea->orden_trabajo_id) : route('panel.colaboradores.show', $user->id),
+                    'tarea_asignada'
+                ));
+            }
 
             return response()->json(['success' => true, 'message' => 'Tarea asignada correctamente', 'data' => $tarea]);
         } catch (\Exception $e) {

@@ -100,26 +100,34 @@
                     <h3 class="card-title text-sm font-bold uppercase text-gray-400 mb-4 tracking-wider">Acciones Frecuentes
                     </h3>
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        <a href="{{ route('panel.operaciones.citas.index', ['action' => 'create']) }}"
-                            class="btn btn-outline btn-primary h-auto py-4 flex flex-col gap-2 hover:scale-105 transition-transform border-gray-200 hover:border-blue-500 hover:bg-blue-50 text-gray-600 hover:text-blue-600">
-                            <i class="fas fa-plus-circle text-2xl text-blue-500"></i>
-                            <span>Nueva Cita</span>
-                        </a>
-                        <button
-                            class="btn btn-outline btn-secondary h-auto py-4 flex flex-col gap-2 hover:scale-105 transition-transform border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 text-gray-600 hover:text-indigo-600">
-                            <i class="fas fa-car-side text-2xl text-indigo-500"></i>
-                            <span>Ingreso Taller</span>
-                        </button>
-                        <a href="{{ route('panel.operaciones.ordenes_trabajo.index') }}"
-                            class="btn btn-outline h-auto py-4 flex flex-col gap-2 hover:scale-105 transition-transform border-gray-200 hover:border-gray-500 hover:bg-gray-50 text-gray-600 hover:text-gray-800">
-                            <i class="fas fa-search text-2xl text-gray-500"></i>
-                            <span>Buscar Orden</span>
-                        </a>
-                        <a href="{{ route('panel.vehiculos.index') }}"
-                            class="btn btn-outline btn-success h-auto py-4 flex flex-col gap-2 hover:scale-105 transition-transform border-gray-200 hover:border-emerald-500 hover:bg-emerald-50 text-gray-600 hover:text-emerald-600">
-                            <i class="fas fa-car text-2xl text-emerald-500"></i>
-                            <span>Directorio Vehículos</span>
-                        </a>
+                        @can('gestionar_citas')
+                            <a href="{{ route('panel.operaciones.citas.index', ['action' => 'create']) }}"
+                                class="btn btn-outline btn-primary h-auto py-4 flex flex-col gap-2 hover:scale-105 transition-transform border-gray-200 hover:border-blue-500 hover:bg-blue-50 text-gray-600 hover:text-blue-600">
+                                <i class="fas fa-plus-circle text-2xl text-blue-500"></i>
+                                <span>Nueva Cita</span>
+                            </a>
+                        @endcan
+                        @can('gestionar_recepcion')
+                            <a href="{{ route('panel.operaciones.ordenes_trabajo.dashboard') }}"
+                                class="btn btn-outline btn-secondary h-auto py-4 flex flex-col gap-2 hover:scale-105 transition-transform border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 text-gray-600 hover:text-indigo-600">
+                                <i class="fas fa-car-side text-2xl text-indigo-500"></i>
+                                <span>Ingreso Taller</span>
+                            </a>
+                        @endcan
+                        @can('gestionar_ordenes_trabajo')
+                            <a href="{{ route('panel.operaciones.ordenes_trabajo.index') }}"
+                                class="btn btn-outline h-auto py-4 flex flex-col gap-2 hover:scale-105 transition-transform border-gray-200 hover:border-gray-500 hover:bg-gray-50 text-gray-600 hover:text-gray-800">
+                                <i class="fas fa-search text-2xl text-gray-500"></i>
+                                <span>Buscar Orden</span>
+                            </a>
+                        @endcan
+                        @can('gestionar_vehiculos')
+                            <a href="{{ route('panel.vehiculos.index') }}"
+                                class="btn btn-outline btn-success h-auto py-4 flex flex-col gap-2 hover:scale-105 transition-transform border-gray-200 hover:border-emerald-500 hover:bg-emerald-50 text-gray-600 hover:text-emerald-600">
+                                <i class="fas fa-car text-2xl text-emerald-500"></i>
+                                <span>Directorio Vehículos</span>
+                            </a>
+                        @endcan
                     </div>
                 </div>
             </div>
@@ -458,7 +466,8 @@
                     <h3 class="card-title text-gray-700 mb-4 text-sm font-bold uppercase tracking-widest"><i
                             class="fas fa-bell text-yellow-500"></i> Avisos del Sistema</h3>
 
-                    <div class="alert alert-warning shadow-sm text-sm mb-3 bg-amber-50 text-amber-900 border-amber-200 py-2">
+                    <div
+                        class="alert alert-warning shadow-sm text-sm mb-3 bg-amber-50 text-amber-900 border-amber-200 py-2">
                         <i class="fas fa-store"></i>
                         <span><strong>Sucursal Actual:</strong>
                             @if($sucursalId === 'all')

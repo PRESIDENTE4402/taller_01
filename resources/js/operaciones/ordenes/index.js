@@ -181,6 +181,7 @@ function renderModalContent(orden) {
         'abierta': 'bg-blue-100 text-blue-700',
         'en_proceso': 'bg-purple-100 text-purple-700',
         'espera_repuesto': 'bg-orange-100 text-orange-700',
+        'detenida': 'bg-orange-100 text-orange-700',
         'finalizada': 'bg-green-100 text-green-700',
         'entregada': 'bg-gray-100 text-gray-700'
     };
@@ -199,6 +200,7 @@ function renderModalContent(orden) {
                     </span>
                 </div>
                 <h2 class="text-2xl font-black italic tracking-tighter">#${orden.codigo_orden}</h2>
+                ${orden.motivo_estado ? `<p class="text-[10px] bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded mt-1 font-bold italic border border-orange-500/30 inline-block truncate max-w-full"><i class="fas fa-info-circle mr-1"></i> ${orden.motivo_estado}</p>` : ''}
             </div>
             <div class="flex gap-2">
                 <a href="${printUrl}" target="_blank" class="btn btn-sm bg-white/10 hover:bg-white/20 border-none text-white gap-2">
@@ -322,6 +324,9 @@ function createPendingCard(cita, createUrlBase) {
                     <p class="text-xs font-bold text-gray-500 uppercase tracking-tight">
                         ${cita.vehiculo ? `<span class="text-green-600 font-black">${cita.vehiculo.placa}</span> - ${cita.vehiculo.marca?.nombre} ${cita.vehiculo.modelo?.nombre}` : 'Vehículo no identificado'}
                     </p>
+                    <p class="text-[10px] text-blue-600 mt-1 font-black uppercase tracking-widest bg-blue-50 inline-block px-2 py-0.5 rounded border border-blue-100">
+                        <i class="fas fa-store mr-1"></i> ${cita.sucursal?.nombre || 'General'}
+                    </p>
                     <p class="text-[10px] text-gray-400 mt-1 font-bold uppercase">
                         <i class="far fa-clock mr-1"></i> Llegó: ${new Date(cita.updated_at).toLocaleString()}
                     </p>
@@ -345,6 +350,7 @@ function createOrderCard(orden) {
         'abierta': 'bg-blue-100 text-blue-700 border-blue-200',
         'en_proceso': 'bg-purple-100 text-purple-700 border-purple-200',
         'espera_repuesto': 'bg-orange-100 text-orange-700 border-orange-200',
+        'detenida': 'bg-orange-100 text-orange-700 border-orange-200',
         'finalizada': 'bg-green-100 text-green-700 border-green-200',
         'entregada': 'bg-gray-100 text-gray-700 border-gray-300'
     };
@@ -352,6 +358,7 @@ function createOrderCard(orden) {
         'abierta': 'Abierta',
         'en_proceso': 'En Proceso',
         'espera_repuesto': 'Espera Repuesto',
+        'detenida': 'Detenida',
         'finalizada': 'Finalizada',
         'entregada': 'Entregada'
     };

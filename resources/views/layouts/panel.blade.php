@@ -108,12 +108,12 @@
 
     {{-- MOBILE BACKDROP --}}
     <div id="mobile-backdrop"
-        class="fixed inset-0 bg-black/50 z-10 hidden md:hidden glass transition-opacity duration-300"
+        class="fixed inset-0 bg-black/50 z-35 hidden md:hidden glass transition-opacity duration-300"
         onclick="toggleMobileMenu()"></div>
 
     {{-- SIDEBAR / MENÚ LATERAL OSCURO --}}
     <aside id="sidebar"
-        class="w-64 sidebar-container shadow-xl flex-shrink-0 flex flex-col transition-all duration-300 fixed md:relative z-20 h-full -translate-x-full md:translate-x-0">
+        class="w-64 sidebar-container shadow-xl flex-shrink-0 flex flex-col transition-all duration-300 fixed md:relative z-40 h-full -translate-x-full md:translate-x-0">
 
         {{-- Logo Area --}}
         <div class="h-16 flex items-center px-6 border-b border-slate-700 bg-slate-900 justify-between">
@@ -156,19 +156,23 @@
                     <span class="menu-text whitespace-nowrap overflow-hidden text-ellipsis">Página Web</span>
                 </a>
 
-                <a href="{{ route('panel.clientes.index') }}"
-                    class="sidebar-menu-btn tooltip tooltip-right flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.clientes.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors"
-                    data-tip="Directorio Clientes">
-                    <i class="fas fa-address-book w-5 text-center flex-shrink-0"></i>
-                    <span class="menu-text whitespace-nowrap overflow-hidden text-ellipsis">Directorio Clientes</span>
-                </a>
+                @can('gestionar_clientes')
+                    <a href="{{ route('panel.clientes.index') }}"
+                        class="sidebar-menu-btn tooltip tooltip-right flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.clientes.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors"
+                        data-tip="Directorio Clientes">
+                        <i class="fas fa-address-book w-5 text-center flex-shrink-0"></i>
+                        <span class="menu-text whitespace-nowrap overflow-hidden text-ellipsis">Directorio Clientes</span>
+                    </a>
+                @endcan
 
-                <a href="{{ route('panel.vehiculos.index') }}"
-                    class="sidebar-menu-btn tooltip tooltip-right flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.vehiculos.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors"
-                    data-tip="Directorio Vehículos">
-                    <i class="fas fa-car w-5 text-center flex-shrink-0"></i>
-                    <span class="menu-text whitespace-nowrap overflow-hidden text-ellipsis">Directorio Vehículos</span>
-                </a>
+                @can('gestionar_vehiculos')
+                    <a href="{{ route('panel.vehiculos.index') }}"
+                        class="sidebar-menu-btn tooltip tooltip-right flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.vehiculos.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors"
+                        data-tip="Directorio Vehículos">
+                        <i class="fas fa-car w-5 text-center flex-shrink-0"></i>
+                        <span class="menu-text whitespace-nowrap overflow-hidden text-ellipsis">Directorio Vehículos</span>
+                    </a>
+                @endcan
 
                 {{-- Sección Operaciones --}}
                 @if(Gate::check('gestionar_citas') || Gate::check('gestionar_recepcion') || Gate::check('gestionar_ordenes_trabajo') || auth()->user()->hasRole('mecanico') || auth()->user()->hasRole('ayudante') || auth()->user()->hasRole('tecnico'))
@@ -243,7 +247,7 @@
                 @endcan
 
                 {{-- Sección Mantenimientos (CRUDs) --}}
-                @if(Gate::check('gestionar_marcas') || Gate::check('gestionar_versiones') || Gate::check('gestionar_sucursales'))
+                @if(Gate::check('gestionar_marcas') || Gate::check('gestionar_versiones') || Gate::check('gestionar_sucursales') || Gate::check('gestionar_imagenes_landing') || Gate::check('gestionar_items_recepcion'))
                     <div
                         class="px-3 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider section-title whitespace-nowrap overflow-hidden">
                         Mantenimientos</div>
@@ -275,12 +279,30 @@
                         </a>
                     @endcan
 
-                    <a href="{{ route('panel.mantenimientos.imagenes_landing.index') }}"
-                        class="sidebar-menu-btn tooltip tooltip-right flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.mantenimientos.imagenes_landing.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors"
-                        data-tip="Imágenes Landing">
-                        <i class="fas fa-images w-5 text-center flex-shrink-0"></i>
-                        <span class="menu-text whitespace-nowrap overflow-hidden text-ellipsis">Imágenes Landing</span>
-                    </a>
+                    @can('gestionar_imagenes_landing')
+                        <a href="{{ route('panel.mantenimientos.imagenes_landing.index') }}"
+                            class="sidebar-menu-btn tooltip tooltip-right flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.mantenimientos.imagenes_landing.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors"
+                            data-tip="Imágenes Landing">
+                            <i class="fas fa-images w-5 text-center flex-shrink-0"></i>
+                            <span class="menu-text whitespace-nowrap overflow-hidden text-ellipsis">Imágenes Landing</span>
+                        </a>
+                    @endcan
+
+                    @can('gestionar_items_recepcion')
+                        <a href="{{ route('panel.mantenimientos.inventario_recepcion.index') }}"
+                            class="sidebar-menu-btn tooltip tooltip-right flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.mantenimientos.inventario_recepcion.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors"
+                            data-tip="Inventario Recepción">
+                            <i class="fas fa-clipboard-check w-5 text-center flex-shrink-0"></i>
+                            <span class="menu-text whitespace-nowrap overflow-hidden text-ellipsis">Inventario Recepción</span>
+                        </a>
+
+                        <a href="{{ route('panel.mantenimientos.plantillas_mensajes.index') }}"
+                            class="sidebar-menu-btn tooltip tooltip-right flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.mantenimientos.plantillas_mensajes.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors"
+                            data-tip="Plantillas Mensajes">
+                            <i class="fas fa-comment-dots w-5 text-center flex-shrink-0"></i>
+                            <span class="menu-text whitespace-nowrap overflow-hidden text-ellipsis">Plantillas Mensajes</span>
+                        </a>
+                    @endcan
                 @endif
 
                 {{-- Sección Recursos Humanos --}}
@@ -374,14 +396,7 @@
                     <p class="text-xs text-blue-400 truncate">Sesión Activa</p>
                 </div>
             </div>
-            <form action="{{ route('logout') }}" method="POST" class="mt-3 w-full">
-                @csrf
-                <button
-                    class="btn btn-sm btn-outline btn-error w-full gap-2 text-xs uppercase tracking-wide opacity-80 hover:opacity-100 sidebar-menu-btn tooltip tooltip-right"
-                    data-tip="Cerrar Sesión">
-                    <i class="fas fa-sign-out-alt"></i> <span class="menu-text">Cerrar Sesión</span>
-                </button>
-            </form>
+            </div>
         </div>
     </aside>
 
@@ -389,7 +404,7 @@
     <div class="flex-1 flex flex-col h-[100dvh] overflow-hidden relative">
 
         {{-- Topbar (Solo visible en desktop para acciones rápidas o breadcrumbs) --}}
-        <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 z-10">
+        <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 z-30">
             <div class="flex items-center gap-4">
                 {{-- Desktop Menu Toggle --}}
                 <button id="desktop-menu-toggle" onclick="toggleDesktopMenu()"
@@ -419,18 +434,28 @@
                         class="input input-sm input-bordered w-full pl-9 bg-gray-50 focus:bg-white focus:border-blue-500 transition-colors rounded-full" />
                 </div>
 
+                {{-- Logout Button --}}
+                <form action="{{ route('logout') }}" method="POST" class="flex items-center">
+                    @csrf
+                    <button type="submit"
+                        class="btn btn-ghost btn-circle btn-sm text-gray-500 hover:text-red-600 hover:bg-red-50 tooltip tooltip-bottom"
+                        data-tip="Cerrar Sesión">
+                        <i class="fas fa-sign-out-alt text-lg"></i>
+                    </button>
+                </form>
+
                 {{-- Notifications --}}
-                <div class="dropdown dropdown-end">
-                    <div tabindex="0" role="button"
-                        class="btn btn-ghost btn-circle btn-sm text-gray-500 hover:text-blue-600 hover:bg-blue-50 relative">
+                <details class="dropdown dropdown-end">
+                    <summary tabindex="0" role="button"
+                        class="btn btn-ghost btn-circle btn-sm text-gray-500 hover:text-blue-600 hover:bg-blue-50 relative list-none">
                         <i class="fas fa-bell text-lg"></i>
                         @if(Auth::user()->unreadNotifications->count() > 0)
                             <span
                                 class="absolute top-1 right-1 h-3 w-3 bg-red-500 rounded-full border-2 border-white"></span>
                         @endif
-                    </div>
+                    </summary>
                     <ul tabindex="0"
-                        class="dropdown-content z-[20] menu p-2 shadow-xl bg-white border border-gray-100 rounded-box w-80 mt-2 text-sm">
+                        class="dropdown-content z-[1000] menu p-2 shadow-xl bg-white border border-gray-100 rounded-box w-80 mt-2 text-sm">
                         <li
                             class="menu-title pt-3 pb-2 px-3 font-bold text-gray-800 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-lg">
                             <span>Notificaciones</span>
@@ -443,27 +468,49 @@
                             <div class="max-h-64 overflow-y-auto p-0 w-full block">
                                 <ul class="menu p-0 w-full">
                                     @forelse(Auth::user()->unreadNotifications->take(5) as $notification)
-                                        <li class="border-b border-gray-50 last:border-0 rounded-none w-full">
-                                            <a href="{{ $notification->data['url'] ?? '#' }}"
-                                                class="py-3 px-4 flex flex-col items-start gap-1 whitespace-normal hover:bg-blue-50 transition-colors w-full rounded-none">
-                                                <div class="flex items-start gap-3 w-full">
-                                                    <div class="mt-1 flex-shrink-0">
-                                                        <div
-                                                            class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
-                                                            <i class="fas fa-briefcase text-xs"></i>
+                                                                        <li class="border-b border-gray-50 last:border-0 rounded-none w-full">
+                                                                            <a href="{{ route('panel.notifications.read', $notification->id) }}"
+                                                                                class="py-3 px-4 flex flex-col items-start gap-1 whitespace-normal hover:bg-blue-50 transition-colors w-full rounded-none">
+                                                                                <div class="flex items-start gap-3 w-full">
+                                                                                    <div class="mt-1 flex-shrink-0">
+                                                        @php
+                                                            $type = str_replace('App\\Notifications\\', '', $notification->type);
+                                                            $icon = 'fa-bell';
+                                                            $color = 'bg-blue-100 text-blue-600';
+                                                            
+                                                            if($type == 'ActividadTaller'){
+                                                                $tipoActividad = $notification->data['tipo'] ?? '';
+                                                                if($tipoActividad == 'pago_recibido'){ $icon = 'fa-money-bill-wave'; $color = 'bg-green-100 text-green-600'; }
+                                                                elseif($tipoActividad == 'orden_creada'){ $icon = 'fa-file-invoice'; $color = 'bg-blue-100 text-blue-600'; }
+                                                                elseif($tipoActividad == 'orden_estado'){ $icon = 'fa-sync'; $color = 'bg-blue-100 text-blue-600'; }
+                                                                elseif($tipoActividad == 'tarea_asignada'){ $icon = 'fa-tools'; $color = 'bg-purple-100 text-purple-600'; }
+                                                                elseif($tipoActividad == 'cita_cancelada'){ $icon = 'fa-calendar-times'; $color = 'bg-red-100 text-red-600'; }
+                                                                elseif($tipoActividad == 'detalle_agregado'){ $icon = 'fa-plus-circle'; $color = 'bg-emerald-100 text-emerald-600'; }
+                                                                elseif($tipoActividad == 'detalle_eliminado'){ $icon = 'fa-minus-circle'; $color = 'bg-orange-100 text-orange-600'; }
+                                                                elseif($tipoActividad == 'orden_pausada'){ $icon = 'fa-clock-rotate-left'; $color = 'bg-orange-100 text-orange-600'; }
+                                                            } elseif($type == 'NuevaNotaTarea'){
+                                                                $icon = 'fa-comment-alt'; $color = 'bg-yellow-100 text-yellow-600';
+                                                            } elseif($type == 'TareaAsignada'){
+                                                                $icon = 'fa-tasks'; $color = 'bg-indigo-100 text-indigo-600';
+                                                            } elseif($type == 'TareaFinalizada'){
+                                                                $icon = 'fa-check-circle'; $color = 'bg-green-100 text-green-600';
+                                                            }
+                                                        @endphp
+                                                        <div class="w-8 h-8 rounded-full {{ $color }} flex items-center justify-center">
+                                                            <i class="fas {{ $icon }} text-xs"></i>
                                                         </div>
-                                                    </div>
-                                                    <div class="flex-1 min-w-0">
-                                                        <p class="font-medium text-gray-800 leading-tight text-xs">
-                                                            {{ $notification->data['mensaje'] ?? 'Nueva notificación' }}
-                                                        </p>
-                                                        <p class="text-gray-400 text-[10px] mt-1"><i
-                                                                class="far fa-clock mr-1"></i>{{ $notification->created_at->diffForHumans() }}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </a>
-                                        </li>
+                                                                                    </div>
+                                                                                    <div class="flex-1 min-w-0">
+                                                                                        <p class="font-medium text-gray-800 leading-tight text-xs">
+                                                                                            {{ $notification->data['mensaje'] ?? 'Nueva notificación' }}
+                                                                                        </p>
+                                                                                        <p class="text-gray-400 text-[10px] mt-1"><i
+                                                                                                class="far fa-clock mr-1"></i>{{ $notification->created_at->diffForHumans() }}
+                                                                                        </p>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </a>
+                                                                        </li>
                                     @empty
                                         <li
                                             class="py-6 px-4 text-center text-gray-400 flex flex-col items-center justify-center rounded-none bg-white hover:bg-white cursor-default">
@@ -475,7 +522,7 @@
                             </div>
                         </li>
                     </ul>
-                </div>
+                </details>
             </div>
         </header>
 

@@ -26,7 +26,9 @@ export default defineConfig({
                 'resources/js/operaciones/ordenes/index.js',
                 'resources/js/operaciones/ordenes/show.js',
                 'resources/js/panel/colaboradores.js',
-                'resources/js/panel/imagenes_landing.js'],
+                'resources/js/panel/imagenes_landing.js',
+                'resources/js/mantenimientos/inventario_recepcion.js',
+                'resources/js/mantenimientos/plantillas_mensajes.js'],
 
             refresh: true,
         }),

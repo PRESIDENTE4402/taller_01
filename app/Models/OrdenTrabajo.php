@@ -33,6 +33,7 @@ class OrdenTrabajo extends Model
         'diagnostico_final',
         'conteo_reprogramaciones',
         'estado',
+        'motivo_estado',
         'total_estimado',
         'total_mano_obra',
         'descuento_mano_obra',

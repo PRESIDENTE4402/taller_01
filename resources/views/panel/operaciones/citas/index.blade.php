@@ -244,21 +244,26 @@
                     </div>
 
                     <!-- Communication Actions -->
-                    <div class="grid grid-cols-3 gap-3">
+                    <div class="grid grid-cols-2 gap-3">
                         <a href="#" id="btnWhatsApp" target="_blank"
-                            class="flex flex-col items-center justify-center p-3 rounded-xl bg-green-50 text-green-600 hover:bg-green-100 hover:text-green-700 transition-colors border border-green-100 group">
-                            <i class="fab fa-whatsapp text-2xl mb-1 group-hover:scale-110 transition-transform"></i>
-                            <span class="text-[10px] font-bold uppercase">WhatsApp</span>
+                            class="flex items-center gap-3 p-3 rounded-xl bg-green-50 text-green-600 hover:bg-green-100 hover:text-green-700 transition-colors border border-green-100 group">
+                            <i class="fab fa-whatsapp text-2xl group-hover:scale-110 transition-transform"></i>
+                            <span class="text-[10px] font-black uppercase">WhatsApp</span>
                         </a>
                         <button type="button" id="btnReminder"
-                            class="flex flex-col items-center justify-center p-3 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 transition-colors border border-blue-100 group w-full">
-                            <i class="fas fa-bell text-2xl mb-1 group-hover:scale-110 transition-transform"></i>
-                            <span class="text-[10px] font-bold uppercase">Recordatorio</span>
+                            class="flex items-center gap-3 p-3 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 transition-colors border border-blue-100 group w-full text-left">
+                            <i class="fas fa-bell text-2xl group-hover:scale-110 transition-transform"></i>
+                            <span class="text-[10px] font-black uppercase leading-tight">Recordatorio<br>WhatsApp</span>
+                        </button>
+                        <button type="button" id="btnEmailNotify"
+                            class="flex items-center gap-3 p-3 rounded-xl bg-indigo-50 text-indigo-600 hover:bg-indigo-100 hover:text-indigo-700 transition-colors border border-indigo-100 group w-full text-left">
+                            <i class="fas fa-envelope text-2xl group-hover:scale-110 transition-transform"></i>
+                            <span class="text-[10px] font-black uppercase">Enviar<br>Correo</span>
                         </button>
                         <a href="#" id="btnCall"
-                            class="flex flex-col items-center justify-center p-3 rounded-xl bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-800 transition-colors border border-gray-100 group">
-                            <i class="fas fa-phone-alt text-2xl mb-1 group-hover:scale-110 transition-transform"></i>
-                            <span class="text-[10px] font-bold uppercase">Llamar</span>
+                            class="flex items-center gap-3 p-3 rounded-xl bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-800 transition-colors border border-gray-100 group">
+                            <i class="fas fa-phone-alt text-2xl group-hover:scale-110 transition-transform"></i>
+                            <span class="text-[10px] font-black uppercase">Llamar</span>
                         </a>
                     </div>
                 </div>

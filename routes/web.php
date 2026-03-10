@@ -48,7 +48,7 @@ Route::middleware('auth')->group(function () {
 
 
         // Gestión de Clientes (Directorio Principal)
-        Route::prefix('clientes')->name('clientes.')->group(function () {
+        Route::prefix('clientes')->name('clientes.')->middleware('can_do:gestionar_clientes')->group(function () {
             Route::get('/', [App\Http\Controllers\Panel\ClienteController::class, 'index'])->name('index');
             Route::get('/list', [App\Http\Controllers\Panel\ClienteController::class, 'list'])->name('list');
             Route::get('/{id}', [App\Http\Controllers\Panel\ClienteController::class, 'show'])->name('show'); // New Profile View
@@ -57,7 +57,7 @@ Route::middleware('auth')->group(function () {
             Route::delete('/{id}', [App\Http\Controllers\Panel\ClienteController::class, 'destroy'])->name('destroy');
         });
 
-        Route::prefix('vehiculos')->name('vehiculos.')->group(function () {
+        Route::prefix('vehiculos')->name('vehiculos.')->middleware('can_do:gestionar_vehiculos')->group(function () {
             Route::get('/', [VehiculoController::class, 'index'])->name('index');
             Route::get('/{id}', [VehiculoController::class, 'show'])->name('show');
             Route::post('/', [VehiculoController::class, 'store'])->name('store');
@@ -68,7 +68,7 @@ Route::middleware('auth')->group(function () {
         // Módulos de Operaciones (Nuevo Grupo)
         Route::prefix('operaciones')->name('operaciones.')->group(function () {
             // Citas
-            Route::prefix('citas')->name('citas.')->group(function () {
+            Route::prefix('citas')->name('citas.')->middleware('can_do:gestionar_citas')->group(function () {
                 Route::get('/', [App\Http\Controllers\Panel\CitaController::class, 'index'])->name('index');
                 Route::get('/list', [App\Http\Controllers\Panel\CitaController::class, 'list'])->name('list');
                 Route::post('/', [App\Http\Controllers\Panel\CitaController::class, 'store'])->name('store'); // Manual
@@ -83,6 +83,7 @@ Route::middleware('auth')->group(function () {
                 Route::get('/api/get-brands', [App\Http\Controllers\Panel\CitaController::class, 'getBrands'])->name('getBrands');
 
                 Route::get('/api/calendar-counts', [App\Http\Controllers\Panel\CitaController::class, 'getCalendarCounts'])->name('getCalendarCounts'); // New
+                Route::post('/{id}/notify', [App\Http\Controllers\Panel\CitaController::class, 'sendNotification'])->name('notify');
             });
 
 
@@ -92,11 +93,11 @@ Route::middleware('auth')->group(function () {
             // Órdenes de Trabajo (New)
 
 
-            Route::prefix('ordenes-trabajo')->name('ordenes_trabajo.')->group(function () {
+            Route::prefix('ordenes-trabajo')->name('ordenes_trabajo.')->middleware('can_do:gestionar_ordenes_trabajo')->group(function () {
                 Route::get('/api/search-repuestos', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'searchRepuestos'])->name('searchRepuestos');
                 Route::post('/api/fast-repuesto', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'storeFastRepuesto'])->name('fastRepuesto'); // NUEVO REPUESTO EXPRÉS
                 Route::get('/', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'index'])->name('index');
-                Route::get('/dashboard', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'dashboard'])->name('dashboard'); // New Dashboard
+                Route::get('/dashboard', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'dashboard'])->name('dashboard')->middleware('can_do:gestionar_recepcion'); // New Dashboard
                 Route::get('/list', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'list'])->name('list');
                 Route::get('/create', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'create'])->name('create');
                 Route::post('/', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'store'])->name('store');
@@ -117,6 +118,7 @@ Route::middleware('auth')->group(function () {
                 Route::post('/{id}/pagos', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'storePago'])->name('pagos.store');
                 Route::put('/{id}/pagos/{pago_id}', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'updatePago'])->name('pagos.update');
                 Route::delete('/{id}/pagos/{pago_id}', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'deletePago'])->name('pagos.destroy');
+                Route::post('/{id}/notify', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'sendNotification'])->name('notify');
                 Route::put('/citas/{id}/cancel', [App\Http\Controllers\Panel\OrdenTrabajoController::class, 'cancelCita'])->name('citas.cancel');
             });
         });
@@ -139,11 +141,28 @@ Route::middleware('auth')->group(function () {
         });
 
 
+        // Notificaciones
+        Route::get('/notifications/{id}/read', function ($id) {
+            $notification = Auth::user()->notifications()->findOrFail($id);
+            $notification->markAsRead();
+            return redirect($notification->data['url'] ?? route('panel.dashboard'));
+        })->name('notifications.read');
+
+
         // Módulos de Mantenimiento
         Route::prefix('mantenimientos')->name('mantenimientos.')->group(function () {
 
+            // Plantillas de Mensajes
+            Route::prefix('plantillas-mensajes')->name('plantillas_mensajes.')->group(function () {
+                Route::get('/', [App\Http\Controllers\Panel\PlantillaMensajeController::class, 'index'])->name('index');
+                Route::get('/list', [App\Http\Controllers\Panel\PlantillaMensajeController::class, 'list'])->name('list');
+                Route::post('/', [App\Http\Controllers\Panel\PlantillaMensajeController::class, 'store'])->name('store');
+                Route::put('/{id}', [App\Http\Controllers\Panel\PlantillaMensajeController::class, 'update'])->name('update');
+                Route::delete('/{id}', [App\Http\Controllers\Panel\PlantillaMensajeController::class, 'destroy'])->name('destroy');
+            });
+
             // Marcas
-            Route::prefix('marcas')->name('marcas.')->group(function () {
+            Route::prefix('marcas')->name('marcas.')->middleware('can_do:gestionar_marcas')->group(function () {
                 Route::get('/', [MarcaVehiculoController::class, 'index'])->name('index');
                 Route::get('/list', [MarcaVehiculoController::class, 'list'])->name('list');
                 Route::post('/', [MarcaVehiculoController::class, 'store'])->name('store');
@@ -152,7 +171,7 @@ Route::middleware('auth')->group(function () {
             });
 
             // Versiones
-            Route::prefix('versiones')->name('versiones.')->group(function () {
+            Route::prefix('versiones')->name('versiones.')->middleware('can_do:gestionar_versiones')->group(function () {
                 Route::get('/', [VersionVehiculoController::class, 'index'])->name('index');
                 Route::get('/list', [VersionVehiculoController::class, 'list'])->name('list');
                 Route::get('/by-modelo/{modeloId}', [VersionVehiculoController::class, 'listByModelo'])->name('listByModelo');
@@ -169,7 +188,7 @@ Route::middleware('auth')->group(function () {
                 Route::delete('/{id}', [ModeloVehiculoController::class, 'destroy'])->name('destroy');
             });
             // Sucursales
-            Route::prefix('sucursales')->name('sucursales.')->group(function () {
+            Route::prefix('sucursales')->name('sucursales.')->middleware('can_do:gestionar_sucursales')->group(function () {
                 Route::get('/', [SucursalController::class, 'index'])->name('index');
                 Route::get('/list', [SucursalController::class, 'list'])->name('list');
                 Route::post('/', [SucursalController::class, 'store'])->name('store');
@@ -179,7 +198,7 @@ Route::middleware('auth')->group(function () {
 
 
             // Categorias (SaaS)
-            Route::prefix('categorias')->name('categorias.')->group(function () {
+            Route::prefix('categorias')->name('categorias.')->middleware('can_do:gestionar_inventario')->group(function () {
                 Route::get('/', [\App\Http\Controllers\Panel\CategoriaController::class, 'index'])->name('index');
                 Route::get('/list', [\App\Http\Controllers\Panel\CategoriaController::class, 'list'])->name('list');
                 Route::post('/', [\App\Http\Controllers\Panel\CategoriaController::class, 'store'])->name('store');
@@ -197,7 +216,7 @@ Route::middleware('auth')->group(function () {
             });
 
             // Reportes (Análisis y Auditoría)
-            Route::prefix('reportes')->name('reportes.')->group(function () {
+            Route::prefix('reportes')->name('reportes.')->middleware('can_do:ver_reportes')->group(function () {
                 Route::get('/inventario-por-sucursal', [\App\Http\Controllers\Panel\ReporteController::class, 'inventarioPorSucursal'])->name('inventario-por-sucursal');
                 Route::get('/stock-bajo', [\App\Http\Controllers\Panel\ReporteController::class, 'stockBajo'])->name('stock-bajo');
                 Route::get('/comparativa-precios', [\App\Http\Controllers\Panel\ReporteController::class, 'comparativaPreciosS'])->name('comparativa-precios');
@@ -211,7 +230,7 @@ Route::middleware('auth')->group(function () {
             })->name('configurar-atributos');
 
             // Repuestos (SaaS)
-            Route::prefix('repuestos')->name('repuestos.')->group(function () {
+            Route::prefix('repuestos')->name('repuestos.')->middleware('can_do:gestionar_inventario')->group(function () {
                 Route::get('/', [\App\Http\Controllers\Panel\RepuestoController::class, 'index'])->name('index');
                 Route::get('/list', [\App\Http\Controllers\Panel\RepuestoController::class, 'list'])->name('list');
                 Route::post('/', [\App\Http\Controllers\Panel\RepuestoController::class, 'store'])->name('store');
@@ -220,7 +239,7 @@ Route::middleware('auth')->group(function () {
             });
 
             // Imágenes para Landing Page
-            Route::prefix('imagenes-landing')->name('imagenes_landing.')->group(function () {
+            Route::prefix('imagenes-landing')->name('imagenes_landing.')->middleware('can_do:gestionar_imagenes_landing')->group(function () {
                 Route::get('/', [\App\Http\Controllers\Panel\LandingImageController::class, 'index'])->name('index');
                 Route::get('/list', [\App\Http\Controllers\Panel\LandingImageController::class, 'list'])->name('list');
                 Route::post('/', [\App\Http\Controllers\Panel\LandingImageController::class, 'store'])->name('store');
@@ -228,13 +247,22 @@ Route::middleware('auth')->group(function () {
                 Route::delete('/{id}', [\App\Http\Controllers\Panel\LandingImageController::class, 'destroy'])->name('destroy');
                 Route::post('/upload', [\App\Http\Controllers\Panel\LandingImageController::class, 'upload'])->name('upload');
             });
+
+            // Inventario Recepción (Items Checklist)
+            Route::prefix('inventario-recepcion')->name('inventario_recepcion.')->middleware('can_do:gestionar_items_recepcion')->group(function () {
+                Route::get('/', [\App\Http\Controllers\Panel\InventarioRecepcionItemController::class, 'index'])->name('index');
+                Route::get('/list', [\App\Http\Controllers\Panel\InventarioRecepcionItemController::class, 'list'])->name('list');
+                Route::post('/', [\App\Http\Controllers\Panel\InventarioRecepcionItemController::class, 'store'])->name('store');
+                Route::put('/{id}', [\App\Http\Controllers\Panel\InventarioRecepcionItemController::class, 'update'])->name('update');
+                Route::delete('/{id}', [\App\Http\Controllers\Panel\InventarioRecepcionItemController::class, 'destroy'])->name('destroy');
+            });
         });
 
         // Seguridad (Roles y Usuarios)
         Route::prefix('seguridad')->name('seguridad.')->group(function () {
 
             // Roles
-            Route::prefix('roles')->name('roles.')->group(function () {
+            Route::prefix('roles')->name('roles.')->middleware('can_do:gestionar_roles')->group(function () {
                 Route::get('/', [RoleController::class, 'index'])->name('index');
                 Route::get('/list', [RoleController::class, 'list'])->name('list');
                 Route::post('/', [RoleController::class, 'store'])->name('store');
@@ -243,7 +271,7 @@ Route::middleware('auth')->group(function () {
             });
 
             // Permisos
-            Route::prefix('permisos')->name('permisos.')->group(function () {
+            Route::prefix('permisos')->name('permisos.')->middleware('can_do:gestionar_permisos')->group(function () {
                 Route::get('/', [\App\Http\Controllers\Panel\PermissionController::class, 'index'])->name('index');
                 Route::get('/list', [\App\Http\Controllers\Panel\PermissionController::class, 'list'])->name('list');
                 Route::post('/', [\App\Http\Controllers\Panel\PermissionController::class, 'store'])->name('store');
@@ -252,7 +280,7 @@ Route::middleware('auth')->group(function () {
             });
 
             // Usuarios (Asignación Roles)
-            Route::prefix('usuarios')->name('usuarios.')->group(function () {
+            Route::prefix('usuarios')->name('usuarios.')->middleware('can_do:gestionar_usuarios')->group(function () {
                 Route::get('/', [UsuarioController::class, 'index'])->name('index');
                 Route::get('/list', [UsuarioController::class, 'list'])->name('list');
                 Route::get('/sucursales-list', [UsuarioController::class, 'listSucursales'])->name('listSucursales');
@@ -284,7 +312,7 @@ Route::middleware('auth')->group(function () {
             });
         });
         // Planilla (Pagos)
-        Route::prefix('planilla')->name('planilla.')->group(function () {
+        Route::prefix('planilla')->name('planilla.')->middleware('can_do:gestionar_planilla')->group(function () {
             Route::prefix('pagos')->name('pagos.')->group(function () {
                 Route::get('/', [App\Http\Controllers\Panel\Planilla\PagoTrabajadorController::class, 'index'])->name('index');
                 Route::get('/list', [App\Http\Controllers\Panel\Planilla\PagoTrabajadorController::class, 'list'])->name('list');
