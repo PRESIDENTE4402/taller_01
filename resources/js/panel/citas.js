@@ -978,12 +978,48 @@ function openCitaModal(cita) {
 
     // 1. WhatsApp (Generic)
     const btnWhatsApp = document.getElementById('btnWhatsApp');
-    const waMsg = encodeURIComponent(`Hola ${cita.cliente}, le escribimos de TallerPro sobre su vehículo ${cita.vehiculo}.`);
-    // Use whatsapp:// protocol to open native app directly if installed, avoiding intermediate browser tab
+    const waMsg = `Hola ${cita.cliente}, le escribimos de Tecnimecánica California sobre su vehículo ${cita.vehiculo}.`;
+
     btnWhatsApp.onclick = (e) => {
         e.preventDefault();
-        if (cleanPhone) {
-            window.location.href = `whatsapp://send?phone=${cleanPhone}&text=${waMsg}`;
+        if (!cleanPhone) return;
+
+        // Si es admin o recepcionista, permitir elegir desde qué sucursal enviar
+        const isAdmin = window.APP_CONFIG.USER_ROLES && (window.APP_CONFIG.USER_ROLES.includes('admin') || window.APP_CONFIG.USER_ROLES.includes('recepcionista'));
+
+        if (isAdmin) {
+            Swal.fire({
+                title: 'Enviar WhatsApp como...',
+                text: 'Seleccione la sucursal desde cuya cuenta desea enviar el mensaje:',
+                icon: 'question',
+                input: 'select',
+                inputOptions: window.APP_CONFIG.SUCURSALES_OPTIONS || {},
+                inputPlaceholder: 'Seleccionar sucursal...',
+                showCancelButton: true,
+                confirmButtonText: 'Continuar',
+                cancelButtonText: 'Cancelar',
+                customClass: {
+                    confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 transition-colors mr-2',
+                    cancelButton: 'bg-gray-200 text-gray-700 px-6 py-2 rounded-lg font-bold hover:bg-gray-300 transition-colors'
+                },
+                buttonsStyling: false,
+                inputValidator: (value) => {
+                    if (!value) return 'Debes seleccionar una sucursal';
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const selectedSucursalId = result.value;
+                    const sucursalPhone = window.APP_CONFIG.SUCURSAL_PHONES ? window.APP_CONFIG.SUCURSAL_PHONES[selectedSucursalId] : null;
+
+                    // Usamos la API oficial que es la más compatible para disparar la app o el sitio web
+                    const waUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(waMsg)}`;
+                    window.open(waUrl, '_blank');
+                }
+            });
+        } else {
+            // Usuario normal, usar la API más compatible
+            const waUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(waMsg)}`;
+            window.open(waUrl, '_blank');
         }
     };
     if (!cleanPhone) btnWhatsApp.classList.add('opacity-50', 'pointer-events-none');
@@ -991,11 +1027,12 @@ function openCitaModal(cita) {
 
     // 2. Reminder (Predefined Message via WhatsApp)
     const btnReminder = document.getElementById('btnReminder');
-    const reminderMsg = encodeURIComponent(`Hola ${cita.cliente}, le recordamos su cita en TallerPro para el vehículo ${cita.vehiculo} el día ${formattedDate}. Por favor confirme su asistencia. Le esperamos.`);
+    const reminderMsg = `Hola ${cita.cliente}, le recordamos su cita en Tecnimecánica California para el vehículo ${cita.vehiculo} el día ${formattedDate}. Por favor confirme su asistencia. Le esperamos.`;
 
     btnReminder.onclick = () => {
         if (cleanPhone) {
-            window.location.href = `whatsapp://send?phone=${cleanPhone}&text=${reminderMsg}`;
+            const waUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(reminderMsg)}`;
+            window.open(waUrl, '_blank');
         } else {
             Swal.fire('Error', 'El cliente no tiene teléfono registrado', 'warning');
         }
@@ -1083,9 +1120,13 @@ async function updateStatus(newStatus) {
             text: "Esta acción cambiará el estado de la cita.",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#d33',
             confirmButtonText: 'Sí, cambiar',
-            cancelButtonText: 'Cancelar'
+            cancelButtonText: 'Cancelar',
+            customClass: {
+                confirmButton: 'bg-red-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-red-700 transition-colors mr-2',
+                cancelButton: 'bg-gray-200 text-gray-700 px-6 py-2 rounded-lg font-bold hover:bg-gray-300 transition-colors'
+            },
+            buttonsStyling: false
         });
         if (!confirm.isConfirmed) return;
     }
@@ -1166,7 +1207,7 @@ function groupByDate(citas) {
         const m = String(d.getMonth() + 1).padStart(2, '0');
         const day = String(d.getDate()).padStart(2, '0');
         const date = `${y}-${m}-${day}`;
-        
+
         if (!groups[date]) {
             groups[date] = [];
         }
@@ -1288,7 +1329,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function debounceCheckClient(e) {
     if (document.getElementById('modoCreacion').value !== 'nuevo') return;
-    
+
     clearTimeout(checkClientTimeout);
     checkClientTimeout = setTimeout(() => validateClientExists(e.target), 800);
 }
@@ -1324,8 +1365,6 @@ async function validateClientExists(inputEl) {
                 `,
                 icon: 'info',
                 showCancelButton: true,
-                confirmButtonColor: '#2563eb', 
-                cancelButtonColor: '#f3f4f6', 
                 confirmButtonText: '<i class="fas fa-search mr-1"></i> Sí, cambiar a Buscar Cliente',
                 cancelButtonText: '<span class="text-gray-600 font-bold">Seguir editando</span>',
                 reverseButtons: true,
@@ -1345,7 +1384,7 @@ async function validateClientExists(inputEl) {
                         searchInput.value = data.cliente.telefono || data.cliente.email;
                         searchClient(searchInput.value); // Trigger immediate search instead of relying solely on debounce if available
                     }
-                    
+
                     document.querySelector('input[name="telefono_nuevo"]').value = '';
                     document.querySelector('input[name="email_nuevo"]').value = '';
                     document.querySelector('input[name="nombre_nuevo"]').value = '';
