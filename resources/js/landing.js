@@ -91,7 +91,10 @@ window.toggleBookingModal = () => {
     if (!modal) return;
     if (modal.classList.contains('active')) {
         modal.classList.remove('active');
-        setTimeout(() => modal.style.display = 'none', 300);
+        setTimeout(() => {
+            modal.style.display = 'none';
+            window.resetBookingForm();
+        }, 300);
     } else {
         window.openBookingModal();
     }
@@ -121,6 +124,71 @@ window.onclick = function (event) {
     if (whatsappModal && event.target === whatsappModal) window.closeWhatsAppModal();
 };
 
+window.resetBookingForm = () => {
+    const form = document.getElementById('bookingForm');
+    if (!form) return;
+    form.reset();
+
+    // Reset hidden inputs
+    const selectedTime = document.getElementById('selectedTime');
+    if (selectedTime) selectedTime.value = '';
+
+    // Reset time slots
+    document.querySelectorAll('.time-slot').forEach(btn => btn.classList.remove('selected'));
+
+    // Reset vehicle selectors state
+    ['Marca', 'Modelo', 'Version'].forEach(type => {
+        const select = document.getElementById(`vehiculo${type}Select`);
+        const manual = document.getElementById(`vehiculo${type}`);
+        const btn = document.getElementById(`btnBack${type}`);
+
+        if (select) {
+            select.classList.remove('hidden');
+            select.value = '';
+            if (type !== 'Marca') select.disabled = true;
+        }
+        if (manual) manual.classList.add('hidden');
+        if (btn) btn.classList.add('hidden');
+    });
+
+    // Reset Branch
+    const sucursalSelect = document.getElementById('sucursalSelect');
+    if (sucursalSelect) sucursalSelect.value = '';
+
+    // Reset Lookup
+    const lookupInput = document.getElementById('lookupInput');
+    if (lookupInput) lookupInput.value = '';
+
+    const container = document.getElementById('existingVehiclesContainer');
+    const existingSelect = document.getElementById('existingVehiclesSelect');
+    if (container) container.style.display = 'none';
+    if (existingSelect) existingSelect.innerHTML = '<option value="">-- Ignorar / Registrar nuevo vehículo --</option>';
+    window.clientVehiclesCache = [];
+
+    // Reset styles
+    document.querySelectorAll('#bookingForm input, #bookingForm select, #bookingForm textarea').forEach(el => {
+        el.style.border = '';
+        el.style.backgroundColor = '';
+    });
+};
+
+window.backToSelect = (type) => {
+    const select = document.getElementById(`vehiculo${type}Select`);
+    const manual = document.getElementById(`vehiculo${type}`);
+    const btn = document.getElementById(`btnBack${type}`);
+
+    if (select) {
+        select.classList.remove('hidden');
+        select.value = '';
+        select.dispatchEvent(new Event('change'));
+    }
+    if (manual) {
+        manual.classList.add('hidden');
+        manual.value = '';
+    }
+    if (btn) btn.classList.add('hidden');
+};
+
 function showAuthenticatedSections() {
     if (document.getElementById('citas')) document.getElementById('citas').style.display = 'none';
     if (document.getElementById('seguimiento')) document.getElementById('seguimiento').style.display = 'none';
@@ -138,7 +206,7 @@ window.initVehicleSelectors = async () => {
     // Fetch Branches
     if (branchSelect) {
         try {
-            const response = await fetch(API_CONFIG.GET_BRANCHES);
+            const response = await fetch(API_CONFIG.GET_BRANCHES, { credentials: 'same-origin' });
             const branches = await response.json();
             branchSelect.innerHTML = '<option value="">Seleccione Taller / Sucursal...</option>';
             branches.forEach(branch => {
@@ -155,7 +223,7 @@ window.initVehicleSelectors = async () => {
     // Fetch Brands
     if (brandSelect) {
         try {
-            const response = await fetch(API_CONFIG.GET_BRANDS);
+            const response = await fetch(API_CONFIG.GET_BRANDS, { credentials: 'same-origin' });
             const brands = await response.json();
             brands.push({ id: 'otro', nombre: '-- OTRO / MANUAL --' });
             brandSelect.innerHTML = '<option value="">Seleccione Marca...</option>';
@@ -181,6 +249,8 @@ window.initVehicleSelectors = async () => {
                 this.classList.add('hidden');
                 manualInput.classList.remove('hidden');
                 manualInput.focus();
+                document.getElementById('btnBackMarca').classList.remove('hidden');
+
                 document.getElementById('vehiculoModeloSelect').classList.add('hidden');
                 document.getElementById('vehiculoModelo').classList.remove('hidden');
                 document.getElementById('vehiculoVersionSelect').classList.add('hidden');
@@ -190,10 +260,27 @@ window.initVehicleSelectors = async () => {
 
             // Normal behavior
             if (manualInput) manualInput.classList.add('hidden');
+            const btnBackMarca = document.getElementById('btnBackMarca');
+            if (btnBackMarca) btnBackMarca.classList.add('hidden');
+
+            // Restore selects visibility if they were hidden by "Otro"
+            const mSelect = document.getElementById('vehiculoModeloSelect');
+            const vSelect = document.getElementById('vehiculoVersionSelect');
+            const mManual = document.getElementById('vehiculoModelo');
+            const vManual = document.getElementById('vehiculoVersion');
+            const mBtn = document.getElementById('btnBackModelo');
+            const vBtn = document.getElementById('btnBackVersion');
+
+            if (mSelect) mSelect.classList.remove('hidden');
+            if (vSelect) vSelect.classList.remove('hidden');
+            if (mManual) mManual.classList.add('hidden');
+            if (vManual) vManual.classList.add('hidden');
+            if (mBtn) mBtn.classList.add('hidden');
+            if (vBtn) vBtn.classList.add('hidden');
 
             if (marcaId) {
                 try {
-                    const response = await fetch(`${API_CONFIG.GET_MODELS}/${marcaId}`);
+                    const response = await fetch(`${API_CONFIG.GET_MODELS}/${marcaId}`, { credentials: 'same-origin' });
                     const models = await response.json();
                     models.push({ id: 'otro', nombre: '-- OTRO / MANUAL --' });
                     modelSelect.innerHTML = '<option value="">Seleccione Modelo...</option>';
@@ -217,16 +304,28 @@ window.initVehicleSelectors = async () => {
                 this.classList.add('hidden');
                 manualInput.classList.remove('hidden');
                 manualInput.focus();
+                document.getElementById('btnBackModelo').classList.remove('hidden');
+                
                 document.getElementById('vehiculoVersionSelect').classList.add('hidden');
                 document.getElementById('vehiculoVersion').classList.remove('hidden');
                 return;
             }
             // Normal behavior
             if (manualInput) manualInput.classList.add('hidden');
+            const btnBackModelo = document.getElementById('btnBackModelo');
+            if (btnBackModelo) btnBackModelo.classList.add('hidden');
+
+            const vSelectEx = document.getElementById('vehiculoVersionSelect');
+            const vManualEx = document.getElementById('vehiculoVersion');
+            const vBtnEx = document.getElementById('btnBackVersion');
+
+            if (vSelectEx) vSelectEx.classList.remove('hidden');
+            if (vManualEx) vManualEx.classList.add('hidden');
+            if (vBtnEx) vBtnEx.classList.add('hidden');
 
             if (modeloId) {
                 try {
-                    const response = await fetch(`${API_CONFIG.GET_VERSIONS}/${modeloId}`);
+                    const response = await fetch(`${API_CONFIG.GET_VERSIONS}/${modeloId}`, { credentials: 'same-origin' });
                     const versions = await response.json();
                     versions.push({ id: 'otro', nombre: '-- OTRO / MANUAL --' });
                     versionSelect.innerHTML = '<option value="">Seleccione Versión...</option>';
@@ -248,6 +347,7 @@ window.initVehicleSelectors = async () => {
                 this.classList.add('hidden');
                 document.getElementById('vehiculoVersion').classList.remove('hidden');
                 document.getElementById('vehiculoVersion').focus();
+                document.getElementById('btnBackVersion').classList.remove('hidden');
             } else {
                 const val = document.getElementById('vehiculoVersion');
                 if (val) val.classList.add('hidden');
@@ -271,7 +371,7 @@ window.lookupClient = async () => {
     btn.disabled = true;
 
     try {
-        const response = await fetch(`/api/landing/client-lookup?query=${encodeURIComponent(input)}`);
+        const response = await fetch(`/api/landing/client-lookup?query=${encodeURIComponent(input)}`, { credentials: 'same-origin' });
         const data = await response.json();
 
         if (response.ok && data.success) {
@@ -470,14 +570,21 @@ window.submitBooking = async (event) => {
         submitBtn.disabled = true;
         submitBtn.innerText = 'PROCESANDO...';
 
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        
         const response = await fetch('/api/landing/citas', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                'X-CSRF-TOKEN': csrfToken || '',
+                'X-Requested-With': 'XMLHttpRequest'
             },
-            body: JSON.stringify(data)
+            body: JSON.stringify({
+                ...data,
+                _token: csrfToken
+            }),
+            credentials: 'same-origin'
         });
 
         const result = await response.json();
@@ -620,7 +727,7 @@ function showNotification(message, type = 'info') {
 // ===== DYNAMIC LANDING IMAGES LOADER =====
 async function loadLandingImages() {
     try {
-        const response = await fetch('/api/landing/images');
+        const response = await fetch('/api/landing/images', { credentials: 'same-origin' });
         if (!response.ok) throw new Error('Error loading images');
 
         const images = await response.json();

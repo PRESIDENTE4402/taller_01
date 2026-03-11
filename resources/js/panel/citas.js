@@ -59,6 +59,8 @@ window.closeManualCitaModal = closeManualCitaModal;
 window.debounceSearchClient = debounceSearchClient;
 window.clearSelectedClient = clearSelectedClient;
 window.openCitaModal = openCitaModal;
+window.reprogramarCita = reprogramarCita;
+window.editMotivoCita = editMotivoCita;
 window.closeCitaModal = closeCitaModal;
 window.updateStatus = updateStatus;
 window.clearDateFilters = clearDateFilters;
@@ -941,17 +943,59 @@ function createCitaCard(cita) {
 
 // ===== MODAL LOGIC =====
 let currentCitaId = null;
+let currentCitaData = null;
 
 function openCitaModal(cita) {
     currentCitaId = cita.id;
+    currentCitaData = cita;
     const modal = document.getElementById('citaModal');
     const content = document.getElementById('citaModalContent');
 
     // Populate Data
     document.getElementById('modalClienteName').textContent = cita.cliente;
-    document.getElementById('modalVehiculoInfo').textContent = cita.vehiculo;
+    const vehInfo = document.getElementById('modalVehiculoInfo');
+    vehInfo.textContent = cita.vehiculo;
+    if (cita.is_manual_vehicle) {
+        vehInfo.classList.add('bg-amber-100', 'text-amber-800', 'border-amber-200');
+        vehInfo.classList.remove('bg-gray-50', 'text-gray-500', 'border-gray-100');
+    } else {
+        vehInfo.classList.remove('bg-amber-100', 'text-amber-800', 'border-amber-200');
+        vehInfo.classList.add('bg-gray-50', 'text-gray-500', 'border-gray-100');
+    }
+
+    // Alerta de Vehículo Manual
+    const warningContainer = document.getElementById('manualVehicleWarning');
+    if (warningContainer) {
+        if (cita.is_manual_vehicle) {
+            warningContainer.innerHTML = `
+                <div class="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3 text-left">
+                    <i class="fas fa-exclamation-triangle text-amber-500 mt-1"></i>
+                    <div>
+                        <p class="text-[10px] font-black text-amber-800 uppercase tracking-widest leading-none mb-1">Verificación requerida</p>
+                        <p class="text-[10px] text-amber-700 leading-tight font-medium">Este vehículo no pertenece al catálogo estándar. Verifique si cuentan con los repuestos/herramientas antes de aceptar.</p>
+                    </div>
+                </div>
+            `;
+            warningContainer.classList.remove('hidden');
+        } else {
+            warningContainer.classList.add('hidden');
+        }
+    }
+
     document.getElementById('modalFecha').textContent = new Date(cita.start).toLocaleString([], { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
-    document.getElementById('modalMotivo').textContent = cita.description;
+    
+    // Motivo con botón de editar (Mejorado)
+    const motivoContainer = document.getElementById('modalMotivo');
+    motivoContainer.innerHTML = `
+        <div class="flex justify-between items-start gap-4">
+            <span id="motivoText" class="text-sm text-gray-700 leading-relaxed">${cita.description}</span>
+            <button onclick="editMotivoCita()" 
+                class="flex-shrink-0 w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 flex items-center justify-center transition-all shadow-sm border border-blue-100"
+                title="Editar requerimiento">
+                <i class="fas fa-edit text-xs"></i>
+            </button>
+        </div>
+    `;
 
     const phoneLink = document.getElementById('modalPhoneLink');
     phoneLink.textContent = cita.telefono;
@@ -1096,32 +1140,52 @@ function openCitaModal(cita) {
 
     if (cita.estado === 'pendiente') {
         actionsContainer.innerHTML = `
-            <button onclick="updateStatus('confirmada')" class="btn bg-blue-600 hover:bg-blue-700 text-white w-full py-3 rounded-xl font-bold shadow-lg shadow-blue-500/30">
-                <i class="fas fa-check mr-2"></i> Confirmar Cita
-            </button>
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="updateStatus('confirmada')" class="btn bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold shadow-lg shadow-blue-500/30">
+                    <i class="fas fa-check mr-2"></i> Confirmar
+                </button>
+                <button onclick="reprogramarCita()" class="btn bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-xl font-bold shadow-lg shadow-amber-500/20">
+                    <i class="fas fa-calendar-alt mr-2"></i> Reprogramar
+                </button>
+            </div>
             <button onclick="updateStatus('cancelada')" class="btn bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-600 w-full py-3 rounded-xl font-bold">
                 <i class="fas fa-times mr-2"></i> Rechazar
             </button>
         `;
     } else if (cita.estado === 'confirmada') {
         actionsContainer.innerHTML = `
-            <button onclick="updateStatus('concretada')" class="btn bg-green-600 hover:bg-green-700 text-white col-span-2 py-3 rounded-xl font-bold shadow-lg shadow-green-500/30 flex items-center justify-center gap-2">
+            <button onclick="updateStatus('concretada')" class="btn bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-bold shadow-lg shadow-green-500/30 flex items-center justify-center gap-2">
                 <i class="fas fa-file-signature text-lg"></i> 
                 <span>Cliente Llegó (Crear Orden)</span>
             </button>
-             <button onclick="updateStatus('no_asistio')" class="btn bg-red-50 hover:bg-red-100 text-red-500 w-full py-3 rounded-xl font-bold text-sm">
-                No Asistió
-            </button>
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="reprogramarCita()" class="btn bg-amber-100 hover:bg-amber-200 text-amber-700 py-3 rounded-xl font-bold text-sm">
+                    <i class="fas fa-calendar-alt mr-1"></i> Reprogramar
+                </button>
+                <button onclick="updateStatus('no_asistio')" class="btn bg-red-50 hover:bg-red-100 text-red-500 py-3 rounded-xl font-bold text-sm">
+                    No Asistió
+                </button>
+            </div>
              <button onclick="updateStatus('cancelada')" class="btn bg-gray-50 hover:bg-gray-100 text-gray-500 w-full py-3 rounded-xl font-bold text-sm">
-                Cancelar
+                Cancelar Cita
             </button>
         `;
     } else if (cita.estado === 'concretada') {
         actionsContainer.innerHTML = `
-            <div class="col-span-2 text-center p-3 bg-green-50 rounded-xl border border-green-100 text-green-700 font-bold">
+            <div class="text-center p-3 bg-green-50 rounded-xl border border-green-100 text-green-700 font-bold">
                 <i class="fas fa-check-circle mb-1 text-2xl"></i><br>
                 Vehículo Recibido
             </div>
+        `;
+    } else if (cita.estado === 'cancelada' || cita.estado === 'no_asistio') {
+        actionsContainer.innerHTML = `
+            <button onclick="updateStatus('pendiente')" class="btn bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2">
+                <i class="fas fa-undo"></i> 
+                <span>Reactivar Cita</span>
+            </button>
+            <p class="text-center text-[10px] text-gray-400 uppercase font-black tracking-widest mt-2">
+                La cita volverá al estado pendiente
+            </p>
         `;
     }
 
@@ -1146,8 +1210,62 @@ function closeCitaModal() {
 }
 
 // ===== ACTIONS =====
-async function updateStatus(newStatus) {
+async function updateStatus(newStatus, reattemptData = null) {
     if (!currentCitaId) return;
+
+    let extraData = reattemptData || {};
+
+    // FLUJO ESPECIAL: Confirmación de Vehículo Manual (Solo si no es reintento)
+    if (newStatus === 'confirmada' && currentCitaData && currentCitaData.is_manual_vehicle && !reattemptData) {
+        const { value: vehForm } = await Swal.fire({
+            title: 'Verificar Vehículo',
+            html: `
+                <div class="text-left mt-2">
+                    <p class="text-xs text-gray-500 mb-4 bg-blue-50 p-3 rounded-lg border border-blue-100 italic">
+                        El cliente ingresó este vehículo manualmente. Verifique los datos para normalizarlos en el catálogo oficial.
+                    </p>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Marca</label>
+                            <input type="text" id="swal-marca" class="swal2-input !m-0 w-full rounded-xl uppercase" value="${currentCitaData.manual_info.marca}">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Modelo</label>
+                            <input type="text" id="swal-modelo" class="swal2-input !m-0 w-full rounded-xl uppercase" value="${currentCitaData.manual_info.modelo}">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Versión</label>
+                            <input type="text" id="swal-version" class="swal2-input !m-0 w-full rounded-xl uppercase" value="${currentCitaData.manual_info.version}">
+                        </div>
+                    </div>
+                </div>
+            `,
+            focusConfirm: false,
+            showCancelButton: true,
+            confirmButtonText: 'Confirmar y Guardar Vehículo',
+            cancelButtonText: 'Cancelar',
+            customClass: {
+                title: 'text-xl font-black text-gray-800',
+                popup: 'rounded-3xl p-6 shadow-2xl',
+                confirmButton: 'bg-blue-600 text-white rounded-xl font-bold px-6 py-3 hover:bg-blue-700 transition-all mr-2',
+                cancelButton: 'bg-gray-100 text-gray-500 rounded-xl font-bold px-6 py-3 hover:bg-gray-200 transition-all'
+            },
+            buttonsStyling: false,
+            preConfirm: () => {
+                const marca = document.getElementById('swal-marca').value.trim();
+                const modelo = document.getElementById('swal-modelo').value.trim();
+                const version = document.getElementById('swal-version').value.trim();
+                if (!marca || !modelo) {
+                    Swal.showValidationMessage('Marca y Modelo son obligatorios');
+                    return false;
+                }
+                return { marca, modelo, version };
+            }
+        });
+
+        if (!vehForm) return; // Se canceló
+        extraData.vehiculo_manual_data = vehForm;
+    }
 
     // Confirmación para acciones destructivas
     if (newStatus === 'cancelada' || newStatus === 'no_asistio') {
@@ -1171,7 +1289,7 @@ async function updateStatus(newStatus) {
     // Por ahora solo cambio el estado.
 
     try {
-        const response = await fetch(`${window.APP_CONFIG.API_UPDATE}/${currentCitaId}`, {
+        let response = await fetch(`${window.APP_CONFIG.API_UPDATE}/${currentCitaId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -1179,11 +1297,44 @@ async function updateStatus(newStatus) {
             },
             body: JSON.stringify({
                 action: 'cambiar_estado',
-                estado: newStatus
+                estado: newStatus,
+                ...extraData
             })
         });
 
-        const result = await response.json();
+        let result = await response.json();
+
+        // Manejo de Similitud de Marcas (¿Quisiste decir...?)
+        if (!result.success && result.needs_similarity_confirmation) {
+            const confirmSim = await Swal.fire({
+                title: '¿Confirmar Marca?',
+                html: `
+                    <div class="mb-4 text-gray-600">
+                        Hemos encontrado una marca muy similar ya registrada:
+                    </div>
+                    <div class="text-2xl font-black text-blue-600 mb-2 uppercase">${result.suggestion}</div>
+                    <p class="text-sm text-gray-500">¿Quisiste escribir <b>${result.suggestion}</b> o es realmente una marca nueva llamada <b>${extraData.vehiculo_manual_data.marca}</b>?</p>
+                `,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: `Sí, es ${result.suggestion}`,
+                cancelButtonText: `No, es ${extraData.vehiculo_manual_data.marca}`,
+                customClass: {
+                    confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 transition-colors mr-2',
+                    cancelButton: 'bg-gray-200 text-gray-700 px-6 py-2 rounded-lg font-bold hover:bg-gray-300 transition-colors'
+                },
+                buttonsStyling: false
+            });
+
+            // Si el usuario acepta la sugerencia, actualizamos el dato y re-enviamos
+            if (confirmSim.isConfirmed) {
+                extraData.vehiculo_manual_data.marca = result.suggestion;
+            }
+            
+            // Re-enviamos con confirmación explícita para que el backend no vuelva a preguntar
+            extraData.confirm_similarity = true;
+            return updateStatus(newStatus, extraData); // Reintento pasando los datos actuales
+        }
 
         if (result.success) {
             closeCitaModal();
@@ -1200,6 +1351,150 @@ async function updateStatus(newStatus) {
 
     } catch (e) {
         Swal.fire('Error', 'No se pudo actualizar la cita', 'error');
+    }
+}
+
+async function reprogramarCita() {
+    if (!currentCitaId) return;
+
+    // Obtener datos actuales para el valor por defecto
+    const fechaActual = document.getElementById('modalFecha').textContent;
+
+    const { value: formValues } = await Swal.fire({
+        title: 'Reprogramar Cita',
+        html: `
+            <div class="text-left mt-4 border-t border-gray-100 pt-4">
+                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Agenda Actual: ${fechaActual}</p>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Nueva Fecha de Cita</label>
+                        <input type="date" id="repro-fecha" class="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 px-4 focus:ring-2 focus:ring-amber-500 outline-none font-medium transition-all" value="${new Date().toISOString().split('T')[0]}">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Nueva Hora</label>
+                        <input type="time" id="repro-hora" class="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 px-4 focus:ring-2 focus:ring-amber-500 outline-none font-medium transition-all">
+                    </div>
+                </div>
+            </div>
+        `,
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: 'Actualizar Cita',
+        cancelButtonText: 'Cancelar',
+        buttonsStyling: false,
+        customClass: {
+            title: 'text-2xl font-black text-gray-800',
+            popup: 'rounded-3xl p-6 shadow-2xl border border-gray-100',
+            confirmButton: 'bg-amber-500 text-white rounded-xl font-bold px-8 py-3 shadow-lg shadow-amber-500/30 hover:bg-amber-600 transition-all mx-2',
+            cancelButton: 'bg-gray-100 text-gray-500 rounded-xl font-bold px-8 py-3 hover:bg-gray-200 transition-all mx-2',
+            actions: 'mt-6 flex justify-center w-full',
+        },
+        preConfirm: () => {
+            const fecha = document.getElementById('repro-fecha').value;
+            const hora = document.getElementById('repro-hora').value;
+            if (!fecha || !hora) {
+                Swal.showValidationMessage('Por favor selecciona fecha y hora');
+                return false;
+            }
+            return { fecha, hora };
+        }
+    });
+
+    if (formValues) {
+        try {
+            const response = await fetch(`${window.APP_CONFIG.API_UPDATE}/${currentCitaId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': window.APP_CONFIG.CSRF_TOKEN
+                },
+                body: JSON.stringify({
+                    fecha: formValues.fecha,
+                    hora: formValues.hora
+                })
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                closeCitaModal();
+                loadCitas();
+                fetchCalendarCounts();
+                Swal.fire({
+                    title: '¡Agenda Actualizada!',
+                    text: 'La cita ha sido reprogramada exitosamente.',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            }
+        } catch (e) {
+            Swal.fire('Error', 'No se pudo reprogramar la cita', 'error');
+        }
+    }
+}
+
+async function editMotivoCita() {
+    if (!currentCitaId) return;
+
+    const motivoActual = document.getElementById('motivoText').textContent;
+
+    const { value: nuevoMotivo } = await Swal.fire({
+        title: 'Editar Motivo',
+        input: 'textarea',
+        inputLabel: 'Detalles del requerimiento',
+        inputValue: motivoActual,
+        inputAttributes: {
+            'rows': 4,
+            'class': 'w-full bg-gray-50 border border-gray-200 rounded-xl py-3 px-4 focus:ring-2 focus:ring-blue-500 outline-none text-sm'
+        },
+        showCancelButton: true,
+        confirmButtonText: 'Guardar Cambios',
+        cancelButtonText: 'Cancelar',
+        buttonsStyling: false,
+        customClass: {
+            title: 'text-xl font-black text-gray-800',
+            input: 'rounded-xl',
+            confirmButton: 'bg-blue-600 text-white rounded-xl font-bold px-8 py-3 shadow-lg shadow-blue-500/30 hover:bg-blue-700 transition-all mx-2',
+            cancelButton: 'bg-gray-100 text-gray-500 rounded-xl font-bold px-8 py-3 hover:bg-gray-200 transition-all mx-2',
+            actions: 'mt-6 flex justify-center w-full',
+        },
+        preConfirm: (value) => {
+            if (!value || value.trim().length < 5) {
+                Swal.showValidationMessage('El motivo debe ser más detallado (mín. 5 caracteres)');
+                return false;
+            }
+            return value;
+        }
+    });
+
+    if (nuevoMotivo) {
+        try {
+            const response = await fetch(`${window.APP_CONFIG.API_UPDATE}/${currentCitaId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': window.APP_CONFIG.CSRF_TOKEN
+                },
+                body: JSON.stringify({
+                    motivo_cita: nuevoMotivo
+                })
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                document.getElementById('motivoText').textContent = nuevoMotivo;
+                loadCitas(); // Recargar lista de fondo
+                Swal.fire({
+                    title: '¡Guardado!',
+                    text: 'El requerimiento ha sido actualizado.',
+                    icon: 'success',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            }
+        } catch (e) {
+            Swal.fire('Error', 'No se pudo actualizar el motivo', 'error');
+        }
     }
 }
 

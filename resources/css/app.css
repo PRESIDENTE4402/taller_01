@@ -4010,14 +4010,14 @@ footer a:hover {
 @media (min-width: 800px) {
     .booking-split-layout {
         flex-direction: row;
-        min-height: 600px;
+        min-height: auto;
     }
 }
 
 /* LEFT PANEL: FORM */
 .booking-left-panel {
     align-items: flex-start;
-    padding: 3rem;
+    padding: 2rem;
     flex: 1.2;
     background: white;
 }
@@ -4030,12 +4030,12 @@ footer a:hover {
 .panel-header p {
     color: var(--primary);
     font-weight: 600;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
     letter-spacing: 1px;
 }
 
 .form-group-premium {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
 }
 
 .form-group-premium label {
@@ -4070,7 +4070,7 @@ footer a:hover {
 .booking-right-panel {
     flex: 0.8;
     background: #f4f6f8;
-    padding: 3rem;
+    padding: 2rem;
     border-left: 1px solid #e5e7eb;
 }
 
@@ -4082,7 +4082,7 @@ footer a:hover {
 .panel-header-right p {
     color: var(--text-gray);
     font-size: 0.9rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
 }
 
 .premium-date-input {
@@ -4091,7 +4091,7 @@ footer a:hover {
     border: 1px solid #d1d5db;
     border-radius: 8px;
     font-size: 1.1rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
     cursor: pointer;
 }
 
@@ -4117,7 +4117,7 @@ footer a:hover {
 
 
 .time-slot {
-    padding: 0.8rem;
+    padding: 0.6rem;
     border: 1px solid #d1d5db;
     background: white;
     border-radius: 6px;

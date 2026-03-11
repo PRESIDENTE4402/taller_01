@@ -384,6 +384,30 @@
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
+
+        .btn-back-select {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            color: #64748b;
+            padding: 0 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-back-select:hover {
+            background: #e2e8f0;
+            color: #1e293b;
+            border-color: #94a3b8;
+        }
+
+        .flex { display: flex; }
+        .gap-2 { gap: 0.5rem; }
+        .mt-2 { margin-top: 0.5rem; }
+        .flex-1 { flex: 1; }
     </style>
 </head>
 
@@ -850,7 +874,7 @@
         <!-- Booking Button -->
         <button class="fab-btn booking" onclick="openBookingModal()">
             <i class="fas fa-calendar-alt"></i>
-            <span>Agendar Cita</span>
+            <span>Solicitar Cita</span>
         </button>
     </div>
 
@@ -864,18 +888,18 @@
                 <!-- Left: Contact & Details -->
                 <div class="booking-left-panel">
                     <div class="panel-header">
-                        <h2>Agendar Servicio</h2>
+                        <h2>Solicitar Servicio</h2>
                         <p>BMW Service Inclusive</p>
                     </div>
 
                     <form class="booking-form-premium" id="bookingForm" onsubmit="submitBooking(event)" novalidate>
 
                         <div
-                            style="background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 15px; margin-bottom: 20px;">
+                            style="background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 10px; margin-bottom: 15px;">
                             <label
-                                style="color: #1e40af; font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; display: block;">¿Ya
+                                style="color: #1e40af; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px; display: block;">¿Ya
                                 eres cliente?</label>
-                            <p style="font-size: 0.85rem; color: #3b82f6; margin-bottom: 10px;">Ingresa tu correo o
+                            <p style="font-size: 0.8rem; color: #3b82f6; margin-bottom: 8px;">Ingresa tu correo o
                                 teléfono para autocompletar tus datos y ver tus vehículos.</p>
                             <div style="display: flex; gap: 10px;">
                                 <input type="text" id="lookupInput" placeholder="Correo o Teléfono"
@@ -917,8 +941,14 @@
                                     <select id="vehiculoMarcaSelect" class="premium-select">
                                         <option value="">Cargando marcas...</option>
                                     </select>
-                                    <input type="text" id="vehiculoMarca" placeholder="Escriba Marca..."
-                                        class="hidden mt-2">
+                                    <div class="flex gap-2">
+                                        <input type="text" id="vehiculoMarca" placeholder="Escriba Marca..."
+                                            class="hidden mt-2 flex-1">
+                                        <button type="button" id="btnBackMarca" onclick="backToSelect('Marca')"
+                                            class="hidden mt-2 btn-back-select" title="Regresar a la lista">
+                                            <i class="fas fa-list-ul"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
@@ -926,24 +956,36 @@
                                     <select id="vehiculoModeloSelect" class="premium-select" disabled>
                                         <option value="">Seleccione Marca...</option>
                                     </select>
-                                    <input type="text" id="vehiculoModelo" placeholder="Escriba Modelo..."
-                                        class="hidden mt-2">
+                                    <div class="flex gap-2">
+                                        <input type="text" id="vehiculoModelo" placeholder="Escriba Modelo..."
+                                            class="hidden mt-2 flex-1">
+                                        <button type="button" id="btnBackModelo" onclick="backToSelect('Modelo')"
+                                            class="hidden mt-2 btn-back-select" title="Regresar a la lista">
+                                            <i class="fas fa-list-ul"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="select-wrapper">
                                     <select id="vehiculoVersionSelect" class="premium-select" disabled>
                                         <option value="">Seleccione Modelo...</option>
                                     </select>
-                                    <input type="text" id="vehiculoVersion" placeholder="Escriba Versión..."
-                                        class="hidden mt-2">
+                                    <div class="flex gap-2">
+                                        <input type="text" id="vehiculoVersion" placeholder="Escriba Versión..."
+                                            class="hidden mt-2 flex-1">
+                                        <button type="button" id="btnBackVersion" onclick="backToSelect('Version')"
+                                            class="hidden mt-2 btn-back-select" title="Regresar a la lista">
+                                            <i class="fas fa-list-ul"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="form-group-premium">
+                        <div class="form-group-premium" style="margin-bottom: 12px;">
                             <label>Tipo de Requerimiento</label>
                             <textarea id="requestDetails"
-                                placeholder="Describa el servicio (ej. Mantención 40.000km, Testigo encendido...)"
-                                rows="3" required></textarea>
+                                placeholder="Describa el servicio..."
+                                rows="2" required></textarea>
                         </div>
 
 
@@ -953,7 +995,7 @@
                         <input type="hidden" id="selectedTime">
 
                         <button type="submit" class="btn btn-primary submit-btn"
-                            style="width: 100%; text-transform: uppercase; font-weight: 800; letter-spacing: 1px; padding: 18px;">AGENDAR
+                            style="width: 100%; text-transform: uppercase; font-weight: 800; letter-spacing: 1px; padding: 14px;">SOLICITAR
                             CITA</button>
                     </form>
                 </div>

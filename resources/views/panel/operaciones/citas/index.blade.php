@@ -7,138 +7,98 @@
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 h-full">
 
         <!-- Sidebar de Filtros y Resumen -->
-        <div class="lg:col-span-1 flex flex-col gap-6">
+        <div class="lg:col-span-1 flex flex-col gap-3">
 
             <!-- Filtros Rapidos -->
-            <div class="bg-white rounded-xl shadow-sm p-4">
-                <h4 class="font-bold text-gray-700 mb-4 flex justify-between items-center">
+            <div class="bg-white rounded-xl shadow-sm p-3">
+                <h4 class="font-bold text-gray-700 mb-2 flex justify-between items-center text-xs uppercase">
                     <span>Rango de Fechas</span>
                     <button onclick="clearDateFilters()" class="text-xs text-red-400 hover:text-red-600 font-medium"
                         title="Limpiar"><i class="fas fa-times"></i> Limpiar</button>
                 </h4>
-                <div class="grid grid-cols-2 gap-2 mb-4">
+                <div class="grid grid-cols-2 gap-2 mb-2">
                     <div>
-                        <label class="text-[10px] uppercase font-bold text-gray-400 mb-1 block">Desde</label>
+                        <label class="text-[9px] uppercase font-black text-gray-400 mb-0.5 block">Desde</label>
                         <input type="date" id="dateStart"
-                            class="w-full text-xs border border-gray-200 rounded-lg py-1.5 px-2 text-gray-600 font-medium focus:ring-1 focus:ring-blue-500 outline-none"
+                            class="w-full text-[11px] border border-gray-200 rounded-lg py-1 px-2 text-gray-600 font-medium focus:ring-1 focus:ring-blue-500 outline-none"
                             onchange="loadCitas()">
                     </div>
                     <div>
-                        <label class="text-[10px] uppercase font-bold text-gray-400 mb-1 block">Hasta</label>
+                        <label class="text-[9px] uppercase font-black text-gray-400 mb-0.5 block">Hasta</label>
                         <input type="date" id="dateEnd"
-                            class="w-full text-xs border border-gray-200 rounded-lg py-1.5 px-2 text-gray-600 font-medium focus:ring-1 focus:ring-blue-500 outline-none"
+                            class="w-full text-[11px] border border-gray-200 rounded-lg py-1 px-2 text-gray-600 font-medium focus:ring-1 focus:ring-blue-500 outline-none"
                             onchange="loadCitas()">
                     </div>
                 </div>
 
-                <div class="flex gap-2 mb-6">
-                    <button onclick="setDateFilter('today')"
-                        class="flex-1 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-xs font-bold text-gray-600 transition-colors">
-                        Hoy
-                    </button>
-                    <button onclick="setDateFilter('tomorrow')"
-                        class="flex-1 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-xs font-bold text-blue-600 transition-colors border border-blue-100">
-                        <i class="fas fa-bell mr-1"></i> Mañana
-                    </button>
-                </div>
 
-                <h4 class="font-bold text-gray-700 mb-2 border-t border-gray-100 pt-4 text-xs uppercase">Filtrar Sucursal
-                </h4>
+
+                <h4 class="font-black text-gray-400 mb-1 border-t border-gray-100 pt-2 text-[9px] uppercase">Sucursal</h4>
                 <select id="filterSucursal"
-                    class="w-full text-xs border border-gray-200 rounded-lg py-2 px-3 text-gray-600 font-medium focus:ring-1 focus:ring-blue-500 outline-none mb-4"
+                    class="w-full text-[11px] border border-gray-200 rounded-lg py-1.5 px-2 text-gray-600 font-bold focus:ring-1 focus:ring-blue-500 outline-none mb-2 bg-gray-50/50"
                     onchange="loadCitas()">
-                    <option value="all">Todas las Sucursales</option>
+                    <option value="all">Todas</option>
                     @foreach($sucursales as $sucursal)
                         <option value="{{ $sucursal->id }}">{{ $sucursal->nombre }}</option>
                     @endforeach
                 </select>
 
-                <h4 class="font-bold text-gray-700 mb-4 border-t border-gray-100 pt-4">Filtrar Estado</h4>
-                <div class="space-y-2">
+                <h4 class="font-black text-gray-400 mb-2 border-t border-gray-100 pt-2 text-[9px] uppercase">Estado</h4>
+                <div class="space-y-1">
                     <button onclick="filterCitas('pendiente')"
-                        class="w-full text-left px-4 py-2 rounded-lg hover:bg-gray-50 text-sm font-medium text-gray-600 flex justify-between items-center group transition-colors filter-btn"
+                        class="w-full text-left px-2 py-1.5 rounded-lg hover:bg-gray-50 text-[11px] font-bold text-gray-600 flex justify-between items-center group transition-colors filter-btn"
                         data-status="pendiente">
-                        <span><i class="fas fa-circle text-xs text-yellow-400 mr-2"></i>Pendientes de Confirmar (Web)</span>
-                        <span
-                            class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs group-hover:bg-yellow-100 group-hover:text-yellow-700 transition-colors"
-                            id="badge-pendiente">-</span>
+                        <span><i class="fas fa-circle text-[8px] text-yellow-400 mr-2"></i>Web (Pend.)</span>
+                        <span class="bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded text-[9px] font-black group-hover:bg-yellow-100 group-hover:text-yellow-700" id="badge-pendiente">-</span>
                     </button>
                     <button onclick="filterCitas('confirmada')"
-                        class="w-full text-left px-4 py-2 rounded-lg hover:bg-gray-50 text-sm font-medium text-gray-600 flex justify-between items-center group transition-colors filter-btn"
+                        class="w-full text-left px-2 py-1.5 rounded-lg hover:bg-gray-50 text-[11px] font-bold text-gray-600 flex justify-between items-center group transition-colors filter-btn"
                         data-status="confirmada">
-                        <span><i class="fas fa-circle text-xs text-blue-500 mr-2"></i>Confirmadas</span>
-                        <span
-                            class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs group-hover:bg-blue-100 group-hover:text-blue-700 transition-colors"
-                            id="badge-confirmada">-</span>
+                        <span><i class="fas fa-circle text-[8px] text-blue-500 mr-2"></i>Confirmadas</span>
+                        <span class="bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded text-[9px] font-black group-hover:bg-blue-100 group-hover:text-blue-700" id="badge-confirmada">-</span>
                     </button>
                     <button onclick="filterCitas('concretada')"
-                        class="w-full text-left px-4 py-2 rounded-lg hover:bg-gray-50 text-sm font-medium text-gray-600 flex justify-between items-center group transition-colors filter-btn"
+                        class="w-full text-left px-2 py-1.5 rounded-lg hover:bg-gray-50 text-[11px] font-bold text-gray-600 flex justify-between items-center group transition-colors filter-btn"
                         data-status="concretada">
-                        <span><i class="fas fa-circle text-xs text-green-500 mr-2"></i>Concretadas</span>
-                        <span
-                            class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs group-hover:bg-green-100 group-hover:text-green-700 transition-colors"
-                            id="badge-concretada">-</span>
-                    </button>
-                    <button onclick="filterCitas('no_asistio')"
-                        class="w-full text-left px-4 py-2 rounded-lg hover:bg-gray-50 text-sm font-medium text-gray-600 flex justify-between items-center group transition-colors filter-btn"
-                        data-status="no_asistio">
-                        <span><i class="fas fa-circle text-xs text-red-500 mr-2"></i>No Asistió</span>
-                        <span
-                            class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs group-hover:bg-red-100 group-hover:text-red-700 transition-colors"
-                            id="badge-no_asistio">-</span>
+                        <span><i class="fas fa-circle text-[8px] text-green-500 mr-2"></i>En Taller</span>
+                        <span class="bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded text-[9px] font-black group-hover:bg-green-100 group-hover:text-green-700" id="badge-concretada">-</span>
                     </button>
                     <button onclick="filterCitas('all')"
-                        class="w-full text-left px-4 py-2 rounded-lg bg-blue-50 text-blue-700 text-sm font-bold flex justify-between items-center ring-1 ring-blue-200 mt-4 filter-btn active"
+                        class="w-full text-center py-1.5 rounded-lg bg-blue-50 text-blue-700 text-[10px] font-black ring-1 ring-blue-100 mt-2 filter-btn active uppercase tracking-wider"
                         data-status="all">
-                        <span>Ver Todas</span>
+                        Ver Todas
                     </button>
                 </div>
             </div>
 
             <!-- Widget Capacidad -->
-            <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
-                <h4 class="font-bold text-gray-700 text-xs uppercase mb-3 flex justify-between items-center">
-                    <span>Disponibilidad (<span id="capacityDateLabel">--</span>)</span>
-                    <i class="fas fa-chart-pie text-blue-400"></i>
+            <div class="bg-white rounded-xl shadow-sm p-3 border border-gray-100">
+                <h4 class="font-black text-gray-400 text-[9px] uppercase mb-2 flex justify-between items-center">
+                    <span>Ocupación (<span id="capacityDateLabel">--</span>)</span>
+                    <i class="fas fa-chart-pie text-blue-300"></i>
                 </h4>
-                <div id="capacityContainer" class="space-y-4">
+                <div id="capacityContainer" class="space-y-2">
                     <!-- Injected via JS -->
-                    <p class="text-xs text-gray-400 text-center py-2">Cargando disponibilidad...</p>
+                    <p class="text-[10px] text-gray-400 text-center py-1">Cargando...</p>
                 </div>
             </div>
 
-            <button onclick="openManualCitaModal()" class="btn btn-primary w-full gap-2 shadow-lg shadow-blue-500/30">
-                <i class="fas fa-plus"></i> Nueva Cita Manual
-            </button>
+
 
             <!-- Mini Calendario -->
-            <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
-                <h4 class="font-bold text-gray-700 mb-3 text-sm flex justify-between items-center">
-                    <span id="miniCalendarTitle">Febrero 2026</span>
-                    <div class="flex gap-1">
-                        <button onclick="prevMonth()" class="text-gray-400 hover:text-blue-600"><i
-                                class="fas fa-chevron-left"></i></button>
-                        <button onclick="nextMonth()" class="text-gray-400 hover:text-blue-600"><i
-                                class="fas fa-chevron-right"></i></button>
+            <div class="bg-white rounded-xl shadow-sm p-3 border border-gray-100">
+                <h4 class="font-bold text-gray-700 mb-2 text-xs flex justify-between items-center">
+                    <span id="miniCalendarTitle">Marzo 2026</span>
+                    <div class="flex gap-2">
+                        <button onclick="prevMonth()" class="text-gray-400 hover:text-blue-600 px-1"><i class="fas fa-chevron-left text-[10px]"></i></button>
+                        <button onclick="nextMonth()" class="text-gray-400 hover:text-blue-600 px-1"><i class="fas fa-chevron-right text-[10px]"></i></button>
                     </div>
                 </h4>
-                <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-gray-400 mb-2">
-                    <div>DO</div>
-                    <div>LU</div>
-                    <div>MA</div>
-                    <div>MI</div>
-                    <div>JU</div>
-                    <div>VI</div>
-                    <div>SA</div>
+                <div class="grid grid-cols-7 gap-0.5 text-center text-[9px] font-black text-gray-300 mb-1">
+                    <div>DO</div><div>LU</div><div>MA</div><div>MI</div><div>JU</div><div>VI</div><div>SA</div>
                 </div>
-                <div class="grid grid-cols-7 gap-1 text-center" id="miniCalendarGrid">
+                <div class="grid grid-cols-7 gap-0.5 text-center" id="miniCalendarGrid">
                     <!-- Days injected via JS -->
-                </div>
-                <div class="mt-3 flex items-center justify-center gap-4 text-[10px] text-gray-500">
-                    <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-500"></span> Con Citas
-                    </div>
-                    <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-100"></span> Sin Citas
-                    </div>
                 </div>
             </div>
         </div>
@@ -155,14 +115,28 @@
                     </h2>
                 </div>
 
-                <!-- Resumen Hoy (Movido aquí) -->
-                <div class="flex items-center gap-3 bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200">
-                    <div class="text-right">
-                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Hoy</p>
-                        <p class="text-xs text-gray-500 font-medium">Pendientes de recibir</p>
+                <div class="flex flex-wrap items-center gap-3">
+                    <!-- Quick Date Filters (Moved here) -->
+                    <div class="flex bg-white rounded-lg p-1 border border-gray-200 shadow-sm">
+                        <button onclick="setDateFilter('today')"
+                            class="px-4 py-1.5 rounded-md text-xs font-bold text-gray-600 hover:bg-gray-50 transition-colors" id="btnDateToday">
+                            Hoy
+                        </button>
+                        <button onclick="setDateFilter('tomorrow')"
+                            class="px-4 py-1.5 rounded-md text-xs font-bold text-blue-600 hover:bg-blue-50 transition-colors flex items-center gap-1" id="btnDateTomorrow">
+                            <i class="fas fa-bell text-[10px]"></i> Mañana
+                        </button>
                     </div>
-                    <div class="h-8 w-px bg-gray-200"></div>
-                    <span class="text-3xl font-black text-blue-600 leading-none" id="countToday">-</span>
+
+                    <!-- Resumen Hoy -->
+                    <div class="flex items-center gap-3 bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200">
+                        <div class="text-right">
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Hoy</p>
+                            <p class="text-xs text-gray-500 font-medium">Pendientes de recibir</p>
+                        </div>
+                        <div class="h-8 w-px bg-gray-200"></div>
+                        <span class="text-3xl font-black text-blue-600 leading-none" id="countToday">-</span>
+                    </div>
                 </div>
             </div>
 
@@ -200,6 +174,9 @@
                     <h3 class="text-xl font-black text-gray-800 leading-tight mb-1" id="modalClienteName">Cliente</h3>
                     <p class="text-sm font-medium text-gray-500 bg-gray-50 inline-block px-3 py-1 rounded-full border border-gray-100"
                         id="modalVehiculoInfo">Vehículo</p>
+                    
+                    <!-- Alerta Vehículo Manual -->
+                    <div id="manualVehicleWarning" class="hidden max-w-[280px] mx-auto"></div>
                 </div>
 
                 <div class="space-y-3 mb-6">
@@ -268,7 +245,7 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3" id="modalActions">
+                <div class="flex flex-col gap-3" id="modalActions">
                     <!-- Actions injected via JS -->
                 </div>
             </div>
@@ -493,6 +470,16 @@
             </div>
         </form>
     </div>
+
+    <!-- Botón Flotante Fijo -->
+    <button onclick="openManualCitaModal()" 
+        class="fixed bottom-8 right-8 w-16 h-16 bg-blue-600 text-white rounded-full shadow-2xl shadow-blue-500/50 flex items-center justify-center hover:bg-blue-700 hover:scale-110 transition-all z-40 group"
+        title="Nueva Cita Manual">
+        <i class="fas fa-plus text-2xl group-hover:rotate-90 transition-transform"></i>
+        <span class="absolute right-full mr-4 bg-gray-800 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none uppercase tracking-widest shadow-xl">
+            Nueva Cita
+        </span>
+    </button>
 
 @endsection
 

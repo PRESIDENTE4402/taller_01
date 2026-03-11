@@ -130,8 +130,23 @@ class CitaController extends Controller
         $citas = $query->get()->map(function ($cita) {
             $clienteNombre = $cita->cliente?->nombre_completo ?? 'Cliente Desconocido';
             $vehiculoTexto = 'Vehículo Desconocido';
+            $isManualVehicle = false;
+            $manualInfo = null;
 
-            if ($cita->vehiculo) {
+            // Intentar extraer info manual si la marca es GENERICA
+            if ($cita->vehiculo && $cita->vehiculo->marca?->nombre === 'GENERICA') {
+                if (preg_match('/\[Vehículo Ingresado: (.*?) - (.*?) - (.*?)\]/', $cita->motivo_cita, $matches)) {
+                    $isManualVehicle = true;
+                    $manualInfo = [
+                        'marca' => $matches[1],
+                        'modelo' => $matches[2],
+                        'version' => $matches[3]
+                    ];
+                    $vehiculoTexto = trim("{$matches[1]} {$matches[2]} ({$cita->vehiculo->placa})");
+                }
+            }
+
+            if (!$isManualVehicle && $cita->vehiculo) {
                 $marca = $cita->vehiculo->marca?->nombre ?? '';
                 $modelo = $cita->vehiculo->modelo?->nombre ?? '';
                 $placa = $cita->vehiculo->placa ?? 'S/P';
@@ -148,6 +163,8 @@ class CitaController extends Controller
                 'cliente' => $clienteNombre,
                 'telefono' => $cita->cliente?->telefono ?? 'N/A',
                 'vehiculo' => $vehiculoTexto,
+                'is_manual_vehicle' => $isManualVehicle,
+                'manual_info' => $manualInfo,
                 'email' => $cita->cliente?->email,
                 'className' => 'fc-event-' . $cita->estado
             ];
@@ -393,13 +410,74 @@ class CitaController extends Controller
                     $cita->vehiculo->situacion = 'activo';
                     $cita->vehiculo->save();
                 }
+
+                // NUEVO: Normalizar vehículo si era manual/genérico
+                if ($request->has('vehiculo_manual_data') && $cita->vehiculo) {
+                    $dataV = $request->vehiculo_manual_data;
+                    $nombreMarca = trim(strtoupper($dataV['marca']));
+
+                    // --- VALIDACIÓN DE SIMILITUD (Evitar Honba vs Honda) ---
+                    if (!$request->has('confirm_similarity')) {
+                        $todasLasMarcas = MarcaVehiculo::pluck('nombre')->toArray();
+                        foreach ($todasLasMarcas as $marcaExistente) {
+                            $distancia = levenshtein(strtoupper($nombreMarca), strtoupper($marcaExistente));
+                            
+                            // Umbral dinámico: 
+                            // - Para marcas cortas (<=4 letras): máximo 1 error
+                            // - Para marcas largas (>4 letras): máximo 3 errores (ej: Yotora vs Toyota)
+                            $umbral = (strlen($nombreMarca) <= 4) ? 1 : 3;
+
+                            if ($distancia > 0 && $distancia <= $umbral) {
+                                return response()->json([
+                                    'success' => false,
+                                    'needs_similarity_confirmation' => true,
+                                    'message' => "¿Quisiste decir '{$marcaExistente}'?",
+                                    'suggestion' => $marcaExistente
+                                ], 200);
+                            }
+                        }
+                    }
+                    // --------------------------------------------------------
+                    
+                    // 1. Crear/Buscar registros oficiales
+                    $marca = MarcaVehiculo::firstOrCreate(['nombre' => $nombreMarca]);
+                    $modelo = ModeloVehiculo::firstOrCreate([
+                        'marca_id' => $marca->id, 
+                        'nombre' => trim(strtoupper($dataV['modelo']))
+                    ]);
+                    
+                    $versionId = null;
+                    if (!empty($dataV['version'])) {
+                        $version = VersionVehiculo::firstOrCreate([
+                            'modelo_id' => $modelo->id, 
+                            'nombre' => trim(strtoupper($dataV['version']))
+                        ]);
+                        $versionId = $version->id;
+                    }
+
+                    // 2. Actualizar vehículo de la cita
+                    $cita->vehiculo->update([
+                        'marca_id' => $marca->id,
+                        'modelo_id' => $modelo->id,
+                        'version_id' => $versionId
+                    ]);
+
+                    // 3. Limpiar el motivo (quitar la etiqueta [Vehículo Ingresado: ...])
+                    $cita->motivo_cita = preg_replace('/\s*\[Vehículo Ingresado:.*?\]/', '', $cita->motivo_cita);
+                    $cita->save();
+                }
             }
 
             return response()->json(['success' => true, 'message' => 'Estado actualizado y prospectos activados si corresponde']);
         }
 
-        // Editar normal
-        $cita->update($request->all());
+        // Editar normal (Manejo de fecha y hora si vienen separados)
+        $data = $request->all();
+        if ($request->has('fecha') && $request->has('hora')) {
+            $data['fecha_programada'] = Carbon::parse($request->fecha . ' ' . $request->hora);
+        }
+
+        $cita->update($data);
         return response()->json(['success' => true, 'message' => 'Cita actualizada']);
     }
 
