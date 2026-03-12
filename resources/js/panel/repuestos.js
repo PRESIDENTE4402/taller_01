@@ -844,28 +844,137 @@ window.removeFromCart = function(index) {
     }
 }
 
+window.toggleNewClientForm = function() {
+    const searchContainer = document.getElementById('client-search-container');
+    const newClientForm = document.getElementById('new-client-form');
+    const toggleBtn = document.getElementById('toggle-new-client');
+    const isNew = newClientForm.classList.contains('hidden');
+
+    if (isNew) {
+        newClientForm.classList.remove('hidden');
+        searchContainer.classList.add('hidden');
+        toggleBtn.textContent = '← Buscar Existente';
+        toggleBtn.classList.replace('text-blue-600', 'text-slate-400');
+        document.getElementById('selected-client-id').value = '';
+        document.getElementById('cart-client-search').value = '';
+    } else {
+        newClientForm.classList.add('hidden');
+        searchContainer.classList.remove('hidden');
+        toggleBtn.textContent = '+ Nuevo Cliente';
+        toggleBtn.classList.replace('text-slate-400', 'text-blue-600');
+        // Clear new client inputs
+        document.getElementById('new-client-name').value = '';
+        document.getElementById('new-client-phone').value = '';
+        document.getElementById('new-client-nit').value = '';
+    }
+}
+
+window.searchClients = async function(query) {
+    const resultsContainer = document.getElementById('client-results');
+    if (!query || query.length < 2) {
+        resultsContainer.classList.add('hidden');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/panel/clientes/list?search=${query}`);
+        const data = await response.json();
+        const clients = data.data;
+
+        if (clients.length === 0) {
+            resultsContainer.innerHTML = '<div class="p-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">No se encontraron clientes</div>';
+        } else {
+            resultsContainer.innerHTML = clients.map(client => `
+                <div onclick='selectClient(${JSON.stringify(client).replace(/'/g, "&apos;")})' class="p-4 hover:bg-blue-50 cursor-pointer transition-colors flex flex-col gap-1 group border-b border-slate-50 last:border-0">
+                    <span class="text-xs font-black text-slate-700 group-hover:text-blue-600 transition-colors uppercase">${client.nombre_completo}</span>
+                    <div class="flex items-center gap-3 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                        <span><i class="fas fa-phone-alt mr-1"></i> ${client.telefono || 'Sin tel'}</span>
+                        <span><i class="fas fa-id-card mr-1"></i> NIT: ${client.nit || 'C/F'}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+        resultsContainer.classList.remove('hidden');
+    } catch (error) {
+        console.error('Error searching clients:', error);
+    }
+}
+
+window.selectClient = function(client) {
+    document.getElementById('selected-client-id').value = client.id;
+    document.getElementById('selected-client-name').textContent = client.nombre_completo;
+    document.getElementById('selected-client-phone').textContent = client.telefono || 'Sin teléfono';
+    document.getElementById('client-initial').textContent = client.nombre_completo.charAt(0).toUpperCase();
+
+    document.getElementById('client-search-container').classList.add('hidden');
+    document.getElementById('selected-client-badge').classList.remove('hidden');
+    document.getElementById('client-results').classList.add('hidden');
+    document.getElementById('toggle-new-client').classList.add('hidden');
+}
+
+window.deselectClient = function() {
+    document.getElementById('selected-client-id').value = '';
+    document.getElementById('client-search-container').classList.remove('hidden');
+    document.getElementById('selected-client-badge').classList.add('hidden');
+    document.getElementById('toggle-new-client').classList.remove('hidden');
+    document.getElementById('cart-client-search').value = '';
+    document.getElementById('cart-client-search').focus();
+}
+
 window.processCheckout = async function() {
     const btn = document.getElementById('checkout-btn');
     const notes = document.getElementById('cart-notes').value;
-    const clienteNombre = await Swal.fire({
-        title: 'Datos de la Venta',
-        input: 'text',
-        inputLabel: 'Nombre del Cliente',
-        inputPlaceholder: 'Venta Mostrador',
-        showCancelButton: true,
-        confirmButtonText: 'Continuar',
-        buttonsStyling: false,
-        customClass: {
-            confirmButton: 'bg-blue-600 text-white px-8 py-3 rounded-xl font-bold mr-2',
-            cancelButton: 'bg-slate-100 text-slate-500 px-8 py-3 rounded-xl font-bold'
-        }
-    });
+    
+    let clienteId = document.getElementById('selected-client-id').value;
+    let clienteNombre = 'Venta Mostrador';
 
-    if (clienteNombre.isDismissed) return;
+    // Verificar si es cliente nuevo o existente
+    const isNewClient = !document.getElementById('new-client-form').classList.contains('hidden');
+    
+    if (isNewClient) {
+        const nombre = document.getElementById('new-client-name').value;
+        const telefono = document.getElementById('new-client-phone').value;
+        const nit = document.getElementById('new-client-nit').value;
+
+        if (!nombre || !telefono) {
+            Swal.fire('Atención', 'Nombre y Teléfono son obligatorios para un cliente nuevo.', 'warning');
+            return;
+        }
+
+        // Crear cliente dinámicamente
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> REGISTRANDO CLIENTE...';
+        
+        try {
+            const clientResponse = await fetch('/panel/clientes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': CSRF_TOKEN,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ nombre_completo: nombre, telefono, nit, situacion: 'activo' })
+            });
+            const clientRes = await clientResponse.json();
+            if (clientRes.success) {
+                clienteId = clientRes.data.id;
+                clienteNombre = clientRes.data.nombre_completo;
+            } else {
+                throw new Error(clientRes.message);
+            }
+        } catch (error) {
+            btn.disabled = false;
+            btn.innerHTML = '<span>FINALIZAR VENTA</span><i class="fas fa-check-circle ml-2"></i>';
+            Swal.fire('Error', 'No se pudo registrar el cliente: ' + error.message, 'error');
+            return;
+        }
+    } else if (clienteId) {
+        clienteNombre = document.getElementById('selected-client-name').textContent;
+    }
 
     const confirm = await Swal.fire({
         title: 'Confirmar Venta',
-        text: `¿Deseas procesar la venta de ${saleCart.reduce((acc, i) => acc + i.cantidad, 0)} productos?`,
+        text: `¿Deseas procesar la venta para ${clienteNombre}?`,
         icon: 'question',
         showCancelButton: true,
         confirmButtonText: 'Sí, Finalizar',
@@ -879,10 +988,11 @@ window.processCheckout = async function() {
 
     if (confirm.isConfirmed) {
         btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> PROCESANDO...';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> PROCESANDO VENTA...';
 
         const payload = {
-            cliente_nombre: clienteNombre.value || 'Venta Mostrador',
+            cliente_id: clienteId || null,
+            cliente_nombre: clienteNombre,
             notas: notes,
             items: saleCart.map(i => ({
                 id: i.id,
@@ -907,6 +1017,8 @@ window.processCheckout = async function() {
             if (res.success) {
                 saleCart = [];
                 updateCartBadge();
+                deselectClient(); // Limpiar cliente
+                document.getElementById('cart-notes').value = ''; // Limpiar notas
                 document.getElementById('cart-float-btn').classList.add('hidden');
                 toggleCartDrawer();
                 if (window.loadRepuestos) loadRepuestos();
@@ -932,3 +1044,9 @@ window.processCheckout = async function() {
         }
     }
 }
+
+window.toggleNewClientForm = toggleNewClientForm;
+window.searchClients = searchClients;
+window.selectClient = selectClient;
+window.deselectClient = deselectClient;
+window.processCheckout = processCheckout;
