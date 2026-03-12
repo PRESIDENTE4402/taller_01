@@ -14,19 +14,29 @@
             </h2>
             <p class="text-xs text-gray-500">Filtrando datos operativos según sucursal seleccionada.</p>
         </div>
-        <div class="flex items-center gap-2">
-            <form action="{{ route('panel.dashboard') }}" method="GET" id="form-sucursal" class="flex items-center gap-2">
-                <select name="sucursal_id" class="select select-bordered select-sm w-full md:w-64 font-medium"
-                    onchange="this.form.submit()">
-                    @if($isAdmin)
-                        <option value="all" {{ $sucursalId === 'all' ? 'selected' : '' }}>🌎 Todas las Sucursales</option>
-                    @endif
-                    @foreach($sucursales as $suc)
-                        <option value="{{ $suc->id }}" {{ $sucursalId == $suc->id ? 'selected' : '' }}>
-                            📍 {{ $suc->nombre }}
-                        </option>
-                    @endforeach
-                </select>
+        <div class="flex items-center gap-2 w-full md:w-auto mt-4 md:mt-0">
+            <form action="{{ route('panel.dashboard') }}" method="GET" id="form-sucursal" class="flex flex-col sm:flex-row items-end sm:items-center gap-2 w-full">
+                <div class="flex items-center gap-2 w-full">
+                    <input type="date" name="start_date" value="{{ request('start_date') }}" class="input input-bordered input-sm w-full font-medium text-gray-600" title="Fecha Inicio" />
+                    <span class="text-xs text-gray-400 font-bold uppercase">a</span>
+                    <input type="date" name="end_date" value="{{ request('end_date') }}" class="input input-bordered input-sm w-full font-medium text-gray-600" title="Fecha Fin" />
+                </div>
+                
+                <div class="flex items-center gap-2 w-full">
+                    <select name="sucursal_id" class="select select-bordered select-sm w-full font-medium">
+                        @if($isAdmin)
+                            <option value="all" {{ $sucursalId === 'all' ? 'selected' : '' }}>🌎 Todas las Sucursales</option>
+                        @endif
+                        @foreach($sucursales as $suc)
+                            <option value="{{ $suc->id }}" {{ $sucursalId == $suc->id ? 'selected' : '' }}>
+                                📍 {{ $suc->nombre }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-primary bg-blue-600 hover:bg-blue-700 border-none px-3 shadow-md tooltip tooltip-left" data-tip="Aplicar Filtros">
+                        <i class="fas fa-filter text-white"></i>
+                    </button>
+                </div>
             </form>
         </div>
     </div>

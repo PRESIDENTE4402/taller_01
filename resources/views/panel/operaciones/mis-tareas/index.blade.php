@@ -128,7 +128,7 @@
                                 class="flex flex-1 gap-2">
                                 @csrf
                                 @if($tareaActual->estado == 'en_pausa')
-                                    <button type="submit" name="estado" value="en_progreso"
+                                    <button type="button" onclick="confirmarInicio(this)"
                                         class="btn btn-success flex-1 shadow-sm text-white">
                                         <i class="fas fa-play"></i> Iniciar
                                     </button>
@@ -158,7 +158,7 @@
 
                         <hr class="my-5 border-gray-100">
 
-                        <form action="{{ route('panel.mis_tareas.notes', $tareaActual->id) }}" method="POST">
+                        <form action="{{ route('panel.mis_tareas.notes', $tareaActual->id) }}" method="POST" onsubmit="event.preventDefault(); executeTaskActionAjax(this);">
                             @csrf
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Añadir
                                 Observación o Requisito</label>
@@ -301,6 +301,70 @@
 
 @push('scripts')
     <script>
+        function executeTaskActionAjax(form) {
+            Swal.fire({
+                title: 'Procesando...',
+                text: 'Actualizando el tablero...',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); },
+                background: '#1e293b',
+                color: '#ffffff'
+            });
+
+            const method = form.method || 'POST';
+            const formData = new FormData(form);
+
+            fetch(form.action, {
+                method: method,
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Error en el servidor');
+                return response.text();
+            })
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newContent = doc.querySelector('.h-full.flex.flex-col.gap-6').innerHTML;
+                
+                document.querySelector('.h-full.flex.flex-col.gap-6').innerHTML = newContent;
+
+                Swal.close();
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Tablero Actualizado!',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2500,
+                    customClass: { popup: 'rounded-xl shadow-lg border border-gray-100 bg-white' }
+                });
+                
+                initNotesEvents();
+            })
+            .catch(error => {
+                console.error(error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Ocurrió un error al intentar actualizar la tarea.',
+                    background: '#1e293b',
+                    color: '#ffffff'
+                });
+            });
+        }
+
+        function confirmarInicio(btn) {
+            const form = btn.closest('form');
+            const hiddenStatus = document.createElement('input');
+            hiddenStatus.type = 'hidden';
+            hiddenStatus.name = 'estado';
+            hiddenStatus.value = 'en_progreso';
+            form.appendChild(hiddenStatus);
+            executeTaskActionAjax(form);
+        }
+
         function confirmarPausa(btn) {
             Swal.fire({
                 title: 'Pausar Tarea',
@@ -339,7 +403,7 @@
 
                     form.appendChild(hiddenStatus);
                     form.appendChild(hiddenReason);
-                    form.submit();
+                    executeTaskActionAjax(form);
                 }
             });
         }
@@ -365,28 +429,31 @@
                     hiddenInput.name = 'estado';
                     hiddenInput.value = 'completado';
                     form.appendChild(hiddenInput);
-                    form.submit();
+                    executeTaskActionAjax(form);
                 }
             });
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
+        function initNotesEvents() {
             const buttons = document.querySelectorAll('.btn-view-notes');
             buttons.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const rawNotas = btn.getAttribute('data-notas');
-                    // Escapar y reemplazar saltos de línea por tags HTML
+                // Eliminar prev listener preventivamente si se re-inicializa
+                const newBtn = btn.cloneNode(true);
+                btn.parentNode.replaceChild(newBtn, btn);
+                
+                newBtn.addEventListener('click', () => {
+                    const rawNotas = newBtn.getAttribute('data-notas');
                     const htmlNotas = rawNotas.replace(/\n/g, '<br>');
 
                     Swal.fire({
                         title: '<i class="fas fa-clipboard-list text-yellow-500 mb-2 text-4xl"></i><br><span class="text-xl font-black text-gray-800 uppercase">Notas del Mecánico</span>',
                         html: `
-                                                <div class="bg-yellow-50 text-left p-5 rounded-xl border border-yellow-200 mt-4 shadow-inner">
-                                                    <div class="text-gray-700 text-sm font-medium leading-relaxed max-h-64 overflow-y-auto custom-scrollbar">
-                                                        ${htmlNotas}
-                                                    </div>
-                                                </div>
-                                            `,
+                            <div class="bg-yellow-50 text-left p-5 rounded-xl border border-yellow-200 mt-4 shadow-inner">
+                                <div class="text-gray-700 text-sm font-medium leading-relaxed max-h-64 overflow-y-auto custom-scrollbar">
+                                    ${htmlNotas}
+                                </div>
+                            </div>
+                        `,
                         showConfirmButton: true,
                         confirmButtonText: '<i class="fas fa-check"></i> Entendido',
                         customClass: {
@@ -398,12 +465,16 @@
                     });
                 });
             });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initNotesEvents();
         });
 
         function confirmarCancelacion(btn) {
             Swal.fire({
                 title: '¿Cancelar Tarea?',
-                text: '¿Seguro que deseas cancelar esta tarea? Se eliminará de tu tablero porque ya no se va a llevar a cabo. Esta acción no se puede deshacer.',
+                text: '¿Seguro que deseas cancelar esta tarea? Se eliminará de tu tablero por completo.',
                 icon: 'error',
                 showCancelButton: true,
                 confirmButtonText: '<i class="fas fa-trash"></i> Sí, cancelar y eliminar',
@@ -415,7 +486,7 @@
                 buttonsStyling: false
             }).then((result) => {
                 if (result.isConfirmed) {
-                    btn.closest('form').submit();
+                    executeTaskActionAjax(btn.closest('form'));
                 }
             });
         }

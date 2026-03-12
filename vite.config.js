@@ -28,7 +28,8 @@ export default defineConfig({
                 'resources/js/panel/colaboradores.js',
                 'resources/js/panel/imagenes_landing.js',
                 'resources/js/mantenimientos/inventario_recepcion.js',
-                'resources/js/mantenimientos/plantillas_mensajes.js'],
+                'resources/js/mantenimientos/plantillas_mensajes.js',
+                'resources/js/panel/notifications.js'],
 
             refresh: true,
         }),

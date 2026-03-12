@@ -60,6 +60,9 @@ class ClienteController extends Controller
             'es_empresa' => 'boolean',
             'empresa' => 'nullable|required_if:es_empresa,true|string|max:255',
             'password' => 'nullable|string|min:4'
+        ], [
+            'telefono.unique' => '⚠️ Este número de teléfono ya se encuentra registrado a nombre de otro cliente.',
+            'email.unique' => '⚠️ Este correo electrónico ya está registrado.'
         ]);
 
         try {
@@ -96,6 +99,9 @@ class ClienteController extends Controller
             'es_empresa' => 'boolean',
             'empresa' => 'nullable|required_if:es_empresa,true|string|max:255',
             'password' => 'nullable|string|min:4'
+        ], [
+            'telefono.unique' => '⚠️ Este número de teléfono ya se encuentra registrado a nombre de otro cliente.',
+            'email.unique' => '⚠️ Este correo electrónico ya está registrado.'
         ]);
 
         try {

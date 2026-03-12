@@ -311,7 +311,11 @@ async function saveUser(e) {
         const result = await response.json();
 
         if (!response.ok) {
-            throw new Error(result.message || 'Error al guardar');
+            let errorMsg = result.message || 'Ocurrió un error al guardar.';
+            if (result.errors && typeof result.errors === 'object') {
+                errorMsg = Object.values(result.errors)[0][0];
+            }
+            throw new Error(errorMsg);
         }
 
         closeCreateModal();
@@ -452,7 +456,11 @@ async function updateUser(e) {
         const result = await response.json();
 
         if (!response.ok) {
-            throw new Error(result.message || 'Error al actualizar');
+            let errorMsg = result.message || 'Ocurrió un error al actualizar.';
+            if (result.errors && typeof result.errors === 'object') {
+                errorMsg = Object.values(result.errors)[0][0];
+            }
+            throw new Error(errorMsg);
         }
 
         closeCreateModal();

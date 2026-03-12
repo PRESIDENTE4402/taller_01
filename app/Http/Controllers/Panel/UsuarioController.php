@@ -65,6 +65,8 @@ class UsuarioController extends Controller
             'apellidos' => 'required|string|max:255',
             'telefono' => 'nullable|string|max:20',
             'edad' => 'nullable|integer|min:18',
+        ], [
+            'email.unique' => '⚠️ Este correo electrónico ya está registrado. Por favor, revisa si el usuario ya existe en el sistema.',
         ]);
 
         try {
@@ -147,6 +149,8 @@ class UsuarioController extends Controller
             'apellidos' => 'required|string|max:255',
             'telefono' => 'nullable|string|max:20',
             'edad' => 'nullable|integer|min:18',
+        ], [
+            'email.unique' => '⚠️ Este correo electrónico ya está en uso por otro empleado.',
         ]);
 
         try {

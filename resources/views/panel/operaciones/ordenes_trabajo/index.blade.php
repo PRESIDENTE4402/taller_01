@@ -4,7 +4,7 @@
 @section('subtitle', 'Gestiona las reparaciones y servicios en curso')
 
 @section('content')
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 h-full">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
 
         <!-- Sidebar Filtros -->
         <div class="lg:col-span-1 flex flex-col gap-6">
@@ -59,7 +59,7 @@
         </div>
 
         <!-- Contenido Principal -->
-        <div class="lg:col-span-3 space-y-6 overflow-y-auto custom-scrollbar pr-2 h-[calc(100vh-140px)]">
+        <div class="lg:col-span-3 space-y-6 lg:overflow-y-auto custom-scrollbar pr-2 lg:h-[calc(100vh-140px)]">
 
             <!-- SECCION 1: VEHÍCULOS EN ESPERA (Citas Concretadas) -->
             <div id="pendingSection" class="hidden">

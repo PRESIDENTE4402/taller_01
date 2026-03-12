@@ -162,13 +162,22 @@ function saveClient(event) {
         })
         .catch(error => {
             console.error(error);
-            let msg = 'Error al guardar';
-            if (error.errors) {
-                msg = Object.values(error.errors).flat().join('\n');
+            let msg = 'Ocurrió un error inesperado al guardar el cliente.';
+            if (error.errors && typeof error.errors === 'object') {
+                // Toma solo el primer error para no saturar la pantalla
+                msg = Object.values(error.errors)[0][0]; 
             } else if (error.message) {
                 msg = error.message;
             }
-            alert(msg);
+            
+            Swal.fire({
+                icon: 'warning',
+                title: 'No se pudo guardar',
+                text: msg,
+                background: '#1e293b',
+                color: '#ffffff',
+                confirmButtonColor: '#3b82f6'
+            });
         });
 }
 

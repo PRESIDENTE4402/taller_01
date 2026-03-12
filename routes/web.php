@@ -143,8 +143,18 @@ Route::middleware('auth')->group(function () {
 
 
         // Notificaciones
+        Route::get('/notifications', function () {
+            $notifications = \Illuminate\Support\Facades\Auth::user()->notifications()->paginate(20);
+            return view('panel.notifications.index', compact('notifications'));
+        })->name('notifications.index');
+
+        Route::post('/notifications/mark-all-read', function () {
+            \Illuminate\Support\Facades\Auth::user()->unreadNotifications->markAsRead();
+            return redirect()->back()->with('success', 'Todas las notificaciones marcadas como leídas.');
+        })->name('notifications.markAllRead');
+
         Route::get('/notifications/{id}/read', function ($id) {
-            $notification = Auth::user()->notifications()->findOrFail($id);
+            $notification = \Illuminate\Support\Facades\Auth::user()->notifications()->findOrFail($id);
             $notification->markAsRead();
             return redirect($notification->data['url'] ?? route('panel.dashboard'));
         })->name('notifications.read');

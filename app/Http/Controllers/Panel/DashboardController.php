@@ -70,6 +70,24 @@ class DashboardController extends Controller
             });
         }
 
+        // Filtro de Fechas
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+
+        if ($startDate) {
+            $baseCitas->whereDate('created_at', '>=', $startDate);
+            $baseOrdenes->whereDate('created_at', '>=', $startDate);
+            $baseVehiculos->whereDate('created_at', '>=', $startDate);
+            // Users are static usually, but we could filter it too or omit it. 
+            // Better not filter users by date unless they were created in that range?
+            // Yes, let's just filter Citas, Ordenes y Vehiculos (nuevos ingresos).
+        }
+        if ($endDate) {
+            $baseCitas->whereDate('created_at', '<=', $endDate);
+            $baseOrdenes->whereDate('created_at', '<=', $endDate);
+            $baseVehiculos->whereDate('created_at', '<=', $endDate);
+        }
+
         // 1. Estadísticas Generales (Cards)
 
         // Citas de hoy (pendientes o confirmadas)
@@ -201,7 +219,9 @@ class DashboardController extends Controller
             'mecanicos',
             'isAdmin',
             'sucursalId',
-            'sucursales'
+            'sucursales',
+            'startDate',
+            'endDate'
         ));
     }
 }

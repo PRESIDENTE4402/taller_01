@@ -522,6 +522,11 @@
                                 </ul>
                             </div>
                         </li>
+                        <li class="p-0 border-t border-gray-100 bg-gray-50 rounded-b-lg">
+                            <a href="{{ route('panel.notifications.index') }}" class="block text-center py-2 text-blue-600 font-bold hover:bg-gray-100 w-full rounded-b-lg">
+                                Ver todas las notificaciones
+                            </a>
+                        </li>
                     </ul>
                 </details>
             </div>
