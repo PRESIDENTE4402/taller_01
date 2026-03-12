@@ -42,12 +42,20 @@ const nombreInput = document.getElementById('nombreSucursal');
 const direccionInput = document.getElementById('direccionSucursal');
 const telefonoInput = document.getElementById('telefonoSucursal');
 const capacidadInput = document.getElementById('capacidadSucursal');
+const ciudadInput = document.getElementById('ciudadSucursal');
+const latitudInput = document.getElementById('latitudSucursal');
+const longitudInput = document.getElementById('longitudSucursal');
+const activaInput = document.getElementById('activaSucursal');
 
 // Spans de Error
 const errorNombre = document.getElementById('errorNombre');
 const errorDireccion = document.getElementById('errorDireccion');
 const errorTelefono = document.getElementById('errorTelefono');
 const errorCapacidad = document.getElementById('errorCapacidad');
+
+// Mapa
+let map = null;
+let marker = null;
 
 
 async function loadSucursales() {
@@ -86,7 +94,7 @@ async function loadSucursales() {
                             ${sucursal.nombre.charAt(0).toUpperCase()}
                         </div>
                         <div class="flex gap-2">
-                             <button onclick="editSucursal(${sucursal.id}, '${safeNombre}', '${safeDireccion}', '${sucursal.telefono}', ${sucursal.capacidad_bahias})" 
+                             <button onclick="editSucursal(${JSON.stringify(sucursal).replace(/"/g, '&quot;')})" 
                                 class="h-8 w-8 rounded-full bg-gray-100 text-blue-500 hover:bg-blue-500 hover:text-white transition-colors flex items-center justify-center" title="Editar">
                                 <i class="fas fa-pen text-xs"></i>
                             </button>
@@ -137,7 +145,13 @@ function openModal(isEdit = false) {
         modalBackdrop.classList.remove('opacity-0');
         modalPanel.classList.remove('opacity-0', 'translate-y-4', 'sm:translate-y-0', 'sm:scale-95');
         modalPanel.classList.add('opacity-100', 'translate-y-0', 'sm:scale-100');
-    }, 10);
+        
+        // Inicializar mapa y forzar recalculo de dimensiones pasado el tiempo de la transición CSS (aprox 300ms)
+        setTimeout(() => {
+            initMap(latitudInput.value, longitudInput.value);
+            if (map) map.invalidateSize();
+        }, 300);
+    }, 50);
 
     if (!isEdit) {
         resetForm();
@@ -172,14 +186,18 @@ function clearErrors() {
     });
 }
 
-function editSucursal(id, nombre, direccion, telefono, capacidad) {
+function editSucursal(sucursal) {
     isEditing = true;
-    currentId = id;
+    currentId = sucursal.id;
 
-    nombreInput.value = nombre;
-    direccionInput.value = direccion;
-    telefonoInput.value = telefono;
-    capacidadInput.value = capacidad;
+    nombreInput.value = sucursal.nombre;
+    direccionInput.value = sucursal.direccion;
+    telefonoInput.value = sucursal.telefono;
+    capacidadInput.value = sucursal.capacidad_bahias;
+    ciudadInput.value = sucursal.ciudad || '';
+    activaInput.checked = sucursal.activa === 1 || sucursal.activa === true;
+    latitudInput.value = sucursal.latitud || '';
+    longitudInput.value = sucursal.longitud || '';
 
     modalTitleText.textContent = 'Editar Sucursal';
 
@@ -194,7 +212,11 @@ async function saveSucursal(e) {
         nombre: nombreInput.value,
         direccion: direccionInput.value,
         telefono: telefonoInput.value,
-        capacidad_bahias: capacidadInput.value
+        capacidad_bahias: capacidadInput.value,
+        ciudad: ciudadInput.value,
+        latitud: latitudInput.value,
+        longitud: longitudInput.value,
+        activa: activaInput.checked ? 1 : 0
     };
 
     // Validacion simple lado cliente
@@ -277,8 +299,11 @@ function deleteSucursal(id) {
         background: '#0f172a',
         color: '#f8fafc',
         customClass: {
-            popup: 'border border-slate-700 rounded-xl'
-        }
+            popup: 'border border-slate-700 rounded-xl',
+            confirmButton: 'bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg mr-2',
+            cancelButton: 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg'
+        },
+        buttonsStyling: false
     }).then(async (result) => {
         if (result.isConfirmed) {
             try {
@@ -320,6 +345,86 @@ function deleteSucursal(id) {
     });
 }
 
+function initMap(lat, lng) {
+    const defaultLat = 14.634915;
+    const defaultLng = -90.515518;
+    
+    let centerLat = lat ? parseFloat(lat) : defaultLat;
+    let centerLng = lng ? parseFloat(lng) : defaultLng;
+
+    if (!map) {
+        map = L.map('mapPicker').setView([centerLat, centerLng], 12);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        map.on('click', function(e) {
+            placeMarker(e.latlng.lat, e.latlng.lng);
+        });
+    } else {
+        map.setView([centerLat, centerLng], 12);
+    }
+
+    if (lat && lng) {
+        placeMarker(lat, lng);
+    } else {
+        if (marker) {
+            map.removeLayer(marker);
+            marker = null;
+        }
+    }
+}
+
+function placeMarker(lat, lng) {
+    if (marker) map.removeLayer(marker);
+    marker = L.marker([lat, lng]).addTo(map);
+    latitudInput.value = parseFloat(lat).toFixed(6);
+    longitudInput.value = parseFloat(lng).toFixed(6);
+}
+
+async function searchAddress() {
+    const query = document.getElementById('buscarDireccionMapa').value;
+    const feedback = document.getElementById('searchResultFeedback');
+    
+    if (!query.trim()) {
+        feedback.textContent = 'Ingresa una dirección primero.';
+        feedback.classList.remove('hidden', 'text-green-500');
+        feedback.classList.add('text-red-500');
+        return;
+    }
+
+    feedback.textContent = 'Buscando...';
+    feedback.classList.remove('hidden', 'text-red-500', 'text-green-500');
+    feedback.classList.add('text-gray-500');
+
+    try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
+        const data = await response.json();
+
+        if (data && data.length > 0) {
+            const result = data[0];
+            const lat = parseFloat(result.lat);
+            const lon = parseFloat(result.lon);
+
+            map.setView([lat, lon], 16);
+            placeMarker(lat, lon);
+
+            feedback.textContent = 'Ubicación encontrada.';
+            feedback.classList.remove('text-gray-500', 'text-red-500');
+            feedback.classList.add('text-green-500');
+        } else {
+            feedback.textContent = 'No se encontraron resultados para esa dirección.';
+            feedback.classList.remove('text-gray-500', 'text-green-500');
+            feedback.classList.add('text-red-500');
+        }
+    } catch (error) {
+        feedback.textContent = 'Error al conectar con el servidor de mapas.';
+        feedback.classList.remove('text-gray-500', 'text-green-500');
+        feedback.classList.add('text-red-500');
+    }
+}
+
 // Exponer funciones al scope global
 window.loadSucursales = loadSucursales;
 window.openModal = openModal;
@@ -327,3 +432,4 @@ window.closeModal = closeModal;
 window.saveSucursal = saveSucursal;
 window.editSucursal = editSucursal;
 window.deleteSucursal = deleteSucursal;
+window.searchAddress = searchAddress;

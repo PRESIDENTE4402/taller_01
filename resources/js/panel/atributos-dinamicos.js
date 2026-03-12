@@ -253,8 +253,25 @@ function submitAttribute(e) {
 }
 
 // Eliminar atributo
-function deleteAttribute(attributeId) {
-    if (!confirm('¿Eliminar este atributo?')) return;
+async function deleteAttribute(attributeId) {
+    const result = await Swal.fire({
+        title: '¿Eliminar Atributo?',
+        text: "Esta acción no se puede deshacer.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        background: '#0f172a',
+        color: '#f8fafc',
+        customClass: {
+            popup: 'border border-slate-700 rounded-xl',
+            confirmButton: 'bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg mr-2',
+            cancelButton: 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg'
+        },
+        buttonsStyling: false
+    });
+
+    if (!result.isConfirmed) return;
 
     fetch(`${API_ATRIBUTOS_URL}/${attributeId}`, {
         method: 'DELETE',
@@ -265,10 +282,26 @@ function deleteAttribute(attributeId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert('✅ Atributo eliminado');
+            Swal.fire({
+                icon: 'success',
+                title: 'Eliminado',
+                text: 'Atributo eliminado',
+                showConfirmButton: false,
+                timer: 1500,
+                background: '#0f172a',
+                color: '#f8fafc',
+                customClass: { popup: 'border border-slate-700 rounded-xl' }
+            });
             loadAttributes();
         } else {
-            alert('❌ Error: ' + data.message);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.message,
+                background: '#0f172a',
+                color: '#f8fafc',
+                customClass: { popup: 'border border-slate-700 rounded-xl' }
+            });
         }
     });
 }

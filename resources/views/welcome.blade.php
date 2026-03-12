@@ -423,24 +423,24 @@
                     SERVICE</span>
             </div>
 
-            <div class="navbar-menu">
-                <a href="#servicios" class="navbar-link">Servicios</a>
-                <a href="#galeria" class="navbar-link">Nuestros éxitos</a>
-                <a href="javascript:void(0)" onclick="openHistorialModal()"
+            <div class="navbar-menu" id="navbarMenu">
+                <a href="#servicios" class="navbar-link" onclick="closeNavMenu()">Servicios</a>
+                <a href="#galeria" class="navbar-link" onclick="closeNavMenu()">Nuestros éxitos</a>
+                <a href="javascript:void(0)" onclick="openHistorialModal(); closeNavMenu();"
                     class="navbar-link navbar-link-historial">Historial</a>
-                <a href="#soluciones" class="navbar-link">Soluciones</a>
-                <a href="#clientes" class="navbar-link">Clientes</a>
-                <a href="#contacto" class="navbar-link">Contacto</a>
+                <a href="#soluciones" class="navbar-link" onclick="closeNavMenu()">Soluciones</a>
+                <a href="#clientes" class="navbar-link" onclick="closeNavMenu()">Clientes</a>
+                <a href="#contacto" class="navbar-link" onclick="closeNavMenu()">Contacto</a>
             </div>
 
             <div class="navbar-nav">
                 @auth
-                    <div class="flex items-center gap-4">
-                        <span class="text-white/60 text-xs font-bold hidden lg:block">{{ auth()->user()->name }}</span>
+                    <div style="display:flex;align-items:center;gap:0.75rem;">
+                        <span class="text-white/60 text-xs font-bold hidden xl:block">{{ auth()->user()->name }}</span>
                         <a href="{{ route('panel.dashboard') }}" class="user-action-btn btn-app-modern"
                             title="Ir a la aplicación">
                             <i class="fas fa-th-large"></i>
-                            <span>APP</span>
+                            <span class="hidden sm:inline">APP</span>
                         </a>
                         <form action="{{ route('logout') }}" method="POST" class="m-0">
                             @csrf
@@ -450,9 +450,37 @@
                         </form>
                     </div>
                 @else
-                    <a href="{{ route('login') }}" class="btn btn-primary">Ingresar</a>
+                    <a href="{{ route('login') }}" class="btn btn-primary hidden sm:inline-flex">Ingresar</a>
                 @endauth
+                
+                <!-- Botón Hamburguesa -->
+                <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleNavMenu()" aria-label="Menú">
+                    <span></span><span></span><span></span>
+                </button>
             </div>
+        </div>
+
+        <!-- Mobile Menu Overlay -->
+        <div class="mobile-menu-overlay" id="mobileMenuOverlay" onclick="closeNavMenu()"></div>
+
+        <!-- Mobile Menu Panel -->
+        <div class="mobile-menu-panel" id="mobileMenuPanel">
+            <button class="mobile-menu-close" onclick="closeNavMenu()">
+                <i class="fas fa-times"></i>
+            </button>
+            <nav class="mobile-menu-nav">
+                <a href="#servicios" onclick="closeNavMenu()">Servicios</a>
+                <a href="#galeria" onclick="closeNavMenu()">Nuestros éxitos</a>
+                <a href="javascript:void(0)" onclick="openHistorialModal(); closeNavMenu();">Historial</a>
+                <a href="#soluciones" onclick="closeNavMenu()">Soluciones</a>
+                <a href="#clientes" onclick="closeNavMenu()">Clientes</a>
+                <a href="#contacto" onclick="closeNavMenu()">Contacto</a>
+                @auth
+                <a href="{{ route('panel.dashboard') }}"><i class="fas fa-th-large" style="margin-right:8px;"></i>Ir a la App</a>
+                @else
+                <a href="{{ route('login') }}"><i class="fas fa-sign-in-alt" style="margin-right:8px;"></i>Ingresar</a>
+                @endauth
+            </nav>
         </div>
     </nav>
 
@@ -1148,6 +1176,26 @@
                         <p class="text-slate-400 max-w-md mx-auto text-lg font-medium leading-relaxed">Por favor ingrese
                             la placa y contraseña de su vehículo para sincronizar con nuestra base de datos técnica.</p>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MODAL GALERÍA PROPIO ===== -->
+    <div id="galleryModal" class="gallery-modal-overlay" onclick="if(event.target===this) closeGalleryModal()">
+        <div class="gallery-modal-box">
+            <button class="gallery-modal-close" onclick="closeGalleryModal()" aria-label="Cerrar">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="gallery-modal-inner">
+                <!-- Imagen -->
+                <div class="gallery-modal-img-wrap">
+                    <img id="galleryModalImage" src="" alt="" />
+                </div>
+                <!-- Info -->
+                <div class="gallery-modal-info">
+                    <h3 id="galleryModalTitle"></h3>
+                    <div id="galleryModalBody" class="gallery-modal-body"></div>
                 </div>
             </div>
         </div>

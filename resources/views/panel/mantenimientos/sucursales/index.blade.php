@@ -5,6 +5,16 @@
 
 @section('content')
 
+@push('styles')
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <style>
+        #mapPicker { z-index: 1; isolation: isolate; } /* Asegurar que se muestre en el modal y no solape Navbar u otros modals */
+        .leaflet-container { z-index: 1 !important; }
+        .leaflet-pane { z-index: 1 !important; }
+        .leaflet-top, .leaflet-bottom { z-index: 10 !important; }
+    </style>
+@endpush
+
     {{-- Contenedor Principal con Efecto Tech --}}
     <div class="max-w-5xl mx-auto relative">
 
@@ -72,7 +82,7 @@
             <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
 
                 {{-- Panel del Modal --}}
-                <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95 border border-white/20"
+                <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-4xl opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95 border border-white/20"
                     id="modalPanel">
 
                     {{-- Barra Superior Decorativa --}}
@@ -90,106 +100,122 @@
                                 <form id="sucursalForm" onsubmit="saveSucursal(event)">
                                     <input type="hidden" id="sucursalId">
 
-                                    {{-- Nombre --}}
-                                    <div class="group relative z-0 w-full mb-6">
-                                        <input type="text" id="nombreSucursal" name="nombre"
-                                            class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-                                            placeholder=" " required />
-                                        <label for="nombreSucursal"
-                                            class="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">
-                                            Nombre Sucursal (Ej. Taller Norte)
-                                        </label>
-                                        <span class="text-xs text-red-500 mt-1 hidden font-medium" id="errorNombre"></span>
-                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+                                        {{-- Columna Izquierda: Datos --}}
+                                        <div>
+                                            {{-- Nombre --}}
+                                            <div class="group relative z-0 w-full mb-6">
+                                                <input type="text" id="nombreSucursal" name="nombre"
+                                                    class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                                                    placeholder=" " required />
+                                                <label for="nombreSucursal"
+                                                    class="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">
+                                                    Nombre Sucursal (Ej. Taller Norte)
+                                                </label>
+                                                <span class="text-xs text-red-500 mt-1 hidden font-medium" id="errorNombre"></span>
+                                            </div>
 
-                                    {{-- Dirección --}}
-                                    <div class="group relative z-0 w-full mb-6">
-                                        <input type="text" id="direccionSucursal" name="direccion"
-                                            class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-                                            placeholder=" " required />
-                                        <label for="direccionSucursal"
-                                            class="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">
-                                            Dirección Física
-                                        </label>
-                                        <span class="text-xs text-red-500 mt-1 hidden font-medium"
-                                            id="errorDireccion"></span>
-                                    </div>
+                                            {{-- Dirección --}}
+                                            <div class="group relative z-0 w-full mb-6">
+                                                <input type="text" id="direccionSucursal" name="direccion"
+                                                    class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                                                    placeholder=" " required />
+                                                <label for="direccionSucursal"
+                                                    class="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">
+                                                    Dirección Física
+                                                </label>
+                                                <span class="text-xs text-red-500 mt-1 hidden font-medium" id="errorDireccion"></span>
+                                            </div>
 
-                                    {{-- Teléfono --}}
-                                    <div class="group relative z-0 w-full mb-6">
-                                        <input type="text" id="telefonoSucursal" name="telefono"
-                                            class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-                                            placeholder=" " required />
-                                        <label for="telefonoSucursal"
-                                            class="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">
-                                            Teléfono de Contacto
-                                        </label>
-                                        <span class="text-xs text-red-500 mt-1 hidden font-medium"
-                                            id="errorTelefono"></span>
-                                    </div>
+                                            {{-- Teléfono y Capacidad (una misma fila en desktop si hubiese espacio, pero están apilados ok) --}}
+                                            <div class="grid grid-cols-2 gap-4">
+                                                <div class="group relative z-0 w-full mb-6">
+                                                    <input type="text" id="telefonoSucursal" name="telefono"
+                                                        class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                                                        placeholder=" " required />
+                                                    <label for="telefonoSucursal"
+                                                        class="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">
+                                                        Teléfono
+                                                    </label>
+                                                    <span class="text-xs text-red-500 mt-1 hidden font-medium" id="errorTelefono"></span>
+                                                </div>
 
-                                    {{-- Capacidad Bahías --}}
-                                    <div class="group relative z-0 w-full mb-6">
-                                        <input type="number" id="capacidadSucursal" name="capacidad_bahias" min="1"
-                                            class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-                                            placeholder=" " required />
-                                        <label for="capacidadSucursal"
-                                            class="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">
-                                            Capacidad (Bahías)
-                                        </label>
-                                        <span class="text-xs text-red-500 mt-1 hidden font-medium"
-                                            id="errorCapacidad"></span>
-                                    </div>
-                                    {{-- Ciudad --}}
-                                    <div class="group relative z-0 w-full mb-6">
-                                        <input type="text" id="ciudadSucursal" name="ciudad"
-                                            class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-                                            placeholder=" " />
-                                        <label for="ciudadSucursal"
-                                            class="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">
-                                            Ciudad
-                                        </label>
-                                    </div>
+                                                <div class="group relative z-0 w-full mb-6">
+                                                    <input type="number" id="capacidadSucursal" name="capacidad_bahias" min="1"
+                                                        class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                                                        placeholder=" " required />
+                                                    <label for="capacidadSucursal"
+                                                        class="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">
+                                                        Bahías
+                                                    </label>
+                                                    <span class="text-xs text-red-500 mt-1 hidden font-medium" id="errorCapacidad"></span>
+                                                </div>
+                                            </div>
 
-                                    {{-- Coordenadas --}}
-                                    <div class="mb-3">
-                                        <p class="text-xs text-gray-500 mb-2"><i
-                                                class="fas fa-map-pin mr-1 text-blue-500"></i> Haz clic en el mapa para
-                                            fijar la ubicación, o escríbela manualmente:</p>
-                                        <div id="mapPicker"
-                                            style="height:200px; border-radius:10px; border:1px solid #e2e8f0; z-index:1;">
+                                            {{-- Ciudad --}}
+                                            <div class="group relative z-0 w-full mb-6">
+                                                <input type="text" id="ciudadSucursal" name="ciudad"
+                                                    class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                                                    placeholder=" " />
+                                                <label for="ciudadSucursal"
+                                                    class="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">
+                                                    Ciudad
+                                                </label>
+                                            </div>
+
+                                            {{-- Activa --}}
+                                            <div class="flex items-center gap-3 mb-6">
+                                                <input type="checkbox" id="activaSucursal" name="activa" checked
+                                                    class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                                <label for="activaSucursal" class="text-sm text-gray-700">Sucursal activa (visible en el mapa público)</label>
+                                            </div>
+                                        </div>
+
+                                        {{-- Columna Derecha: Mapa --}}
+                                        <div>
+                                            {{-- Buscar por Dirección --}}
+                                            <div class="mb-4">
+                                                <div class="relative">
+                                                    <input type="text" id="buscarDireccionMapa" class="block w-full rounded-lg border-0 py-2.5 pl-4 pr-12 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 transition-all bg-gray-50" placeholder="Ej. Zona 10, Ciudad de Guatemala..." onkeydown="if(event.key === 'Enter'){ event.preventDefault(); searchAddress(); }">
+                                                    <button type="button" onclick="searchAddress()" class="absolute inset-y-0 right-0 flex items-center justify-center w-10 text-gray-400 hover:text-white hover:bg-blue-600 rounded-r-lg transition-colors border-l border-gray-300 hover:border-blue-600">
+                                                        <i class="fas fa-search"></i>
+                                                    </button>
+                                                </div>
+                                                <span id="searchResultFeedback" class="text-xs text-gray-500 mt-1 hidden"></span>
+                                            </div>
+
+                                            {{-- Coordenadas --}}
+                                            <div class="mb-4">
+                                                <p class="text-xs text-gray-500 mb-2"><i
+                                                        class="fas fa-map-pin mr-1 text-blue-500"></i> Haz clic en el mapa para
+                                                    fijar la ubicación manualmente:</p>
+                                                <div id="mapPicker" class="relative w-full rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                                                    style="height:320px; border:1px solid #cbd5e1; z-index:1;">
+                                                </div>
+                                            </div>
+
+                                            <div class="grid grid-cols-2 gap-4">
+                                                <div class="group relative z-0 w-full mb-4">
+                                                    <input type="number" step="any" id="latitudSucursal" name="latitud"
+                                                        class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                                                        placeholder=" " />
+                                                    <label for="latitudSucursal"
+                                                        class="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">
+                                                        Latitud
+                                                    </label>
+                                                </div>
+                                                <div class="group relative z-0 w-full mb-4">
+                                                    <input type="number" step="any" id="longitudSucursal" name="longitud"
+                                                        class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                                                        placeholder=" " />
+                                                    <label for="longitudSucursal"
+                                                        class="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">
+                                                        Longitud
+                                                    </label>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-
-                                    <div class="grid grid-cols-2 gap-4 mb-6">
-                                        <div class="group relative z-0 w-full">
-                                            <input type="number" step="any" id="latitudSucursal" name="latitud"
-                                                class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-                                                placeholder=" " />
-                                            <label for="latitudSucursal"
-                                                class="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">
-                                                Latitud
-                                            </label>
-                                        </div>
-                                        <div class="group relative z-0 w-full">
-                                            <input type="number" step="any" id="longitudSucursal" name="longitud"
-                                                class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-                                                placeholder=" " />
-                                            <label for="longitudSucursal"
-                                                class="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">
-                                                Longitud
-                                            </label>
-                                        </div>
-                                    </div>
-
-                                    {{-- Activa --}}
-                                    <div class="flex items-center gap-3 mb-6">
-                                        <input type="checkbox" id="activaSucursal" name="activa" checked
-                                            class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                                        <label for="activaSucursal" class="text-sm text-gray-700">Sucursal activa (visible
-                                            en el mapa público)</label>
-                                    </div>
-
                                 </form>
                             </div>
                         </div>
@@ -220,5 +246,6 @@
 
 
 @push('scripts')
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     @vite(['resources/js/panel/sucursales.js'])
 @endpush

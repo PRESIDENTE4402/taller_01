@@ -474,8 +474,11 @@ window.deleteImage = async function (id) {
         background: '#0f172a',
         color: '#f8fafc',
         customClass: {
-            popup: 'border border-slate-700 rounded-xl'
-        }
+            popup: 'border border-slate-700 rounded-xl',
+            confirmButton: 'bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg mr-2',
+            cancelButton: 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg'
+        },
+        buttonsStyling: false
     });
 
     if (!result.isConfirmed) return;

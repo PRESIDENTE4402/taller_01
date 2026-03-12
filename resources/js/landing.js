@@ -877,24 +877,58 @@ function loadGalleryCarousel(images) {
     initCarouselLogic();
 }
 
-window.openGalleryModal = function (url, title, desc) {
-    Swal.fire({
-        title: title,
-        html: `
-            <div class="modal-gallery-content">
-                <img src="${url}" style="width:100%; border-radius:15px; margin-bottom:15px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
-                <div style="text-align:left; color:#475569; line-height:1.6; font-size:1.1rem;">${desc}</div>
-            </div>
-        `,
-        width: '900px',
-        showConfirmButton: false,
-        showCloseButton: true,
-        customClass: {
-            popup: 'rounded-3xl border-none shadow-2xl p-6 bg-white',
-            closeButton: 'focus:outline-none'
+// ===== GALLERY MODAL (RESPONSIVE + VER MÁS) =====
+window.openGalleryModal = function (imageUrl, title, description) {
+    const modal    = document.getElementById('galleryModal');
+    const imgEl    = document.getElementById('galleryModalImage');
+    const titleEl  = document.getElementById('galleryModalTitle');
+    const bodyEl   = document.getElementById('galleryModalBody');
+
+    if (!modal) return;
+
+    if (imgEl)   imgEl.src = imageUrl;
+    if (titleEl) titleEl.textContent = title;
+
+    // Lógica de 'Ver más'
+    const DESC_LIMIT = 220;
+    const rawText = (description || '').replace(/<br\s*\/?>/gi, '\n');
+
+    if (bodyEl) {
+        if (rawText.length <= DESC_LIMIT) {
+            bodyEl.innerHTML = `<p style="margin:0;line-height:1.7;">${description || 'Sin descripción.'}</p>`;
+        } else {
+            const shortHtml = rawText.substring(0, DESC_LIMIT).replace(/\n/g, '<br>');
+            const fullHtml  = rawText.replace(/\n/g, '<br>');
+            bodyEl.innerHTML = `
+                <p id="gm-short" style="margin:0;line-height:1.7;">${shortHtml}<span style="color:#94a3b8;">...</span></p>
+                <p id="gm-full"  style="margin:0;line-height:1.7;display:none;">${fullHtml}</p>
+                <button id="gm-toggle"
+                    style="margin-top:10px;background:none;border:1px solid #1C69D4;color:#1C69D4;border-radius:8px;padding:5px 14px;font-size:0.82rem;font-weight:700;cursor:pointer;">
+                    <i class='fas fa-chevron-down' style='margin-right:5px;'></i> Ver más
+                </button>
+            `;
+            let exp = false;
+            document.getElementById('gm-toggle').addEventListener('click', () => {
+                exp = !exp;
+                document.getElementById('gm-short').style.display = exp ? 'none' : '';
+                document.getElementById('gm-full').style.display  = exp ? '' : 'none';
+                document.getElementById('gm-toggle').innerHTML = exp
+                    ? "<i class='fas fa-chevron-up' style='margin-right:5px;'></i> Ver menos"
+                    : "<i class='fas fa-chevron-down' style='margin-right:5px;'></i> Ver más";
+            });
         }
-    });
-}
+    }
+
+    modal.style.display = 'flex';
+    setTimeout(() => modal.classList.add('active'), 10);
+};
+
+window.closeGalleryModal = function () {
+    const modal = document.getElementById('galleryModal');
+    if (!modal) return;
+    modal.classList.remove('active');
+    setTimeout(() => { modal.style.display = 'none'; }, 300);
+};
 
 function initCarouselLogic() {
     const track = document.getElementById('gallery-container');
@@ -1306,4 +1340,35 @@ async function loadWhatsAppBranches() {
         listContainer.innerHTML = '<p class="text-center text-red-500">Error al cargar sucursales.</p>';
     }
 }
+
+// ===== MOBILE NAV HAMBURGER =====
+window.toggleNavMenu = function () {
+    const panel   = document.getElementById('mobileMenuPanel');
+    const overlay = document.getElementById('mobileMenuOverlay');
+    const btn     = document.getElementById('hamburgerBtn');
+    if (!panel) return;
+    const isOpen = panel.classList.contains('open');
+    if (isOpen) {
+        panel.classList.remove('open');
+        overlay.classList.remove('open');
+        btn   && btn.classList.remove('open');
+        document.body.style.overflow = '';
+    } else {
+        panel.classList.add('open');
+        overlay.classList.add('open');
+        btn   && btn.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+};
+
+window.closeNavMenu = function () {
+    const panel   = document.getElementById('mobileMenuPanel');
+    const overlay = document.getElementById('mobileMenuOverlay');
+    const btn     = document.getElementById('hamburgerBtn');
+    if (!panel) return;
+    panel.classList.remove('open');
+    overlay.classList.remove('open');
+    btn   && btn.classList.remove('open');
+    document.body.style.overflow = '';
+};
 

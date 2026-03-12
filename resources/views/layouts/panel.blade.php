@@ -102,6 +102,7 @@
             display: none !important;
         }
     </style>
+    @stack('styles')
 </head>
 
 <body class="h-[100dvh] overflow-hidden flex text-gray-800 bg-gray-50 sidebar-body-wrapper transition-colors">
