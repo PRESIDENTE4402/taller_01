@@ -219,6 +219,8 @@ Route::middleware('auth')->group(function () {
             // Reportes (Análisis y Auditoría)
             Route::prefix('reportes')->name('reportes.')->middleware('can_do:ver_reportes')->group(function () {
                 Route::get('/inventario-por-sucursal', [\App\Http\Controllers\Panel\ReporteController::class, 'inventarioPorSucursal'])->name('inventario-por-sucursal');
+                Route::get('/movimientos-inventario', [\App\Http\Controllers\Panel\ReporteController::class, 'movimientosInventario'])->name('movimientos-inventario');
+                Route::get('/movimientos-pdf', [\App\Http\Controllers\Panel\ReporteController::class, 'exportMovimientosPDF'])->name('movimientos-pdf');
                 Route::get('/stock-bajo', [\App\Http\Controllers\Panel\ReporteController::class, 'stockBajo'])->name('stock-bajo');
                 Route::get('/comparativa-precios', [\App\Http\Controllers\Panel\ReporteController::class, 'comparativaPreciosS'])->name('comparativa-precios');
                 Route::get('/audit-atributos', [\App\Http\Controllers\Panel\ReporteController::class, 'auditAtributosdinamicos'])->name('audit-atributos');
@@ -237,6 +239,10 @@ Route::middleware('auth')->group(function () {
                 Route::post('/', [\App\Http\Controllers\Panel\RepuestoController::class, 'store'])->name('store');
                 Route::put('/{id}', [\App\Http\Controllers\Panel\RepuestoController::class, 'update'])->name('update');
                 Route::delete('/{id}', [\App\Http\Controllers\Panel\RepuestoController::class, 'destroy'])->name('destroy');
+                // Movimientos de Stock
+                Route::get('/history/{id}', [\App\Http\Controllers\Panel\RepuestoController::class, 'getHistory'])->name('history');
+                Route::post('/movement/{id}', [\App\Http\Controllers\Panel\RepuestoController::class, 'storeMovement'])->name('storeMovement');
+                Route::post('/bulk-movement', [\App\Http\Controllers\Panel\RepuestoController::class, 'bulkMovement'])->name('bulkMovement');
             });
 
             // Imágenes para Landing Page
@@ -257,6 +263,15 @@ Route::middleware('auth')->group(function () {
                 Route::put('/{id}', [\App\Http\Controllers\Panel\InventarioRecepcionItemController::class, 'update'])->name('update');
                 Route::delete('/{id}', [\App\Http\Controllers\Panel\InventarioRecepcionItemController::class, 'destroy'])->name('destroy');
             });
+        });
+
+        // Ventas
+        Route::prefix('ventas')->name('ventas.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Panel\VentaController::class, 'index'])->name('index');
+            Route::get('/list', [\App\Http\Controllers\Panel\VentaController::class, 'list'])->name('list');
+            Route::get('/{id}', [\App\Http\Controllers\Panel\VentaController::class, 'show'])->name('show');
+            Route::post('/', [\App\Http\Controllers\Panel\VentaController::class, 'store'])->name('store');
+            Route::post('/{id}/return', [\App\Http\Controllers\Panel\VentaController::class, 'processReturn'])->name('return');
         });
 
         // Seguridad (Roles y Usuarios)

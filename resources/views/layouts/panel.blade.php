@@ -239,11 +239,26 @@
 
                     <a href="{{ route('panel.mantenimientos.repuestos.index') }}"
                         class="sidebar-menu-btn tooltip tooltip-right flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.mantenimientos.repuestos.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors"
-                        data-tip="Repuestos (SaaS)">
+                        data-tip="Repuestos e Inventario">
                         <i class="fas fa-boxes w-5 text-center flex-shrink-0"></i>
-                        <span class="menu-text whitespace-nowrap overflow-hidden text-ellipsis">Repuestos (SaaS)</span>
+                        <span class="menu-text whitespace-nowrap overflow-hidden text-ellipsis">Repuestos e Inventario</span>
                     </a>
 
+                    <a href="{{ route('panel.ventas.index') }}"
+                        class="sidebar-menu-btn tooltip tooltip-right flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.ventas.*') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors"
+                        data-tip="Historial de Ventas">
+                        <i class="fas fa-receipt w-5 text-center flex-shrink-0"></i>
+                        <span class="menu-text whitespace-nowrap overflow-hidden text-ellipsis">Historial de Ventas</span>
+                    </a>
+
+                    @can('ver_reportes')
+                        <a href="{{ route('panel.mantenimientos.reportes.movimientos-inventario') }}"
+                            class="sidebar-menu-btn tooltip tooltip-right flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('panel.mantenimientos.reportes.movimientos-inventario') ? 'sidebar-active' : 'sidebar-item text-slate-400' }} transition-colors"
+                            data-tip="Reporte de Movimientos">
+                            <i class="fas fa-file-invoice w-5 text-center flex-shrink-0"></i>
+                            <span class="menu-text whitespace-nowrap overflow-hidden text-ellipsis">Reporte de Movimientos</span>
+                        </a>
+                    @endcan
                 @endcan
 
                 {{-- Sección Mantenimientos (CRUDs) --}}
