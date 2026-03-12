@@ -55,7 +55,7 @@ class LandingImageController extends Controller
     {
         $request->validate([
             'title' => 'required|max:255',
-            'type' => 'required|in:logo,service,gallery,video,about',
+            'type' => 'required|in:logo,service,gallery,video,about,solution,client,contact',
             'image_url' => 'required|url',
             'cloudinary_public_id' => 'nullable|string',
             'alt_text' => 'nullable|max:255',
@@ -92,7 +92,7 @@ class LandingImageController extends Controller
 
         $request->validate([
             'title' => 'required|max:255',
-            'type' => 'required|in:logo,service,gallery,video,about',
+            'type' => 'required|in:logo,service,gallery,video,about,solution,client,contact',
             'image_url' => 'nullable|url',
             'cloudinary_public_id' => 'nullable|string',
             'alt_text' => 'nullable|max:255',
@@ -183,7 +183,7 @@ class LandingImageController extends Controller
             'file' => $isVideo
                 ? 'required|mimes:mp4,mov,avi,webm,mpeg,mpg|max:204800'
                 : 'required|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
-            'type' => 'required|in:logo,service,gallery,video,about',
+            'type' => 'required|in:logo,service,gallery,video,about,solution,client,contact',
         ], [
             'file.max' => $isVideo ? 'El video no puede ser mayor a 200MB' : 'La imagen no puede ser mayor a 10MB',
             'file.mimes' => $isVideo ? 'Solo se permiten videos MP4, MOV, AVI o WebM' : 'Solo se permiten imágenes JPG, PNG, GIF o WebP',

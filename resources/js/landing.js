@@ -738,6 +738,9 @@ async function loadLandingImages() {
         const serviceImages = images.filter(img => img.type === 'service' && img.is_active);
         const galleryImages = images.filter(img => img.type === 'gallery' && img.is_active);
         const videoImages = images.filter(img => img.type === 'video' && img.is_active);
+        const solutionImages = images.filter(img => img.type === 'solution' && img.is_active);
+        const clientImages = images.filter(img => img.type === 'client' && img.is_active);
+        const contactImages = images.filter(img => img.type === 'contact' && img.is_active);
 
         // Load logo
         if (logoImage) {
@@ -763,10 +766,110 @@ async function loadLandingImages() {
         if (videoImages.length > 0) {
             loadVideoStories(videoImages);
         }
+
+        // Load soluciones
+        if (solutionImages.length > 0) {
+            loadSolutions(solutionImages);
+        } else {
+            const solContainer = document.getElementById('solutions-container-dynamic');
+            if(solContainer) solContainer.innerHTML = '<p style="text-align:center;width:100%;">No hay soluciones registradas.</p>';
+        }
+
+        // Load clientes
+        if (clientImages.length > 0) {
+            loadClients(clientImages);
+        } else {
+            const cliContainer = document.getElementById('clients-container-dynamic');
+            if(cliContainer) cliContainer.innerHTML = '<p style="text-align:center;width:100%;">No hay clientes registrados.</p>';
+        }
+
+        // Load contacto
+        if (contactImages.length > 0) {
+            loadContacts(contactImages);
+        } else {
+            const contContainer = document.getElementById('contact-container');
+            if(contContainer) contContainer.innerHTML = '<p style="text-align:center;color:white;width:100%;">No hay datos de contacto registrados.</p>';
+        }
     } catch (error) {
         console.error('Error loading landing images:', error);
         showToast('Error al cargar las imágenes', 'error');
     }
+}
+
+function loadSolutions(images) {
+    const container = document.getElementById('solutions-container-dynamic');
+    if (!container) return;
+    container.innerHTML = '';
+    images.forEach(img => {
+        const card = document.createElement('div');
+        card.className = 'service-card-premium';
+        card.innerHTML = `
+            <div class="card-image" style="background-image: url('${img.image_url}');"></div>
+            <div class="card-content">
+                <div class="card-icon"><i class="fas fa-check-circle" style="color:var(--m-blue-light);"></i></div>
+                <h3>${img.title}</h3>
+                <div style="margin-bottom: 1.5rem; font-size: 0.95rem; color: #64748b;">${img.description || ''}</div>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+function loadClients(images) {
+    const container = document.getElementById('clients-container-dynamic');
+    if (!container) return;
+    container.innerHTML = '';
+    images.forEach(img => {
+        const item = document.createElement('div');
+        item.style.minWidth = '250px';
+        item.style.flex = '0 0 auto';
+        item.className = 'gallery-card';
+        item.innerHTML = `
+            <img src="${img.image_url}" alt="${img.alt_text}" style="border-radius:16px; object-fit:cover; width:100%; height:200px; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.1);">
+            <div style="padding: 1.5rem; text-align:center;">
+                <h3 style="font-weight: 900; color: #1e293b;">${img.title}</h3>
+                <div style="font-size: 0.9rem; color: #64748b; margin-top: 0.5rem; font-style: italic;">"${img.alt_text}"</div>
+            </div>
+        `;
+        container.appendChild(item);
+    });
+}
+
+function loadContacts(images) {
+    const container = document.getElementById('contact-container');
+    if (!container) return;
+    
+    // Si hay un contenedor de header extra por ahí que interfiere, lo reconstruímos limpio
+    container.innerHTML = '<h2 style="color: white; font-size: 2.5rem; font-weight: 900; margin-bottom: 2rem; width: 100%; text-align:center;">Información de Contacto</h2>';
+    const grid = document.createElement('div');
+    grid.style.display = 'grid';
+    grid.style.gridTemplateColumns = 'repeat(auto-fit, minmax(280px, 1fr))';
+    grid.style.gap = '2rem';
+    grid.style.width = '100%';
+
+    images.forEach(img => {
+        const item = document.createElement('div');
+        item.style.background = 'rgba(255,255,255,0.05)';
+        item.style.border = '1px solid rgba(255,255,255,0.1)';
+        item.style.borderRadius = '24px';
+        item.style.padding = '2rem';
+        item.style.color = 'white';
+        item.style.display = 'flex';
+        item.style.flexDirection = 'column';
+        item.style.alignItems = 'center';
+        item.style.textAlign = 'center';
+
+        item.innerHTML = `
+            <div style="width: 80px; height: 80px; border-radius: 50%; overflow:hidden; margin-bottom: 1.5rem; border: 3px solid rgba(255,255,255,0.2);">
+                <img src="${img.image_url}" alt="${img.title}" style="width:100%; height:100%; object-fit:cover;">
+            </div>
+            <h3 style="font-size: 1.25rem; font-weight: bold; margin-bottom: 0.5rem; color: #60a5fa;">${img.title}</h3>
+            <div style="color: #cbd5e1; font-size: 0.95rem; line-height: 1.6;">${img.description || ''}</div>
+        `;
+        grid.appendChild(item);
+    });
+    
+    container.appendChild(grid);
 }
 
 function loadServiceCards(services) {

@@ -1,4 +1,5 @@
 let currentImageId = null;
+let quillEditor = null;
 
 // Modal Control Tailwind
 window.openNewImageModal = function () {
@@ -117,13 +118,25 @@ function getTypeLabel(type) {
         'service': 'Servicio',
         'gallery': 'Galería',
         'video': 'Video de Éxito',
-        'about': 'Imagen Acerca De'
+        'about': 'Imagen Acerca De',
+        'solution': 'Soluciones',
+        'client': 'Clientes',
+        'contact': 'Contacto'
     };
     return labels[type] || type;
 }
 
 // Event Listeners Initialization on DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
+
+    // Inicializar Quill Editor si existe el contenedor
+    const quillContainer = document.getElementById('quillEditor');
+    if (quillContainer && typeof Quill !== 'undefined') {
+        quillEditor = new Quill(quillContainer, window.quillConfig || {
+            theme: 'snow'
+        });
+    }
+
     // Drag & Drop
     const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('fileInput');
@@ -211,11 +224,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const imageTitleLabel = document.querySelector('label[for="imageTitle"]');
         const imageDescriptionLabel = document.querySelector('label[for="imageDescription"]');
 
-        if (type === 'about') {
+        if (type === 'about' || type === 'solution' || type === 'client' || type === 'contact') {
             imageTitleLabel.innerHTML = 'Título Principal <span class="text-red-500">*</span>';
-            imageAltLabel.innerHTML = 'Frase Destacada (Quote) <span class="text-red-500">*</span>';
-            imageDescriptionLabel.innerHTML = 'Descripción / Historia';
-            document.getElementById('imageAlt').placeholder = 'Ej: "Pasión por la Ingeniería Alemana"';
+            imageAltLabel.innerHTML = 'Subtítulo / Frase <span class="text-red-500">*</span>';
+            imageDescriptionLabel.innerHTML = 'Contenido Enriquecido';
+            document.getElementById('imageAlt').placeholder = 'Ej: "Ingeniería Alemana al alcance..."';
         } else {
             imageTitleLabel.innerHTML = 'Título <span class="text-red-500">*</span>';
             imageAltLabel.innerHTML = 'Texto Alternativo (SEO) <span class="text-red-500">*</span>';
@@ -250,7 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const formData = {
                 type: document.getElementById('imageType').value,
                 title: document.getElementById('imageTitle').value,
-                description: document.getElementById('imageDescription').value,
+                description: quillEditor ? quillEditor.root.innerHTML : document.getElementById('imageDescription').value,
                 alt_text: document.getElementById('imageAlt').value,
                 order: parseInt(document.getElementById('imageOrder').value) || 0,
                 is_active: document.getElementById('imageActive').checked,
@@ -415,7 +428,13 @@ window.editImage = function (id) {
             document.getElementById('formTitle').textContent = 'Editar Imagen';
             document.getElementById('imageType').value = img.type;
             document.getElementById('imageTitle').value = img.title;
-            document.getElementById('imageDescription').value = img.description || '';
+            
+            if (quillEditor) {
+                quillEditor.root.innerHTML = img.description || '';
+            } else {
+                document.getElementById('imageDescription').value = img.description || '';
+            }
+
             document.getElementById('imageAlt').value = img.alt_text || '';
             document.getElementById('imageOrder').value = img.order;
             document.getElementById('imageActive').checked = img.is_active;
@@ -506,6 +525,10 @@ function resetForm() {
     document.getElementById('imageForm').reset();
     document.getElementById('formTitle').textContent = 'Agregar Nueva Imagen';
     document.getElementById('previewContainer').classList.add('hidden');
+    
+    if (quillEditor) {
+        quillEditor.root.innerHTML = '';
+    }
 
     const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('fileInput');

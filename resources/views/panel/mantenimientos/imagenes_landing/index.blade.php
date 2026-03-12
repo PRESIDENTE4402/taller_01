@@ -1,4 +1,4 @@
-﻿@extends('layouts.panel')
+@extends('layouts.panel')
 
 @section('title', 'Gestión de Imágenes Landing')
 @section('subtitle', 'Administra el contenido visual de la página de bienvenida')
@@ -9,6 +9,11 @@
         {{-- DecoraciÃ³n de Fondo (Glow sutil Oscuro) --}}
         <div class="absolute -top-10 -right-10 w-64 h-64 bg-slate-900/10 rounded-full blur-3xl pointer-events-none"></div>
         <div class="absolute -bottom-10 -left-10 w-64 h-64 bg-blue-900/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 
         {{-- Header de Acciones --}}
         <div class="flex flex-col sm:flex-row justify-between items-center gap-6 mb-8 relative z-10">
@@ -27,6 +32,9 @@
                         <option value="gallery">Galería de Trabajos</option>
                         <option value="video">Video de Éxito</option>
                         <option value="about">Imagen Acerca De</option>
+                        <option value="solution">Sección Soluciones</option>
+                        <option value="client">Sección Clientes</option>
+                        <option value="contact">Sección Contacto</option>
                     </select>
                 </div>
 
@@ -238,6 +246,9 @@
                                         <option value="gallery">Galería de Trabajos</option>
                                         <option value="video">Video de Éxito</option>
                                         <option value="about">Imagen Acerca De</option>
+                                        <option value="solution">Sección Soluciones</option>
+                                        <option value="client">Sección Clientes</option>
+                                        <option value="contact">Sección Contacto</option>
                                     </select>
                                 </div>
                                 <!-- Título -->
@@ -271,11 +282,9 @@
 
                             <!-- Descripción -->
                             <div>
-                                <label for="imageDescription"
-                                    class="block text-sm font-semibold text-slate-700 mb-1">Descripción</label>
-                                <textarea id="imageDescription"
-                                    class="w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2 px-3 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-slate-100 group relative"
-                                    rows="2" placeholder="Descripción opcional de la imagen..."></textarea>
+                                <label for="imageDescription" class="block text-sm font-semibold text-slate-700 mb-1">Descripción / Contenido <span class="text-xs font-normal text-blue-500">(soporta colores, tamaños e íconos)</span></label>
+                                <div id="quillEditor" style="height: 200px; background: white;" class="rounded-b-lg border-slate-300"></div>
+                                <input type="hidden" id="imageDescription">
                             </div>
 
                             <!-- Estado -->
@@ -312,5 +321,22 @@
 @endsection
 
 @push('scripts')
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    <script>
+        window.quillConfig = {
+            theme: 'snow',
+            placeholder: 'Escribe aquí el contenido enriquecido...',
+            modules: {
+                toolbar: [
+                    [{ 'font': [] }, { 'size': ['small', false, 'large', 'huge'] }],
+                    [{ 'color': [] }, { 'background': [] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    [{ 'align': [] }],
+                    ['link', 'clean']
+                ]
+            }
+        };
+    </script>
     @vite(['resources/js/panel/imagenes_landing.js'])
 @endpush

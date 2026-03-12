@@ -430,7 +430,7 @@
                     class="navbar-link navbar-link-historial">Historial</a>
                 <a href="#soluciones" class="navbar-link" onclick="closeNavMenu()">Soluciones</a>
                 <a href="#clientes" class="navbar-link" onclick="closeNavMenu()">Clientes</a>
-                <a href="#contacto" class="navbar-link" onclick="closeNavMenu()">Contacto</a>
+                <a href="#contacto-final" class="navbar-link" onclick="closeNavMenu()">Contacto</a>
             </div>
 
             <div class="navbar-nav">
@@ -474,7 +474,7 @@
                 <a href="javascript:void(0)" onclick="openHistorialModal(); closeNavMenu();">Historial</a>
                 <a href="#soluciones" onclick="closeNavMenu()">Soluciones</a>
                 <a href="#clientes" onclick="closeNavMenu()">Clientes</a>
-                <a href="#contacto" onclick="closeNavMenu()">Contacto</a>
+                <a href="#contacto-final" onclick="closeNavMenu()">Contacto</a>
                 @auth
                 <a href="{{ route('panel.dashboard') }}"><i class="fas fa-th-large" style="margin-right:8px;"></i>Ir a la App</a>
                 @else
@@ -494,7 +494,9 @@
             </p>
             <div class="hero-buttons">
                 <a href="#soluciones" class="btn btn-primary">Explorar Servicios</a>
-                <a href="#contacto" class="btn btn-secondary">Cotizar Servicio</a>
+                <a href="#contacto-final" class="btn btn-secondary">Cotizar Servicio</a>
+                <a href="javascript:void(0);" onclick="openBookingModal()" class="btn btn-outline"
+                    style="border-color: rgba(255,255,255,0.3); color: white;">Agendar Cita</a>
             </div>
         </div>
     </section>
@@ -561,6 +563,8 @@
             </div>
         </div>
     </section>
+
+
     <!-- ===== BRANDS ===== -->
     <section class="brands">
         <div class="brands-inner">
@@ -608,7 +612,7 @@
                 <p>Tecnología y experiencia para cada necesidad</p>
             </div>
 
-            <div class="feature-list">
+            <div class="feature-list" id="solutions-container-dynamic">
                 <div class="feature-item">
                     <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
                     <div class="feature-text">
@@ -671,7 +675,7 @@
                 <p>Lee qué dicen quienes confían en TECNIMECANICA CALIFORNIA</p>
             </div>
 
-            <div class="stories-grid">
+            <div class="stories-grid" id="clients-container-dynamic">
                 <div class="story-card">
                     <div class="story-quote">
                         <p>"Excelente servicio, técnicos muy profesionales. Mi vehículo quedó como nuevo. Sin duda
@@ -838,20 +842,20 @@
             <div>
                 <h4>Sobre TECNIMECANICA</h4>
                 <ul>
-                    <li><a href="#">Quiénes somos</a></li>
-                    <li><a href="#">Nuestro equipo</a></li>
-                    <li><a href="#">Certificaciones</a></li>
-                    <li><a href="#">Ubicación</a></li>
+                    <li><a href="#about">Quiénes somos</a></li>
+                    <li><a href="#galeria">Nuestros éxitos</a></li>
+                    <li><a href="#clientes">Historias de Clientes</a></li>
+                    <li><a href="#contacto-final">Ubicación</a></li>
                 </ul>
             </div>
 
             <div>
                 <h4>Servicios</h4>
                 <ul>
-                    <li><a href="#">Mantenimiento</a></li>
-                    <li><a href="#">Reparaciones</a></li>
-                    <li><a href="#">Diagnóstico</a></li>
-                    <li><a href="#">Electrónica</a></li>
+                    <li><a href="#servicios">Mantenimiento</a></li>
+                    <li><a href="#soluciones">Soluciones Integrales</a></li>
+                    <li><a href="#servicios">Diagnóstico</a></li>
+                    <li><a href="#soluciones">Electrónica</a></li>
                 </ul>
             </div>
 
@@ -882,8 +886,9 @@
             </div>
         </div>
 
-        <div class="footer-bottom">
+        <div class="footer-bottom" style="display:flex; flex-direction:column; align-items:center; gap:0.5rem;">
             <p>&copy; 2026 TECNIMECANICA CALIFORNIA - Servicios Automotrices. Todos los derechos reservados.</p>
+            <p style="font-size: 0.85rem; color: #cbd5e1; font-style: italic;">Desarrollado y Hecho por <b style="color: #3b82f6; font-weight: 800;">DeveloTech</b></p>
         </div>
     </footer>
 
