@@ -80,4 +80,12 @@ class Repuesto extends Model
             ->orderBy('display_order', 'asc')
             ->get();
     }
+
+    /**
+     * Relación con Movimientos
+     */
+    public function movimientos()
+    {
+        return $this->hasMany(MovimientoInventario::class)->orderBy('created_at', 'desc');
+    }
 }

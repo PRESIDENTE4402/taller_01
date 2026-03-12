@@ -45,18 +45,31 @@ window.updateSidebarCounts = function() {
     });
 };
 
-// Funciones de filtrado global
+// Auxiliar para normalizar texto (quitar acentos)
+function normalizeText(text) {
+    return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
 function applyFilters() {
-    const term = document.getElementById('searchInput') ? document.getElementById('searchInput').value.toLowerCase() : '';
+    const searchInput = document.getElementById('searchInput');
+    const term = searchInput ? normalizeText(searchInput.value) : '';
     const cards = document.querySelectorAll('#repuestosGrid > div');
     const emptyState = document.getElementById('emptyState');
     let visibleCount = 0;
 
     cards.forEach(card => {
-        const text = card.innerText.toLowerCase();
+        const nombre = normalizeText(card.querySelector('h4').innerText);
+        const sku = card.querySelector('.text-slate-300') ? normalizeText(card.querySelector('.text-slate-300').innerText) : '';
+        const marca = card.querySelector('p.text-slate-400\\/80') ? normalizeText(card.querySelector('p.text-slate-400\\/80').innerText) : '';
+        
+        // Buscar también en atributos visibles
+        const atributos = Array.from(card.querySelectorAll('.flex.flex-wrap span'))
+            .map(s => normalizeText(s.innerText))
+            .join(' ');
+        
         const cardCategoryId = card.dataset.category || '';
         
-        const matchesSearch = text.includes(term);
+        const matchesSearch = nombre.includes(term) || sku.includes(term) || marca.includes(term) || atributos.includes(term);
         const matchesCategory = window.currentCategoryFilter === 'all' || cardCategoryId === window.currentCategoryFilter.toString();
 
         if (matchesSearch && matchesCategory) {
@@ -72,7 +85,7 @@ function applyFilters() {
             emptyState.classList.remove('hidden');
             emptyState.classList.add('flex');
             emptyState.querySelector('h3').textContent = 'No hay resultados';
-            emptyState.querySelector('p').textContent = 'Intenta con otros filtros o términos de búsqueda.';
+            emptyState.querySelector('p').textContent = `No encontramos coincidencias para "${document.getElementById('searchInput').value}"`;
         } else {
             emptyState.classList.add('hidden');
             emptyState.classList.remove('flex');
@@ -144,15 +157,6 @@ async function loadRepuestos() {
             card.innerHTML = `
                 <div class="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-blue-500/0 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
                 
-                <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0 flex gap-2 z-10 bg-white/90 backdrop-blur-md rounded-lg p-1.5 shadow-lg shadow-black/5 border border-white">
-                    <button onclick='editRepuesto(${JSON.stringify(item)})' class="text-blue-500 hover:text-white hover:bg-blue-500 w-7 h-7 rounded-md flex items-center justify-center transition-all bg-transparent">
-                        <i class="fas fa-pen text-[11px]"></i>
-                    </button>
-                    <button onclick="deleteRepuesto(${item.id})" class="text-red-500 hover:text-white hover:bg-red-500 w-7 h-7 rounded-md flex items-center justify-center transition-all bg-transparent">
-                        <i class="fas fa-trash text-[11px]"></i>
-                    </button>
-                </div>
-
                 <div class="p-6 flex-1 flex flex-col relative z-0">
                     <div class="flex justify-between items-center mb-4">
                         <span class="text-[10px] font-black text-blue-600 bg-blue-50/50 px-2 py-1 rounded-md border border-blue-100/50 uppercase tracking-widest leading-none drop-shadow-sm">${item.categoria ? item.categoria.nombre : 'GENERAL'}</span>
@@ -171,13 +175,67 @@ async function loadRepuestos() {
                             <span class="font-black text-slate-900 text-2xl leading-none drop-shadow-sm group-hover:text-blue-600 transition-colors"><span class="text-sm font-bold text-slate-400 mr-0.5 group-hover:text-blue-400/50">$</span>${parseFloat(item.precio_venta).toFixed(2)}</span>
                         </div>
                         <div class="flex flex-col items-end">
-                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1.5">Disponibilidad</span>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1.5">Stock</span>
                             <div class="flex items-center gap-2 bg-white px-2.5 py-1.5 rounded-lg shadow-sm border border-slate-100">
                                 <span class="font-black text-sm leading-none ${item.stock_actual <= item.stock_minimo ? 'text-red-500' : 'text-slate-700'}">
                                     ${item.stock_actual}
                                 </span>
                                 <div class="w-2 h-2 rounded-full ${item.stock_actual <= item.stock_minimo ? 'bg-red-500 animate-pulse' : 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]'}"></div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer de acciones dinámico -->
+                <div class="bg-slate-50/50 backdrop-blur-md border-t border-slate-100 p-4 flex items-center justify-between gap-3 group-hover:bg-white transition-all duration-300">
+                    
+                    <!-- Botón Principal: Venta/Carrito -->
+                    <button onclick='addToCart(${JSON.stringify(item)})' class="flex-1 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 bg-blue-600/10 text-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-lg hover:shadow-blue-500/30 active:scale-95 group/cart" title="Añadir a Venta">
+                        <i class="fas fa-shopping-cart text-lg transition-transform group-hover/cart:scale-110"></i>
+                    </button>
+
+                    <!-- Botón Menú de Opciones -->
+                    <div class="relative group/menu">
+                        <button class="w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 bg-slate-200/50 text-slate-500 hover:bg-slate-900 hover:text-white active:scale-95">
+                            <i class="fas fa-ellipsis-h text-lg"></i>
+                        </button>
+
+                        <!-- Menú Desplegable (Estilo Premium) -->
+                        <div class="absolute bottom-full right-0 w-60 bg-white/95 backdrop-blur-xl rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-white p-3 opacity-0 translate-y-2 pointer-events-none group-hover/menu:opacity-100 group-hover/menu:translate-y-[-12px] group-hover/menu:pointer-events-auto transition-all duration-300 z-50
+                                    before:content-[''] before:absolute before:top-full before:left-0 before:w-full before:h-4 before:bg-transparent">
+                            
+                            <div class="px-4 py-2 border-b border-slate-50 mb-2">
+                                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Gestión de Stock</p>
+                            </div>
+                            
+                            <button onclick='openMovementModal(${JSON.stringify(item)}, "entrada")' class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
+                                <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center"><i class="fas fa-plus"></i></div>
+                                <span>Ingresar Stock</span>
+                            </button>
+
+                            <button onclick='openMovementModal(${JSON.stringify(item)}, "salida")' class="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-amber-50 hover:text-amber-600 transition-colors">
+                                <div class="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center"><i class="fas fa-minus"></i></div>
+                                <span>Egreso Manual</span>
+                            </button>
+
+                            <div class="h-[1px] bg-slate-100 my-1 mx-2"></div>
+
+                            <button onclick="viewHistory(${item.id}, '${item.nombre.replace(/'/g, "\\'")}')" class="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                                <div class="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center"><i class="fas fa-history"></i></div>
+                                <span>Ver Historial</span>
+                            </button>
+
+                            <button onclick='editRepuesto(${JSON.stringify(item)})' class="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-purple-50 hover:text-purple-600 transition-colors">
+                                <div class="w-7 h-7 rounded-lg bg-purple-50 flex items-center justify-center"><i class="fas fa-pen-nib"></i></div>
+                                <span>Editar Datos</span>
+                            </button>
+
+                            <div class="h-[1px] bg-slate-100 my-1 mx-2"></div>
+
+                            <button onclick="deleteRepuesto(${item.id})" class="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors">
+                                <div class="w-7 h-7 rounded-lg bg-red-50 flex items-center justify-center"><i class="fas fa-trash-alt"></i></div>
+                                <span>Eliminar</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -285,12 +343,12 @@ async function saveRepuesto(e) {
         const result = await response.json();
 
         if (!response.ok) {
-            if (response.status === 422) {
-                // Show first validation error
+            if (response.status === 422 && result.errors) {
+                // Show first validation error if exists
                 const firstError = Object.values(result.errors)[0][0];
                 throw new Error(firstError);
             }
-            throw new Error(result.message || 'Error al guardar');
+            throw new Error(result.message || result.error || 'Error al guardar');
         }
 
         closeModal();
@@ -385,6 +443,9 @@ async function loadCategoriasDropdown() {
                 `;
                 sidebar.appendChild(btn);
             });
+
+            // Sincronizar conteos después de crear los elementos
+            if (typeof window.updateSidebarCounts === 'function') window.updateSidebarCounts();
         }
     } catch (e) {
         console.error('Error loading dropdown and sidebar filters', e);
@@ -396,6 +457,15 @@ function openModal() {
     currentId = null;
     document.getElementById('modalTitle').innerHTML = '<i class="fas fa-box text-blue-500"></i><span>Nuevo Repuesto</span>';
     document.getElementById('repuestoForm').reset();
+    
+    // Auto-código visual reforzado
+    const codigoInput = document.getElementById('codigoRepuesto');
+    codigoInput.value = 'REP-XXXXX';
+    codigoInput.readOnly = true;
+    codigoInput.disabled = true;
+    codigoInput.classList.add('bg-slate-100', 'cursor-not-allowed', 'text-slate-400', 'border-slate-200');
+    codigoInput.closest('div').classList.add('opacity-70');
+    
     document.getElementById('attributesContainer').innerHTML = ''; // Clear attributes
     toggleModal(true);
 }
@@ -410,7 +480,13 @@ function editRepuesto(item) {
     document.getElementById('modalTitle').innerHTML = '<i class="fas fa-pen text-purple-500"></i><span>Editar Repuesto</span>';
     
     document.getElementById('nombreRepuesto').value = item.nombre;
-    document.getElementById('codigoRepuesto').value = item.codigo_interno;
+    const codigoInput = document.getElementById('codigoRepuesto');
+    codigoInput.value = item.codigo_interno;
+    codigoInput.readOnly = true;
+    codigoInput.disabled = true;
+    codigoInput.classList.add('bg-slate-100', 'cursor-not-allowed', 'text-slate-400', 'border-slate-200');
+    codigoInput.closest('div').classList.add('opacity-70');
+
     document.getElementById('marcaRepuesto').value = item.marca_repuesto || '';
     document.getElementById('categoriaRepuesto').value = item.categoria_id || '';
     document.getElementById('precioCosto').value = item.precio_costo;
@@ -460,3 +536,525 @@ window.editRepuesto = editRepuesto; // Careful with object passing in HTML
 window.openModal = openModal;
 window.closeModal = closeModal;
 window.addAttributeRow = addAttributeRow;
+
+// ==========================================
+// Inventario: Movimientos & Kardex
+// ==========================================
+
+async function openMovementModal(repuesto, tipo) {
+    const isIngreso = tipo === 'entrada';
+    const title = isIngreso ? 'Ingresar Stock' : 'Egreso / Venta de Stock';
+    const icon = isIngreso ? 'fas fa-plus-circle text-emerald-500' : 'fas fa-minus-circle text-amber-500';
+    
+    const { value: formValues } = await Swal.fire({
+        title: `<div class="flex items-center gap-3"><i class="${icon}"></i> <span>${title}</span></div>`,
+        html: `
+            <div class="text-left mt-4 px-2">
+                <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4">Producto: <span class="text-slate-900">${repuesto.nombre}</span></p>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Cantidad</label>
+                        <input type="number" id="swal-cantidad" step="0.01" class="swal2-input !m-0 w-full rounded-xl" placeholder="0.00">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Motivo / Concepto</label>
+                        <select id="swal-motivo" class="swal2-input !m-0 w-full rounded-xl text-sm">
+                            ${isIngreso 
+                                ? '<option value="compra">Compra / Abastecimiento</option><option value="ajuste">Ajuste de Inventario</option><option value="devolucion">Devolución de Cliente</option>'
+                                : '<option value="ajuste">Ajuste / Pérdida</option><option value="consumo">Consumo Interno</option>'
+                            }
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Notas Adicionales</label>
+                        <textarea id="swal-notas" class="swal2-textarea !m-0 w-full rounded-xl text-sm" placeholder="Ej. Factura #123..."></textarea>
+                    </div>
+                </div>
+            </div>
+        `,
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: isIngreso ? 'Registrar Ingreso' : 'Registrar Salida',
+        cancelButtonText: 'Cancelar',
+        customClass: {
+            title: 'text-xl font-black text-gray-800 border-b border-gray-100 pb-4',
+            popup: 'rounded-3xl p-6 shadow-2xl',
+            confirmButton: isIngreso 
+                ? 'bg-emerald-600 text-white rounded-xl font-bold px-6 py-3 hover:bg-emerald-700 transition-all mr-2'
+                : 'bg-amber-600 text-white rounded-xl font-bold px-6 py-3 hover:bg-amber-700 transition-all mr-2',
+            cancelButton: 'bg-gray-100 text-gray-500 rounded-xl font-bold px-6 py-3 hover:bg-gray-200 transition-all'
+        },
+        buttonsStyling: false,
+        preConfirm: () => {
+            const cantidad = document.getElementById('swal-cantidad').value;
+            const motivo = document.getElementById('swal-motivo').value;
+            const notas = document.getElementById('swal-notas').value;
+            
+            if (!cantidad || cantidad <= 0) {
+                Swal.showValidationMessage('Por favor ingresa una cantidad válida');
+                return false;
+            }
+            return { cantidad, motivo, notas, tipo };
+        }
+    });
+
+    if (formValues) {
+        try {
+            const response = await fetch(`${API_URL}/movement/${repuesto.id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': CSRF_TOKEN
+                },
+                body: JSON.stringify(formValues)
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Hecho!',
+                    text: result.message,
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+                loadRepuestos(); // Recargar grid
+            } else {
+                throw new Error(result.message);
+            }
+        } catch (error) {
+            Swal.fire('Error', error.message, 'error');
+        }
+    }
+}
+
+async function viewHistory(id, nombre) {
+    Swal.fire({
+        title: 'Cargando historial...',
+        didOpen: () => Swal.showLoading(),
+        allowOutsideClick: false
+    });
+
+    try {
+        const response = await fetch(`${API_URL}/history/${id}`);
+        const result = await response.json();
+
+        if (result.success) {
+            const movimientos = result.data;
+            let timelineHtml = `
+                <div class="text-left mt-2 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                    <div class="relative pl-8 space-y-6 before:content-[''] before:absolute before:left-[11px] before:top-2 before:bottom-0 before:w-[2px] before:bg-slate-100">
+            `;
+
+            if (movimientos.length === 0) {
+                timelineHtml += '<p class="text-slate-400 italic text-center py-10">No hay movimientos registrados aún.</p>';
+            }
+
+            movimientos.forEach(m => {
+                const date = new Date(m.created_at).toLocaleString();
+                const isIngreso = m.tipo === 'entrada';
+                const colorClass = isIngreso ? 'bg-emerald-500 shadow-emerald-200' : 'bg-amber-500 shadow-amber-200';
+                const icon = isIngreso ? 'fa-arrow-up' : 'fa-arrow-down';
+                
+                timelineHtml += `
+                    <div class="relative">
+                        <div class="absolute -left-[27px] top-1 w-5 h-5 rounded-full ${colorClass} shadow-lg border-4 border-white flex items-center justify-center z-10">
+                            <i class="fas ${icon} text-[8px] text-white"></i>
+                        </div>
+                        <div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm hover:border-blue-100 transition-colors">
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="text-[9px] font-black uppercase tracking-widest ${isIngreso ? 'text-emerald-600' : 'text-amber-600'} bg-${isIngreso ? 'emerald' : 'amber'}-50 px-2 py-0.5 rounded-md">${m.motivo.replace('_', ' ')}</span>
+                                <span class="text-[9px] font-bold text-slate-300 uppercase">${date}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex flex-col">
+                                    <span class="text-xs font-bold text-slate-700">${m.notas || 'Sin notas adicionales'}</span>
+                                    <span class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1"><i class="fas fa-user-circle mr-1"></i> ${m.usuario.name}</span>
+                                </div>
+                                <div class="text-right">
+                                    <span class="block text-sm font-black ${isIngreso ? 'text-emerald-600' : 'text-amber-600'}">${isIngreso ? '+' : '-'}${parseFloat(m.cantidad)}</span>
+                                    <span class="block text-[8px] font-bold text-slate-400 uppercase tracking-tighter">Stock: ${parseFloat(m.stock_nuevo)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            timelineHtml += '</div></div>';
+
+            Swal.fire({
+                title: `<div class="text-left"><p class="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">Kardex / Historial</p><h3 class="text-lg font-black text-slate-800">${nombre}</h3></div>`,
+                html: timelineHtml,
+                width: '600px',
+                showConfirmButton: true,
+                confirmButtonText: 'Cerrar',
+                customClass: {
+                    title: 'border-b border-gray-100 pb-4',
+                    popup: 'rounded-[2.5rem] p-8',
+                    confirmButton: 'bg-slate-900 text-white rounded-xl font-bold px-8 py-3 hover:bg-black transition-all shadow-lg hover:shadow-blue-500/20'
+                },
+                buttonsStyling: false
+            });
+        }
+    } catch (error) {
+        Swal.fire('Error', 'No se pudo cargar el historial', 'error');
+    }
+}
+
+window.openMovementModal = openMovementModal;
+window.viewHistory = viewHistory;
+
+// ==========================================
+// Carrito de Ventas (Multi-producto)
+// ==========================================
+let saleCart = [];
+
+window.toggleCartDrawer = function() {
+    const drawer = document.getElementById('cart-drawer');
+    const backdrop = document.getElementById('cart-backdrop');
+    const isOpen = !drawer.classList.contains('translate-x-full');
+
+    if (isOpen) {
+        drawer.classList.add('translate-x-full');
+        backdrop.classList.add('hidden');
+        backdrop.classList.remove('opacity-100');
+    } else {
+        drawer.classList.remove('translate-x-full');
+        backdrop.classList.remove('hidden');
+        setTimeout(() => backdrop.classList.add('opacity-100'), 10);
+        renderCart();
+    }
+}
+
+window.addToCart = function(item) {
+    const existing = saleCart.find(i => i.id === item.id);
+    if (existing) {
+        if (existing.cantidad < item.stock_actual) {
+            existing.cantidad++;
+        } else {
+            Swal.fire('Atención', 'No hay más stock disponible para este producto.', 'warning');
+            return;
+        }
+    } else {
+        saleCart.push({
+            id: item.id,
+            nombre: item.nombre,
+            sku: item.codigo_interno,
+            precio: parseFloat(item.precio_venta),
+            stock: item.stock_actual,
+            cantidad: 1
+        });
+    }
+
+    updateCartBadge();
+    
+    // Feedback visual
+    const floatBtn = document.getElementById('cart-float-btn');
+    floatBtn.classList.remove('hidden');
+    floatBtn.classList.add('animate-bounce');
+    setTimeout(() => floatBtn.classList.remove('animate-bounce'), 1000);
+
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'bottom-start',
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true
+    });
+
+    Toast.fire({
+        icon: 'success',
+        title: 'Producto añadido'
+    });
+}
+
+function updateCartBadge() {
+    const badge = document.getElementById('cart-badge');
+    badge.textContent = saleCart.reduce((acc, current) => acc + current.cantidad, 0);
+}
+
+function renderCart() {
+    const container = document.getElementById('cart-items-container');
+    const totalEl = document.getElementById('cart-total');
+    
+    if (saleCart.length === 0) {
+        container.innerHTML = `
+            <div class="flex flex-col items-center justify-center py-20 text-center opacity-40">
+                <i class="fas fa-cart-plus text-5xl text-slate-200 mb-4"></i>
+                <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">El carrito está vacío</p>
+            </div>
+        `;
+        totalEl.textContent = '$0.00';
+        document.getElementById('checkout-btn').disabled = true;
+        return;
+    }
+
+    document.getElementById('checkout-btn').disabled = false;
+    let html = '';
+    let total = 0;
+
+    saleCart.forEach((item, index) => {
+        const itemTotal = item.precio * item.cantidad;
+        total += itemTotal;
+        html += `
+            <div class="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm hover:border-blue-100 transition-colors">
+                <div class="flex justify-between items-start mb-2">
+                    <div class="flex-1">
+                        <h4 class="text-sm font-black text-slate-800 line-clamp-1">${item.nombre}</h4>
+                        <p class="text-[9px] font-bold text-slate-300 uppercase tracking-widest">${item.sku}</p>
+                    </div>
+                    <button onclick="removeFromCart(${index})" class="text-slate-300 hover:text-red-500 transition-colors">
+                        <i class="fas fa-trash-alt text-xs"></i>
+                    </button>
+                </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2 bg-slate-50 p-1 rounded-xl border border-slate-100">
+                        <button onclick="updateQty(${index}, -1)" class="w-7 h-7 rounded-lg bg-white shadow-sm flex items-center justify-center text-slate-500 hover:text-blue-600 transition-all font-bold">-</button>
+                        <span class="w-8 text-center text-xs font-black text-slate-700">${item.cantidad}</span>
+                        <button onclick="updateQty(${index}, 1)" class="w-7 h-7 rounded-lg bg-white shadow-sm flex items-center justify-center text-slate-500 hover:text-blue-600 transition-all font-bold">+</button>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Subtotal</p>
+                        <p class="text-sm font-black text-blue-600 leading-none">$${itemTotal.toFixed(2)}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+    totalEl.textContent = `$${total.toFixed(2)}`;
+}
+
+window.updateQty = function(index, delta) {
+    const item = saleCart[index];
+    const newQty = item.cantidad + delta;
+    
+    if (newQty <= 0) {
+        removeFromCart(index);
+    } else if (newQty > item.stock) {
+        Swal.fire('Stock Limitado', `Solo quedan ${item.stock} unidades en stock.`, 'warning');
+    } else {
+        item.cantidad = newQty;
+        renderCart();
+        updateCartBadge();
+    }
+}
+
+window.removeFromCart = function(index) {
+    saleCart.splice(index, 1);
+    renderCart();
+    updateCartBadge();
+    if (saleCart.length === 0) {
+        document.getElementById('cart-float-btn').classList.add('hidden');
+        toggleCartDrawer();
+    }
+}
+
+window.toggleNewClientForm = function() {
+    const searchContainer = document.getElementById('client-search-container');
+    const newClientForm = document.getElementById('new-client-form');
+    const toggleBtn = document.getElementById('toggle-new-client');
+    const isNew = newClientForm.classList.contains('hidden');
+
+    if (isNew) {
+        newClientForm.classList.remove('hidden');
+        searchContainer.classList.add('hidden');
+        toggleBtn.textContent = '← Buscar Existente';
+        toggleBtn.classList.replace('text-blue-600', 'text-slate-400');
+        document.getElementById('selected-client-id').value = '';
+        document.getElementById('cart-client-search').value = '';
+    } else {
+        newClientForm.classList.add('hidden');
+        searchContainer.classList.remove('hidden');
+        toggleBtn.textContent = '+ Nuevo Cliente';
+        toggleBtn.classList.replace('text-slate-400', 'text-blue-600');
+        // Clear new client inputs
+        document.getElementById('new-client-name').value = '';
+        document.getElementById('new-client-phone').value = '';
+        document.getElementById('new-client-nit').value = '';
+    }
+}
+
+window.searchClients = async function(query) {
+    const resultsContainer = document.getElementById('client-results');
+    if (!query || query.length < 2) {
+        resultsContainer.classList.add('hidden');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/panel/clientes/list?search=${query}`);
+        const data = await response.json();
+        const clients = data.data;
+
+        if (clients.length === 0) {
+            resultsContainer.innerHTML = '<div class="p-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">No se encontraron clientes</div>';
+        } else {
+            resultsContainer.innerHTML = clients.map(client => `
+                <div onclick='selectClient(${JSON.stringify(client).replace(/'/g, "&apos;")})' class="p-4 hover:bg-blue-50 cursor-pointer transition-colors flex flex-col gap-1 group border-b border-slate-50 last:border-0">
+                    <span class="text-xs font-black text-slate-700 group-hover:text-blue-600 transition-colors uppercase">${client.nombre_completo}</span>
+                    <div class="flex items-center gap-3 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                        <span><i class="fas fa-phone-alt mr-1"></i> ${client.telefono || 'Sin tel'}</span>
+                        <span><i class="fas fa-id-card mr-1"></i> NIT: ${client.nit || 'C/F'}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+        resultsContainer.classList.remove('hidden');
+    } catch (error) {
+        console.error('Error searching clients:', error);
+    }
+}
+
+window.selectClient = function(client) {
+    document.getElementById('selected-client-id').value = client.id;
+    document.getElementById('selected-client-name').textContent = client.nombre_completo;
+    document.getElementById('selected-client-phone').textContent = client.telefono || 'Sin teléfono';
+    document.getElementById('client-initial').textContent = client.nombre_completo.charAt(0).toUpperCase();
+
+    document.getElementById('client-search-container').classList.add('hidden');
+    document.getElementById('selected-client-badge').classList.remove('hidden');
+    document.getElementById('client-results').classList.add('hidden');
+    document.getElementById('toggle-new-client').classList.add('hidden');
+}
+
+window.deselectClient = function() {
+    document.getElementById('selected-client-id').value = '';
+    document.getElementById('client-search-container').classList.remove('hidden');
+    document.getElementById('selected-client-badge').classList.add('hidden');
+    document.getElementById('toggle-new-client').classList.remove('hidden');
+    document.getElementById('cart-client-search').value = '';
+    document.getElementById('cart-client-search').focus();
+}
+
+window.processCheckout = async function() {
+    const btn = document.getElementById('checkout-btn');
+    const notes = document.getElementById('cart-notes').value;
+    
+    let clienteId = document.getElementById('selected-client-id').value;
+    let clienteNombre = 'Venta Mostrador';
+
+    // Verificar si es cliente nuevo o existente
+    const isNewClient = !document.getElementById('new-client-form').classList.contains('hidden');
+    
+    if (isNewClient) {
+        const nombre = document.getElementById('new-client-name').value;
+        const telefono = document.getElementById('new-client-phone').value;
+        const nit = document.getElementById('new-client-nit').value;
+
+        if (!nombre || !telefono) {
+            Swal.fire('Atención', 'Nombre y Teléfono son obligatorios para un cliente nuevo.', 'warning');
+            return;
+        }
+
+        // Crear cliente dinámicamente
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> REGISTRANDO CLIENTE...';
+        
+        try {
+            const clientResponse = await fetch('/panel/clientes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': CSRF_TOKEN,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ nombre_completo: nombre, telefono, nit, situacion: 'activo' })
+            });
+            const clientRes = await clientResponse.json();
+            if (clientRes.success) {
+                clienteId = clientRes.data.id;
+                clienteNombre = clientRes.data.nombre_completo;
+            } else {
+                throw new Error(clientRes.message);
+            }
+        } catch (error) {
+            btn.disabled = false;
+            btn.innerHTML = '<span>FINALIZAR VENTA</span><i class="fas fa-check-circle ml-2"></i>';
+            Swal.fire('Error', 'No se pudo registrar el cliente: ' + error.message, 'error');
+            return;
+        }
+    } else if (clienteId) {
+        clienteNombre = document.getElementById('selected-client-name').textContent;
+    }
+
+    const confirm = await Swal.fire({
+        title: 'Confirmar Venta',
+        text: `¿Deseas procesar la venta para ${clienteNombre}?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, Finalizar',
+        cancelButtonText: 'Revisar',
+        buttonsStyling: false,
+        customClass: {
+            confirmButton: 'bg-slate-900 text-white rounded-xl px-10 py-3 font-bold mr-2',
+            cancelButton: 'bg-slate-100 text-slate-600 rounded-xl px-10 py-3 font-bold'
+        }
+    });
+
+    if (confirm.isConfirmed) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> PROCESANDO VENTA...';
+
+        const payload = {
+            cliente_id: clienteId || null,
+            cliente_nombre: clienteNombre,
+            notas: notes,
+            items: saleCart.map(i => ({
+                id: i.id,
+                cantidad: i.cantidad
+            }))
+        };
+
+        try {
+            const response = await fetch(`/panel/ventas`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': CSRF_TOKEN,
+                    'Accept': 'application/json',
+                    'X-Sucursal-Id': document.querySelector('[name="sucursal_id"]')?.value || ''
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const res = await response.json();
+
+            if (res.success) {
+                saleCart = [];
+                updateCartBadge();
+                deselectClient(); // Limpiar cliente
+                document.getElementById('cart-notes').value = ''; // Limpiar notas
+                document.getElementById('cart-float-btn').classList.add('hidden');
+                toggleCartDrawer();
+                if (window.loadRepuestos) loadRepuestos();
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Venta Realizada!',
+                    text: `Folio generado: ${res.venta.folio}`,
+                    customClass: {
+                        popup: 'rounded-[2rem]',
+                        confirmButton: 'bg-blue-600 text-white rounded-xl px-8 py-3 font-bold shadow-lg shadow-blue-500/30'
+                    },
+                    buttonsStyling: false
+                });
+            } else {
+                throw new Error(res.message);
+            }
+        } catch (error) {
+            Swal.fire('Error', error.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<span>FINALIZAR VENTA</span><i class="fas fa-check-circle ml-2"></i>';
+        }
+    }
+}
+
+window.toggleNewClientForm = toggleNewClientForm;
+window.searchClients = searchClients;
+window.selectClient = selectClient;
+window.deselectClient = deselectClient;
+window.processCheckout = processCheckout;

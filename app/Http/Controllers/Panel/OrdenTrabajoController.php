@@ -13,6 +13,7 @@ use App\Models\ModeloVehiculo;
 use App\Models\VersionVehiculo;
 use App\Models\BitacoraTrabajo;
 use App\Models\DetalleOrden;
+use App\Models\MovimientoInventario;
 use App\Models\InventarioRecepcionItem;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -342,18 +343,21 @@ class OrdenTrabajoController extends Controller
                     }
 
                     // Descontar inmediatamente para reservar
+                    $stockAnterior = $repuesto->stock_actual;
                     $repuesto->stock_actual -= $request->cantidad;
                     $repuesto->save();
 
-                    // Crear movimiento de salida
-                    \Illuminate\Support\Facades\DB::table('movimientos_inventario')->insert([
+                    // Registrar movimiento de salida
+                    MovimientoInventario::create([
                         'repuesto_id' => $repuesto->id,
-                        'user_id' => \Illuminate\Support\Facades\Auth::id() ?? 1,
+                        'user_id' => Auth::id() ?? 1,
+                        'sucursal_id' => $orden->sucursal_id,
                         'cantidad' => $request->cantidad,
                         'tipo' => 'salida',
+                        'stock_anterior' => $stockAnterior,
+                        'stock_nuevo' => $repuesto->stock_actual,
                         'motivo' => "Despacho a Orden de Trabajo: {$orden->codigo_orden}",
-                        'created_at' => now(),
-                        'updated_at' => now()
+                        'referencia_id' => $orden->id
                     ]);
                 }
             }
@@ -405,16 +409,20 @@ class OrdenTrabajoController extends Controller
                 if ($detalle->suministrado_por === 'taller' && $detalle->repuesto_id) {
                     $repuesto = \App\Models\Repuesto::find($detalle->repuesto_id);
                     if ($repuesto) {
+                        $stockAnterior = $repuesto->stock_actual;
                         $repuesto->stock_actual += $detalle->cantidad;
                         $repuesto->save();
-                        \Illuminate\Support\Facades\DB::table('movimientos_inventario')->insert([
+
+                        MovimientoInventario::create([
                             'repuesto_id' => $repuesto->id,
-                            'user_id' => \Illuminate\Support\Facades\Auth::id() ?? 1,
+                            'user_id' => Auth::id() ?? 1,
+                            'sucursal_id' => $orden->sucursal_id,
                             'cantidad' => $detalle->cantidad,
                             'tipo' => 'entrada',
+                            'stock_anterior' => $stockAnterior,
+                            'stock_nuevo' => $repuesto->stock_actual,
                             'motivo' => "Devolución por repuesto rechazado en OT: {$orden->codigo_orden}",
-                            'created_at' => now(),
-                            'updated_at' => now()
+                            'referencia_id' => $orden->id
                         ]);
                     }
                 }
@@ -426,16 +434,20 @@ class OrdenTrabajoController extends Controller
                         return response()->json(['success' => false, 'message' => "Stock insuficiente para reactivar el ítem. Quedan: {$repuesto->stock_actual}"], 400);
                     }
                     if ($repuesto) {
+                        $stockAnterior = $repuesto->stock_actual;
                         $repuesto->stock_actual -= $detalle->cantidad;
                         $repuesto->save();
-                        \Illuminate\Support\Facades\DB::table('movimientos_inventario')->insert([
+
+                        MovimientoInventario::create([
                             'repuesto_id' => $repuesto->id,
-                            'user_id' => \Illuminate\Support\Facades\Auth::id() ?? 1,
+                            'user_id' => Auth::id() ?? 1,
+                            'sucursal_id' => $orden->sucursal_id,
                             'cantidad' => $detalle->cantidad,
                             'tipo' => 'salida',
+                            'stock_anterior' => $stockAnterior,
+                            'stock_nuevo' => $repuesto->stock_actual,
                             'motivo' => "Reasignación de estado final en OT: {$orden->codigo_orden}",
-                            'created_at' => now(),
-                            'updated_at' => now()
+                            'referencia_id' => $orden->id
                         ]);
                     }
                 }
@@ -476,32 +488,40 @@ class OrdenTrabajoController extends Controller
                             return response()->json(['success' => false, 'message' => "Stock insuficiente para aumentar la cantidad. Quedan: {$repuesto->stock_actual}"], 400);
                         }
                         if ($repuesto) {
+                            $stockAnterior = $repuesto->stock_actual;
                             $repuesto->stock_actual -= $diferencia;
                             $repuesto->save();
-                            \Illuminate\Support\Facades\DB::table('movimientos_inventario')->insert([
+
+                            MovimientoInventario::create([
                                 'repuesto_id' => $repuesto->id,
-                                'user_id' => \Illuminate\Support\Facades\Auth::id() ?? 1,
+                                'user_id' => Auth::id() ?? 1,
+                                'sucursal_id' => $orden->sucursal_id,
                                 'cantidad' => $diferencia,
                                 'tipo' => 'salida',
+                                'stock_anterior' => $stockAnterior,
+                                'stock_nuevo' => $repuesto->stock_actual,
                                 'motivo' => "Suma de cantidad al editar en OT: {$orden->codigo_orden}",
-                                'created_at' => now(),
-                                'updated_at' => now()
+                                'referencia_id' => $orden->id
                             ]);
                         }
                     } elseif ($diferencia < 0) {
                         // Devuelve stock
                         $absDif = abs($diferencia);
                         if ($repuesto) {
+                            $stockAnterior = $repuesto->stock_actual;
                             $repuesto->stock_actual += $absDif;
                             $repuesto->save();
-                            \Illuminate\Support\Facades\DB::table('movimientos_inventario')->insert([
+
+                            MovimientoInventario::create([
                                 'repuesto_id' => $repuesto->id,
-                                'user_id' => \Illuminate\Support\Facades\Auth::id() ?? 1,
+                                'user_id' => Auth::id() ?? 1,
+                                'sucursal_id' => $orden->sucursal_id,
                                 'cantidad' => $absDif,
                                 'tipo' => 'entrada',
+                                'stock_anterior' => $stockAnterior,
+                                'stock_nuevo' => $repuesto->stock_actual,
                                 'motivo' => "Resta de cantidad al editar en OT: {$orden->codigo_orden}",
-                                'created_at' => now(),
-                                'updated_at' => now()
+                                'referencia_id' => $orden->id
                             ]);
                         }
                     }
@@ -531,16 +551,20 @@ class OrdenTrabajoController extends Controller
             if ($detalle->suministrado_por === 'taller' && $detalle->repuesto_id && $detalle->estado !== 'rechazado') {
                 $repuesto = \App\Models\Repuesto::find($detalle->repuesto_id);
                 if ($repuesto) {
+                    $stockAnterior = $repuesto->stock_actual;
                     $repuesto->stock_actual += $detalle->cantidad;
                     $repuesto->save();
-                    \Illuminate\Support\Facades\DB::table('movimientos_inventario')->insert([
+
+                    MovimientoInventario::create([
                         'repuesto_id' => $repuesto->id,
-                        'user_id' => \Illuminate\Support\Facades\Auth::id() ?? 1,
+                        'user_id' => Auth::id() ?? 1,
+                        'sucursal_id' => $orden->sucursal_id,
                         'cantidad' => $detalle->cantidad,
                         'tipo' => 'entrada',
+                        'stock_anterior' => $stockAnterior,
+                        'stock_nuevo' => $repuesto->stock_actual,
                         'motivo' => "Devolución por repuesto eliminado de OT: {$orden->codigo_orden}",
-                        'created_at' => now(),
-                        'updated_at' => now()
+                        'referencia_id' => $orden->id
                     ]);
                 }
             }
